@@ -9,10 +9,98 @@ namespace BreakFastShop.Controllers
 {
     public class AdminController : Controller
     {
+        private const string AdminSessionKey = "__ADMIN_USER";
         private string ConnStr => ConfigurationManager.ConnectionStrings["BreakfastShop"].ConnectionString;
+        private string AdminAccount => ConfigurationManager.AppSettings["AdminUser"] ?? "admin";
+        private string AdminPassword => ConfigurationManager.AppSettings["AdminPassword"] ?? "admin123";
+        private bool IsAuthenticated => Session[AdminSessionKey] != null;
 
-        public ActionResult Login() => View();
-        public ActionResult Index() => View();
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var allowAnonymous = filterContext.ActionDescriptor.IsDefined(typeof(AllowAnonymousAttribute), inherit: true);
+            if (!allowAnonymous && !IsAuthenticated)
+            {
+                if (filterContext.HttpContext.Request.IsAjaxRequest())
+                {
+                    filterContext.HttpContext.Response.StatusCode = 401;
+                    filterContext.Result = Json(new { ok = false, error = "尚未登入，請重新登入後台。" }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    TempData["Alert"] = "請先登入後台。";
+                    filterContext.Result = RedirectToAction("Login");
+                }
+                return;
+            }
+
+            ViewBag.AdminUser = Session[AdminSessionKey] as string;
+            base.OnActionExecuting(filterContext);
+        }
+
+        [AllowAnonymous]
+        public ActionResult Login()
+        {
+            if (IsAuthenticated)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Message = TempData["Alert"] as string;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public ActionResult Login(string account, string password)
+        {
+            if (IsAuthenticated)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Message = TempData["Alert"] as string;
+
+            if (string.IsNullOrWhiteSpace(account) || string.IsNullOrWhiteSpace(password))
+            {
+                ViewBag.Error = "請輸入帳號與密碼";
+                ViewBag.Account = account;
+                Response.StatusCode = 400;
+                return View();
+            }
+
+            if (ValidateAdmin(account, password))
+            {
+                Session[AdminSessionKey] = account.Trim();
+                TempData["Welcome"] = $"歡迎回來，{account.Trim()}！";
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Error = "帳號或密碼錯誤";
+            ViewBag.Account = account;
+            Response.StatusCode = 401;
+            return View();
+        }
+
+        public ActionResult Logout()
+        {
+            Session.Remove(AdminSessionKey);
+            TempData["Alert"] = "您已成功登出。";
+            return RedirectToAction("Login");
+        }
+
+        public ActionResult Index()
+        {
+            ViewBag.InitialToast = TempData["Welcome"] as string;
+            return View();
+        }
+
+        private bool ValidateAdmin(string account, string password)
+        {
+            return string.Equals(account?.Trim(), AdminAccount, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(password, AdminPassword, StringComparison.Ordinal);
+        }
+
         [HttpGet] public async Task<ActionResult> Shops() { using (var c = new SqlConnection(ConnStr)) using (var cmd = new SqlCommand("SELECT Id,Name,IsActive FROM Shop ORDER BY Name", c)) { await c.OpenAsync(); var r = await cmd.ExecuteReaderAsync(); var list = new List<object>(); while (await r.ReadAsync()) { list.Add(new { Id = r.GetGuid(0), Name = r.GetString(1), IsActive = r.GetBoolean(2) }); } return Json(list, JsonRequestBehavior.AllowGet); } }
         [HttpPost] public async Task<ActionResult> CreateShop(Guid? id, string name, string phone, string addr, bool isActive = true) { if (string.IsNullOrWhiteSpace(name)) return Json(new { ok = false, error = "Name required" }); using (var c = new SqlConnection(ConnStr)) using (var cmd = new SqlCommand(@"IF(@Id IS NULL OR @Id='00000000-0000-0000-0000-000000000000') BEGIN INSERT INTO Shop(Id,Name,Phone,Addr,IsActive,CreateDate,UpdateDate) VALUES(NEWID(),@Name,@Phone,@Addr,@IsActive,GETDATE(),GETDATE()); END ELSE BEGIN UPDATE Shop SET Name=@Name,Phone=@Phone,Addr=@Addr,IsActive=@IsActive,UpdateDate=GETDATE() WHERE Id=@Id; END", c)) { cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value); cmd.Parameters.AddWithValue("@Name", name ?? ""); cmd.Parameters.AddWithValue("@Phone", (object)phone ?? DBNull.Value); cmd.Parameters.AddWithValue("@Addr", (object)addr ?? DBNull.Value); cmd.Parameters.AddWithValue("@IsActive", isActive); await c.OpenAsync(); await cmd.ExecuteNonQueryAsync(); return Json(new { ok = true }); } }
         [HttpPost] public async Task<ActionResult> DeleteShop(Guid id) { using (var c = new SqlConnection(ConnStr)) using (var cmd = new SqlCommand("DELETE FROM Shop WHERE Id=@Id", c)) { cmd.Parameters.AddWithValue("@Id", id); await c.OpenAsync(); var rows = await cmd.ExecuteNonQueryAsync(); return Json(new { ok = rows > 0 }); } }

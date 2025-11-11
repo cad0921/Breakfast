@@ -1,6 +1,9 @@
-﻿@{
+﻿@using System.Web
+@{
     ViewBag.Title = "後台管理";
     Layout = null;
+    var adminUser = (string)(ViewBag.AdminUser ?? "管理員");
+    var initialToast = ViewBag.InitialToast as string ?? string.Empty;
 }
 <!DOCTYPE html>
 <html>
@@ -58,6 +61,12 @@
   .nav .badge{margin-left:auto; background:rgba(14,165,233,.12); color:var(--accent);}
 
   .content{flex:1; padding:28px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; padding:18px 22px; border-radius:var(--radius); background:linear-gradient(120deg, rgba(14,165,233,.14), rgba(124,58,237,.12)); border:1px solid rgba(14,165,233,.25); box-shadow: var(--shadow);}
+  .topbar .meta{display:flex; flex-direction:column; gap:2px;}
+  .topbar strong{font-size:18px; color:var(--text);}
+  .topbar span{font-size:12px; color:var(--text-dim);}
+  .topbar .logout-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:999px; border:1px solid rgba(14,165,233,.4); background:#fff; color:var(--accent); font-weight:600; text-decoration:none; transition:.2s ease;}
+  .topbar .logout-btn:hover{background:rgba(14,165,233,.08);}
   .page-title{display:flex; align-items:center; gap:10px; margin:0 0 18px 0}
   .page-title .pill{font-size:12px; color:var(--accent); background:rgba(14,165,233,.12);
                     border:1px solid rgba(14,165,233,.25); padding:2px 8px; border-radius:999px}
@@ -114,6 +123,15 @@
 
         <!-- Content -->
         <main class="content">
+            <div class="topbar">
+                <div class="meta">
+                    <strong>@adminUser，歡迎回來</strong>
+                    <span>使用「Shift + 1~5」快速切換模組以提升管理效率</span>
+                </div>
+                <a class="logout-btn" href="@Url.Action("Logout","Admin")">
+                    <span aria-hidden="true">⎋</span> 登出
+                </a>
+            </div>
             <div class="page-title">
                 <h3 id="pageTitle" style="margin:0">店家</h3>
                 <span class="pill" id="pageHint">SHIFT + 1~5 可快速切換</span>
@@ -438,6 +456,8 @@
 
   // ===== Initial =====
   function init(){ loadShopsInto(true).then(function(){ $('#catShop,#mealShop,#tableShop,#orderShop').val(''); }); }
+  var initialToast = '@HttpUtility.JavaScriptStringEncode(initialToast)';
+  if(initialToast){ toast(initialToast, 2000); }
   init();
 })();
     </script>
