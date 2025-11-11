@@ -173,6 +173,60 @@ namespace BreakFastShop.Controllers
         }
 
         [HttpGet]
+        public async Task<ActionResult> ShopInfo(Guid? id)
+        {
+            if (!id.HasValue || id.Value == Guid.Empty)
+            {
+                Response.StatusCode = 400;
+                return Json(new { ok = false, error = "店家識別碼無效。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var connStr = ConnStr;
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                Response.StatusCode = 500;
+                return Json(new { ok = false, error = "尚未設定資料庫連線字串。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            const string sql = @"SELECT TOP 1 Id,Name
+                                 FROM Shop
+                                 WHERE Id=@Id AND IsActive=1";
+
+            try
+            {
+                using (var connection = new SqlConnection(connStr))
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id.Value);
+
+                    await connection.OpenAsync();
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            var shop = new
+                            {
+                                id = reader.GetGuid(0),
+                                name = reader.IsDBNull(1) ? null : reader.GetString(1)
+                            };
+
+                            return Json(new { ok = true, shop }, JsonRequestBehavior.AllowGet);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                Response.StatusCode = 500;
+                return Json(new { ok = false, error = "查詢店家時發生錯誤。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            Response.StatusCode = 404;
+            return Json(new { ok = false, error = "沒有此店家" }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         public async Task<ActionResult> ShopMeals(Guid? shopId)
         {
             if (!shopId.HasValue || shopId.Value == Guid.Empty)
