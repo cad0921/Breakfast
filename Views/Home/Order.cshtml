@@ -11,7 +11,9 @@
         shopName = Model.Table.ShopName,
         zone = Model.Table.Zone
     };
-    var mealsPayload = Model?.Meals?.Select(m => new { id = m.Id, name = m.Name, money = m.Money, element = m.Element }).ToList() ?? new object[0];
+    var mealsPayload = Model?.Meals?
+        .Select(m => (object)new { id = m.Id, name = m.Name, money = m.Money, element = m.Element })
+        .ToList() ?? new List<object>();
     var errorMessage = Model?.Error;
 }
 <!doctype html>
