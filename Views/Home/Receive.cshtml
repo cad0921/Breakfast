@@ -1,0 +1,32 @@
+﻿@{ Layout = null; }
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>接收頁</title>
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <style>
+        body {
+            font-family: system-ui,"Noto Sans TC",sans-serif;
+            margin: 2rem
+        }
+
+        .log {
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+            padding: 1rem
+        }
+    </style>
+</head>
+<body>
+    <h1>接收頁</h1>
+<pre class="log" id="log">連線中…</pre>
+    <script>
+  var hub = $.connection.ordersHub;
+  hub.client.orderChanged = function(p){ $('#log').append('[orderChanged] '+JSON.stringify(p)+'\n'); };
+  $.connection.hub.start().done(function(){ $('#log').text('已連線\n'); });
+    </script>
+</body>
+</html>

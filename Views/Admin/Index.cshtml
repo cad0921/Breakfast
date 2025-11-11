@@ -1,0 +1,445 @@
+﻿@{
+    ViewBag.Title = "後台管理";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>BreakfastShop 後台</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+    <style>
+  .modal, .modal-backdrop{ position: fixed; }
+  .modal{ z-index: 1055; }
+  .modal-backdrop{ z-index: 1050; }
+  /* ----- Theme Tokens (Light) ----- */
+  :root{
+    --bg:#f8fafc;             /* slate-50 */
+    --bg-soft:#f1f5f9;        /* slate-100 */
+    --panel:#ffffff;          /* white */
+    --text:#0f172a;           /* slate-900 */
+    --text-dim:#475569;       /* slate-600 */
+    --accent:#0ea5e9;         /* sky-500 */
+    --accent-2:#7c3aed;       /* violet-600 */
+    --success:#059669;        /* emerald-600 */
+    --danger:#dc2626;         /* red-600 */
+    --warning:#d97706;        /* amber-600 */
+    --border:#e2e8f0;         /* slate-200 */
+    --shadow:0 10px 30px rgba(2,6,23,.08);
+    --radius:14px;
+  }
+
+  html,body{height:100%;}
+  body{
+    background:linear-gradient(120deg, rgba(14,165,233,.08), rgba(124,58,237,.06)), var(--bg);
+    color:var(--text);
+    font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Microsoft JhengHei", sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+
+  /* ----- App Layout ----- */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{
+    width: 260px; flex:0 0 260px; background: linear-gradient(180deg, var(--panel), var(--bg-soft));
+    border-right:1px solid var(--border); position: sticky; top:0; height:100vh; box-shadow: var(--shadow);
+  }
+  .brand{padding:20px 18px; border-bottom:1px solid var(--border);}
+  .brand h1{font-size:18px; margin:0; letter-spacing:.5px; color:var(--text)}
+  .brand small{color:var(--text-dim)}
+  .nav{list-style:none; margin:0; padding:14px 10px;}
+  .nav li{margin:6px 0}
+  .nav a{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; color:var(--text);
+    text-decoration:none; border:1px solid transparent; transition:.2s ease;
+  }
+  .nav a:hover{background:var(--bg-soft); border-color:var(--border)}
+  .nav a.active{background:linear-gradient(90deg, rgba(14,165,233,.18), rgba(124,58,237,.16));
+                border-color:rgba(14,165,233,.35); color:var(--text); box-shadow: inset 0 0 0 1px rgba(14,165,233,.14)}
+  .nav .badge{margin-left:auto; background:rgba(14,165,233,.12); color:var(--accent);}
+
+  .content{flex:1; padding:28px;}
+  .page-title{display:flex; align-items:center; gap:10px; margin:0 0 18px 0}
+  .page-title .pill{font-size:12px; color:var(--accent); background:rgba(14,165,233,.12);
+                    border:1px solid rgba(14,165,233,.25); padding:2px 8px; border-radius:999px}
+
+  /* ----- Panels / Tables ----- */
+  .card{background: var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow: var(--shadow); margin-bottom:22px;}
+  .card-head{padding:14px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:rgba(255,255,255,.65); backdrop-filter: blur(6px); z-index:5}
+  .card-body{padding:16px}
+
+  .form-control, .btn, select{ border-radius:10px; border-color:var(--border); background:#fff; color:var(--text); }
+  .form-control:focus{ border-color: var(--accent); box-shadow:0 0 0 3px rgba(14,165,233,.18)}
+  .btn-primary{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); border:0; color:#fff }
+  .btn-default{ background:#fff; border:1px solid var(--border); color:var(--text) }
+  .btn-danger{ background: var(--danger); border:0; color:#fff }
+
+  .table{ color:var(--text); border-color: var(--border) }
+  .table>thead>tr>th{ border-color: var(--border); color:#334155; white-space:nowrap; background: var(--bg-soft) }
+  .table>tbody>tr>td{ border-color: var(--border) }
+
+  .badge-yn{min-width:60px; display:inline-block; border-radius:999px; padding:4px 10px; font-weight:600}
+  .badge-success{ background: rgba(5,150,105,.12); color: var(--success); border:1px solid rgba(5,150,105,.25)}
+  .badge-default{ background: rgba(15,23,42,.05); color:#334155; border:1px solid var(--border)}
+
+  .muted{ color: var(--text-dim) }
+  .grid{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:18px }
+  @@media (max-width: 1100px){ .grid{ grid-template-columns:1fr; } .sidebar{position:fixed; height:auto; min-height:unset} }
+
+  .toast-lite{ position:fixed; right:16px; bottom:16px; background:#111827; color:#fff; padding:.6rem .9rem; border-radius:.7rem; opacity:0; transform:translateY(8px); transition:.25s; z-index:9999; pointer-events:none; border:1px solid var(--border)}
+  .toast-lite.show{ opacity:1; transform:translateY(0)}
+
+  .panel{ background:transparent; border:0; box-shadow:none }
+
+  /* --- Tab visibility (custom, not Bootstrap) --- */
+  .tab-pane{ display:none }
+  .tab-pane.active{ display:block }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>BreakfastShop 後台</h1>
+                <small class="muted">管理商店 / 分類 / 餐點 / 桌位 / 訂單</small>
+            </div>
+            <ul class="nav">
+                <li><a href="#" class="nav-link active" data-tab="shops">店家</a></li>
+                <li><a href="#" class="nav-link" data-tab="cats">分類</a></li>
+                <li><a href="#" class="nav-link" data-tab="meals">餐點</a></li>
+                <li><a href="#" class="nav-link" data-tab="tables">桌位</a></li>
+                <li><a href="#" class="nav-link" data-tab="orders">訂單 <span class="badge">即時</span></a></li>
+            </ul>
+        </aside>
+
+        <!-- Content -->
+        <main class="content">
+            <div class="page-title">
+                <h3 id="pageTitle" style="margin:0">店家</h3>
+                <span class="pill" id="pageHint">SHIFT + 1~5 可快速切換</span>
+            </div>
+
+            <!-- 店家 -->
+            <section class="tab-pane active" id="pane-shops">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-head"><strong>店家管理</strong></div>
+                        <div class="card-body">
+                            <p class="muted" style="margin-bottom:10px">在此新增或編輯店家資料</p>
+                            <button class="btn btn-primary" id="btnNewShop">新增店家</button>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 2">
+                        <div class="card-head"><strong>店家清單</strong></div>
+                        <div class="card-body">
+                            <table class="table table-bordered table-hover" id="shopsT">
+                                <thead><tr><th>Id</th><th>名稱</th><th>電話</th><th>地址</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="muted">提示：點「刪」會直接刪除；點「帶入」可把資料帶到左側表單。</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 分類 -->
+            <section class="tab-pane" id="pane-cats">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-head"><strong>分類管理</strong></div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" id="btnNewCat">新增分類</button>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 2">
+                        <div class="card-head"><strong>分類清單</strong></div>
+                        <div class="card-body">
+                            <table class="table table-bordered table-hover" id="catsT">
+                                <thead><tr><th>Id</th><th>名稱</th><th>排序</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 餐點 -->
+            <section class="tab-pane" id="pane-meals">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-head"><strong>餐點管理</strong></div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" id="btnNewMeal">新增餐點</button>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 2">
+                        <div class="card-head"><strong>餐點清單</strong></div>
+                        <div class="card-body">
+                            <table class="table table-bordered table-hover" id="mealsT">
+                                <thead><tr><th>Id</th><th>名稱</th><th>價格</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 桌位 -->
+            <section class="tab-pane" id="pane-tables">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-head"><strong>桌位管理</strong></div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" id="btnNewTable">新增桌位</button>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 2">
+                        <div class="card-head"><strong>桌位清單</strong></div>
+                        <div class="card-body">
+                            <table class="table table-bordered table-hover" id="tablesT">
+                                <thead><tr><th>Id</th><th>桌號</th><th>區域</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 訂單 -->
+            <section class="tab-pane" id="pane-orders">
+                <div class="card">
+                    <div class="card-head"><strong>訂單（最新 100 筆）</strong></div>
+                    <div class="card-body">
+                        <div class="form-inline" style="gap:.5rem;display:flex;align-items:center;margin-bottom:.5rem">
+                            <label class="muted">店家（可空）</label>
+                            <select id="orderShop" class="form-control" style="max-width:240px"></select>
+                            <button class="btn btn-default" id="btnReloadOrders">重新整理</button>
+                        </div>
+                        <table class="table table-bordered table-hover" id="ordersT">
+                            <thead><tr><th>Id</th><th>狀態</th><th>型態</th><th>桌位</th><th>建立時間</th><th>動作</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <div class="toast-lite" id="toast-lite"></div>
+            <!-- Modals -->
+            <!-- Shop Modal -->
+            <div class="modal fade" id="shopModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="shopModalTitle">新增店家</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <form id="shopForm">
+                                <input type="hidden" id="shopId" />
+                                <div class="form-group"><label>名稱</label><input class="form-control" id="mShopName" required /></div>
+                                <div class="form-group"><label>電話</label><input class="form-control" id="mShopPhone" /></div>
+                                <div class="form-group"><label>地址</label><input class="form-control" id="mShopAddr" /></div>
+                                <div class="checkbox"><label><input type="checkbox" id="mShopActive" checked /> 啟用</label></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="saveShop">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Modal -->
+            <div class="modal fade" id="catModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="catModalTitle">新增分類</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <form id="catForm">
+                                <input type="hidden" id="catId" />
+                                <div class="form-group"><label>店家</label><select id="mCatShop" class="form-control"></select></div>
+                                <div class="form-group"><label>名稱</label><input class="form-control" id="mCatName" required /></div>
+                                <div class="form-group"><label>排序</label><input class="form-control" id="mCatSort" type="number" value="0" /></div>
+                                <div class="checkbox"><label><input type="checkbox" id="mCatActive" checked /> 啟用</label></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="saveCat">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meal Modal -->
+            <div class="modal fade" id="mealModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="mealModalTitle">新增餐點</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <form id="mealForm">
+                                <input type="hidden" id="mealId" />
+                                <div class="form-group"><label>店家</label><select id="mMealShop" class="form-control"></select></div>
+                                <div class="form-group"><label>分類（可空）</label><select id="mMealCat" class="form-control"></select></div>
+                                <div class="form-group"><label>名稱</label><input class="form-control" id="mMealName" required /></div>
+                                <div class="form-group"><label>價格</label><input class="form-control" id="mMealMoney" type="number" value="80" /></div>
+                                <div class="checkbox"><label><input type="checkbox" id="mMealActive" checked /> 啟用</label></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="saveMeal">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Modal -->
+            <div class="modal fade" id="tableModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="tableModalTitle">新增桌位</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <form id="tableForm">
+                                <input type="hidden" id="tableId" />
+                                <div class="form-group"><label>店家</label><select id="mTableShop" class="form-control"></select></div>
+                                <div class="form-group"><label>桌號</label><input class="form-control" id="mTableNumber" type="number" value="1" /></div>
+                                <div class="form-group"><label>區域</label><input class="form-control" id="mTableZone" /></div>
+                                <div class="checkbox"><label><input type="checkbox" id="mTableActive" checked /> 啟用</label></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="saveTable">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    <script>
+(function(){
+  // ====== URL Map ======
+  var U = {
+    Shops: '@Url.Action("Shops","Admin")',
+    CreateShop: '@Url.Action("CreateShop","Admin")',
+    DeleteShop: '@Url.Action("DeleteShop","Admin")',
+    Categories: '@Url.Action("Categories","Admin")',
+    UpsertCategory: '@Url.Action("UpsertCategory","Admin")',
+    Meals: '@Url.Action("Meals","Admin")',
+    UpsertMeal: '@Url.Action("UpsertMeal","Admin")',
+    DeleteMeal: '@Url.Action("DeleteMeal","Admin")',
+    Tables: '@Url.Action("Tables","Admin")',
+    UpsertTable: '@Url.Action("UpsertTable","Admin")',
+    Orders: '@Url.Action("Orders","Admin")',
+    UpdateOrderStatus: '@Url.Action("UpdateOrderStatus","Admin")',
+    DeleteCategory: '@Url.Action("DeleteCategory","Admin")'
+  };
+
+  function getJSON(u){ return $.getJSON(u); }
+  function post(u,d,$btn){ if($btn){ lockBtn($btn,true);} return $.ajax({ url:u, method:'POST', data:d }).always(function(){ if($btn){ lockBtn($btn,false);} }); }
+  function lockBtn($b,lock){ if(!$b) return; if(lock){ $b.data('txt',$b.text()); $b.prop('disabled',true).text('處理中…'); } else { $b.prop('disabled',false).text($b.data('txt')); } }
+  function toast(msg,ms){ var el=$('#toast-lite'); el.text(msg).addClass('show'); setTimeout(function(){ el.removeClass('show'); }, ms||1500); }
+  function badgeYN(v){ return v ? '<span class="badge-yn badge-success">啟用</span>' : '<span class="badge-yn badge-default">停用</span>'; }
+  function fmtDate(s){ return s ? (''+s).replace('T',' ').replace('Z','') : ''; }
+
+  // ===== Side Navigation Switch =====
+  var titles = { shops:'店家', cats:'分類', meals:'餐點', tables:'桌位', orders:'訂單' };
+  $('.nav-link').on('click', function(e){ e.preventDefault(); var tab=$(this).data('tab'); switchTo(tab); });
+  $(document).on('keydown', function(e){ if(e.shiftKey){ var map={49:'shops',50:'cats',51:'meals',52:'tables',53:'orders'}; var t=map[e.which]; if(t){ switchTo(t);} } });
+
+  function switchTo(tab){
+    $('.nav-link').removeClass('active');
+    $('.nav-link[data-tab="'+tab+'"]').addClass('active');
+    $('.tab-pane').removeClass('active');
+    $('#pane-'+tab).addClass('active');
+    $('#pageTitle').text(titles[tab]||'');
+    // lazy load
+    if(tab==='shops') loadShopsInto(true);
+    if(tab==='cats'){ syncShopSelects(); loadCats(); }
+    if(tab==='meals'){ syncShopSelects(); loadMealCats(); loadMeals(); }
+    if(tab==='tables'){ syncShopSelects(); loadTables(); }
+    if(tab==='orders'){ syncShopSelects(); loadOrders(); }
+  }
+
+  // Default
+  switchTo('shops');
+
+  // ===== Shops =====
+  function fillShopSelect($sel, shops, keepVal){ var old = keepVal ? $sel.val() : null; $sel.empty().append($('<option/>').val('').text('(全部/未指定)')); shops.forEach(function(s){ $sel.append($('<option/>').val(s.Id).text(s.Name)); }); if(keepVal && old!==null) $sel.val(old); }
+
+  function renderShops(list){ var $t=$('#shopsT tbody').empty(); list.forEach(function(s){ var tr=$('<tr/>'); tr.append($('<td/>').text(s.Id)); tr.append($('<td/>').text(s.Name)); tr.append($('<td/>').text(s.Phone||'')); tr.append($('<td/>').text(s.Addr||'')); tr.append($('<td/>').html(badgeYN(s.IsActive)));
+    var $td=$('<td/>' );
+      var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openShopModal(s); });
+      var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除店家？')) return; post(U.DeleteShop,{id:s.Id}).done(function(){ loadShopsInto(); toast('已刪除'); });});
+      $td.append($edit).append(' ').append($del); tr.append($td); $t.append(tr); }); }
+
+  function loadShopsInto(initial){ return getJSON(U.Shops).then(function(list){ renderShops(list); fillShopSelect($('#catShop'), list, !initial); fillShopSelect($('#mealShop'), list, !initial); fillShopSelect($('#tableShop'), list, !initial); fillShopSelect($('#orderShop'), list, !initial); }); }
+
+  $('#btnAddShop').on('click', function(){ var $btn=$(this); var d={ id:null, name:$('#shopName').val(), phone:$('#shopPhone').val(), addr:$('#shopAddr').val(), isActive:$('#shopActive').prop('checked') }; post(U.CreateShop,d,$btn).done(function(){ toast('店家已儲存'); $('#btnResetShop').click(); loadShopsInto(); }); });
+  $('#btnResetShop').on('click', function(){ $('#shopName,#shopPhone,#shopAddr').val(''); $('#shopActive').prop('checked', true); });
+
+  function syncShopSelects(){ if(!$('#catShop option').length){ loadShopsInto(); } }
+
+  // ===== Categories =====
+  function loadCats(){ var sid=$('#catShop').val()||''; return getJSON(U.Categories+'?shopId='+sid).then(function(list){ var $t=$('#catsT tbody').empty(); list.forEach(function(c){ var tr=$('<tr/>'); tr.append($('<td/>').text(c.Id)); tr.append($('<td/>').text(c.Name)); tr.append($('<td/>').text(c.SortOrder)); tr.append($('<td/>').html(badgeYN(c.IsActive)));
+      var $td=$('<td/>' );
+        var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openCatModal({ Id:c.Id, ShopId:$('#catShop').val()||'', Name:c.Name, SortOrder:c.SortOrder, IsActive:c.IsActive }); });
+        var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除分類？')) return; post(U.DeleteCategory,{ id:c.Id }).done(function(){ loadCats(); toast('已刪除'); }); });
+        $td.append($edit).append(' ').append($del); tr.append($td); $t.append(tr); }); rebuildMealCatOptions(list); }); }
+  $('#btnAddCat').on('click', function(){ var $btn=$(this); var d={ shopId:$('#catShop').val(), id:null, name:$('#catName').val(), sortOrder:$('#catSort').val(), isActive:$('#catActive').prop('checked') }; post(U.UpsertCategory,d,$btn).done(function(){ toast('分類已儲存'); $('#btnResetCat').click(); loadCats(); }); });
+  $('#btnResetCat').on('click', function(){ $('#catName').val(''); $('#catSort').val(0); $('#catActive').prop('checked', true); });
+  $('#catShop').on('change', loadCats);
+
+  // ===== Meals =====
+  function rebuildMealCatOptions(cats){ var $sel=$('#mealCat').empty(); $sel.append($('<option/>').val('').text('(未分類)')); cats.forEach(function(c){ $sel.append($('<option/>').val(c.Id).text(c.Name)); }); }
+  function loadMealCats(){ var sid=$('#mealShop').val()||''; return getJSON(U.Categories+'?shopId='+sid).then(rebuildMealCatOptions); }
+  function loadMeals(){ var sid=$('#mealShop').val()||''; var cid=$('#mealCat').val()||''; return getJSON(U.Meals+'?shopId='+sid+'&categoryId='+cid).then(function(list){ var $t=$('#mealsT tbody').empty(); list.forEach(function(m){ var tr=$('<tr/>'); tr.append($('<td/>').text(m.Id)); tr.append($('<td/>').text(m.Name)); tr.append($('<td/>').text(m.Money)); tr.append($('<td/>').html(badgeYN(m.IsActive)));
+      var $td=$('<td/>' );
+        var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openMealModal({ Id:m.Id, ShopId:$('#mealShop').val()||'', Name:m.Name, Money:m.Money, CategoryId:m.CategoryId, IsActive:m.IsActive }); });
+        var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除餐點？')) return; post(U.DeleteMeal,{id:m.Id}).done(function(){ loadMeals(); toast('已刪除'); }); });
+        tr.append($td.append($edit).append(' ').append($del)); $t.append(tr); }); }); }
+  $('#mealShop').on('change', function(){ loadMealCats().then(loadMeals); });
+  $('#mealCat').on('change', loadMeals);
+  $('#btnAddMeal').on('click', function(){ var $btn=$(this); var d={ shopId:$('#mealShop').val(), id:null, name:$('#mealName').val(), money:$('#mealMoney').val(), categoryId:$('#mealCat').val()||null, isActive:$('#mealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ toast('餐點已儲存'); $('#btnResetMeal').click(); loadMeals(); }); });
+  $('#btnResetMeal').on('click', function(){ $('#mealName').val(''); $('#mealMoney').val(80); $('#mealActive').prop('checked', true); });
+
+  // ===== Tables =====
+  function loadTables(){ var sid=$('#tableShop').val()||''; return getJSON(U.Tables+'?shopId='+sid).then(function(list){ var $t=$('#tablesT tbody').empty(); list.forEach(function(t){ var tr=$('<tr/>'); tr.append($('<td/>').text(t.Id)); tr.append($('<td/>').text(t.Number)); tr.append($('<td/>').text(t.Zone||'')); tr.append($('<td/>').html(badgeYN(t.IsActive))); $t.append(tr); }); }); }
+  $('#tableShop').on('change', loadTables);
+  $('#btnAddTable').on('click', function(){ var $btn=$(this); var d={ shopId:$('#tableShop').val(), id:null, number:$('#tableNumber').val(), zone:$('#tableZone').val(), isActive:$('#tableActive').prop('checked') }; post(U.UpsertTable,d,$btn).done(function(){ toast('桌位已儲存'); $('#btnResetTable').click(); loadTables(); }); });
+  $('#btnResetTable').on('click', function(){ $('#tableNumber').val(1); $('#tableZone').val(''); $('#tableActive').prop('checked', true); });
+
+  // ===== Orders =====
+  function loadOrders(){ var sid=$('#orderShop').val()||''; var url=U.Orders+(sid?('?shopId='+sid):''); return getJSON(url).then(function(list){ var $t=$('#ordersT tbody').empty(); var statuses=['Pending','Preparing','Completed','Cancelled']; list.forEach(function(o){ var tr=$('<tr/>'); tr.append($('<td/>').text(o.Id)); tr.append($('<td/>').text(o.Status)); tr.append($('<td/>').text(o.OrderType)); tr.append($('<td/>').text(o.TableId||'')); tr.append($('<td/>').text(fmtDate(o.CreatedAt))); var $td=$('<td/>'); statuses.forEach(function(st){ var $b=$('<button class="btn btn-xs btn-default"/>').text(st).on('click', function(){ post(U.UpdateOrderStatus,{id:o.Id,status:st}).done(function(){ toast('狀態已更新'); loadOrders(); }); }); $td.append($b).append(' '); }); tr.append($td); $t.append(tr); }); }); }
+  $('#orderShop').on('change', loadOrders);
+  $('#btnReloadOrders').on('click', loadOrders);
+
+  // ===== Modal Helpers & Actions =====
+  function openShopModal(s){ $('#shopModalTitle').text(s? '編輯店家':'新增店家'); $('#shopId').val(s? s.Id:''); $('#mShopName').val(s? s.Name:''); $('#mShopPhone').val(s? (s.Phone||''):''); $('#mShopAddr').val(s? (s.Addr||''):''); $('#mShopActive').prop('checked', s? !!s.IsActive : true); new bootstrap.Modal(document.getElementById('shopModal')).show(); }
+  function ensureShopOptions($sel){ return getJSON(U.Shops).then(function(shops){ $sel.empty(); shops.forEach(function(s){ $sel.append($('<option/>').val(s.Id).text(s.Name)); }); return shops; }); }
+  function openCatModal(c){ ensureShopOptions($('#mCatShop')).then(function(){ $('#catModalTitle').text(c? '編輯分類':'新增分類'); $('#catId').val(c? c.Id:''); $('#mCatShop').val(c? (c.ShopId||'') : ($('#catShop').val()||'')); $('#mCatName').val(c? c.Name:''); $('#mCatSort').val(c? c.SortOrder:0); $('#mCatActive').prop('checked', c? !!c.IsActive : true); new bootstrap.Modal(document.getElementById('catModal')).show(); }); }
+  function ensureCategoryOptions(shopId){ return $.getJSON(U.Categories+'?shopId='+ (shopId||'')).then(function(list){ var $sel=$('#mMealCat').empty(); $sel.append($('<option/>').val('').text('(未分類)')); list.forEach(function(c){ $sel.append($('<option/>').val(c.Id).text(c.Name)); }); return list; }); }
+  function openMealModal(m){ ensureShopOptions($('#mMealShop')).then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealShop').val(m? (m.ShopId||'') : ($('#mealShop').val()||'')); return ensureCategoryOptions($('#mMealShop').val()); }).then(function(){ $('#mMealCat').val(m? (m.CategoryId||'') : ($('#mealCat').val()||'')); $('#mMealName').val(m? m.Name:''); $('#mMealMoney').val(m? m.Money:80); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
+  function openTableModal(t){ ensureShopOptions($('#mTableShop')).then(function(){ $('#tableModalTitle').text(t? '編輯桌位':'新增桌位'); $('#tableId').val(t? t.Id:''); $('#mTableShop').val(t? (t.ShopId||'') : ($('#tableShop').val()||'')); $('#mTableNumber').val(t? t.Number:1); $('#mTableZone').val(t? (t.Zone||''):''); $('#mTableActive').prop('checked', t? !!t.IsActive : true); new bootstrap.Modal(document.getElementById('tableModal')).show(); }); }
+
+  // New top buttons
+  $('#btnNewShop').on('click', function(){ openShopModal(null); });
+  $('#btnNewCat').on('click', function(){ openCatModal(null); });
+  $('#btnNewMeal').on('click', function(){ openMealModal(null); });
+  $('#btnNewTable').on('click', function(){ openTableModal(null); });
+
+  // Save from modal
+  $('#saveShop').on('click', function(){ var $btn=$(this); var id=$('#shopId').val()||null; var d={ id:id, name:$('#mShopName').val(), phone:$('#mShopPhone').val(), addr:$('#mShopAddr').val(), isActive:$('#mShopActive').prop('checked') }; post(U.CreateShop,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('shopModal')).hide(); loadShopsInto(); toast('店家已儲存'); }); });
+  $('#saveCat').on('click', function(){ var $btn=$(this); var id=$('#catId').val()||null; var d={ shopId:$('#mCatShop').val(), id:id, name:$('#mCatName').val(), sortOrder:$('#mCatSort').val(), isActive:$('#mCatActive').prop('checked') }; post(U.UpsertCategory,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).hide(); loadCats(); toast('分類已儲存'); }); });
+  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var d={ shopId:$('#mMealShop').val(), id:id, name:$('#mMealName').val(), money:$('#mMealMoney').val(), categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); loadMeals(); toast('餐點已儲存'); }); });
+  $('#saveTable').on('click', function(){ var $btn=$(this); var id=$('#tableId').val()||null; var d={ shopId:$('#mTableShop').val(), id:id, number:$('#mTableNumber').val(), zone:$('#mTableZone').val(), isActive:$('#mTableActive').prop('checked') }; post(U.UpsertTable,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('tableModal')).hide(); loadTables(); toast('桌位已儲存'); }); });
+
+  // ===== Initial =====
+  function init(){ loadShopsInto(true).then(function(){ $('#catShop,#mealShop,#tableShop,#orderShop').val(''); }); }
+  init();
+})();
+    </script>
+</body>
+</html>

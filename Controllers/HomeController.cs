@@ -13,17 +13,15 @@ namespace BreakFastShop.Controllers
             return View();
         }
 
-        public ActionResult About()
+        //訂單
+        public ActionResult Order()
         {
-            ViewBag.Message = "Your application description page.";
-
             return View();
         }
 
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
 
+        //接收頁面
+        public ActionResult Receive() {
             return View();
         }
     }
