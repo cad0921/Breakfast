@@ -1,4 +1,19 @@
-@{ Layout = null; }
+@model BreakFastShop.Models.OrderPageViewModel
+@using System.Linq
+@using System.Web.Helpers
+@{
+    Layout = null;
+    var tablePayload = Model?.Table == null ? null : new
+    {
+        tableId = Model.Table.Id,
+        number = Model.Table.Number,
+        shopId = Model.Table.ShopId,
+        shopName = Model.Table.ShopName,
+        zone = Model.Table.Zone
+    };
+    var mealsPayload = Model?.Meals?.Select(m => new { id = m.Id, name = m.Name, money = m.Money, element = m.Element }).ToList() ?? new object[0];
+    var errorMessage = Model?.Error;
+}
 <!doctype html>
 <html>
 <head>
@@ -9,18 +24,39 @@
     <script src="~/signalr/hubs"></script>
     <style>
         body {
-            font-family: system-ui,"Noto Sans TC",sans-serif;
-            margin: 2rem
+            font-family: system-ui, "Noto Sans TC", sans-serif;
+            margin: 2rem;
+            background: #f8f9fa;
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
         }
 
         label {
             display: block;
-            margin: .5rem 0 .25rem
+            margin: .5rem 0 .25rem;
+            font-weight: 600;
         }
 
-        input, textarea {
-            width: 24rem;
-            padding: .5rem
+        input,
+        textarea {
+            width: 100%;
+            padding: .5rem;
+            border: 1px solid #ced4da;
+            border-radius: .375rem;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button {
+            border: none;
+            border-radius: .375rem;
+            cursor: pointer;
         }
 
         .table-input {
@@ -36,12 +72,15 @@
 
         .table-input button {
             padding: .5rem 1rem;
+            background: #0d6efd;
+            color: #fff;
         }
 
         .table-status {
             margin-bottom: .75rem;
             font-size: .95rem;
             color: #555;
+            min-height: 1.5rem;
         }
 
         .table-status.error {
@@ -52,36 +91,168 @@
             color: #0f5132;
         }
 
+        #send {
+            margin-top: 1rem;
+            padding: .75rem 1.5rem;
+            background: #198754;
+            color: #fff;
+            font-size: 1rem;
+        }
+
         #log {
             margin-top: 1rem;
-            background: #f7f7f7;
+            background: #fff;
             border: 1px solid #ddd;
             padding: 1rem;
-            width: 26rem;
+            width: 100%;
             height: 14rem;
             overflow: auto;
+            border-radius: .375rem;
+            box-sizing: border-box;
+        }
+
+        .order-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .order-form {
+            flex: 1 1 320px;
+            max-width: 420px;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: .5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        }
+
+        .order-form .field {
+            margin-bottom: .75rem;
+        }
+
+        .meal-panel {
+            flex: 1 1 320px;
+            min-width: 280px;
+        }
+
+        .meal-panel h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .meal-list {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .meal-card {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: .5rem;
+            padding: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        }
+
+        .meal-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .meal-price {
+            margin-top: .25rem;
+            color: #0f5132;
+            font-weight: 600;
+        }
+
+        .meal-element {
+            margin-top: .35rem;
+            color: #6c757d;
+            font-size: .9rem;
+            white-space: pre-wrap;
+        }
+
+        .meal-card button {
+            margin-top: .75rem;
+            padding: .5rem 1rem;
+            background: #0d6efd;
+            color: #fff;
+            font-size: .95rem;
+        }
+
+        .meal-empty {
+            color: #6c757d;
+            font-style: italic;
+            background: #fff;
+            border: 1px dashed #ced4da;
+            padding: 1rem;
+            border-radius: .5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                margin: 1.25rem;
+            }
+
+            .order-form {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <h1>下單頁</h1>
-    <label>桌號</label>
-    <div class="table-input">
-        <input id="tableNumber" type="number" min="1" placeholder="請輸入桌號">
-        <button id="lookupTable" type="button">查詢桌號</button>
+    <div class="order-layout">
+        <section class="order-form">
+            <div class="field">
+                <label>桌號</label>
+                <div class="table-input">
+                    <input id="tableNumber" type="number" min="1" placeholder="請輸入桌號">
+                    <button id="lookupTable" type="button">查詢桌號</button>
+                </div>
+            </div>
+            <div class="table-status" id="tableStatus">請輸入桌號後按查詢。</div>
+            <div class="field">
+                <label>商店 Id</label>
+                <input id="shop" readonly placeholder="查詢後自動帶入">
+            </div>
+            <div class="field">
+                <label>商店名稱</label>
+                <input id="shopName" readonly placeholder="查詢後自動帶入">
+            </div>
+            <div class="field">
+                <label>餐點名稱</label>
+                <input id="name" value="拿鐵">
+            </div>
+            <div class="field">
+                <label>數量</label>
+                <input id="qty" type="number" value="1" min="1">
+            </div>
+            <div class="field">
+                <label>價格</label>
+                <input id="price" type="number" value="80" min="0" step="1">
+            </div>
+            <div class="field">
+                <label>備註</label>
+                <textarea id="notes" rows="3"></textarea>
+            </div>
+            <button id="send">送出訂單</button>
+            <pre id="log"></pre>
+        </section>
+        <aside class="meal-panel">
+            <h2>餐點列表</h2>
+            <div class="meal-list" id="mealList"></div>
+        </aside>
     </div>
-    <div class="table-status" id="tableStatus">請輸入桌號後按查詢。</div>
-    <label>商店 Id</label><input id="shop" readonly placeholder="查詢後自動帶入">
-    <label>餐點名稱</label><input id="name" value="拿鐵">
-    <label>數量</label><input id="qty" type="number" value="1" min="1">
-    <label>價格</label><input id="price" type="number" value="80" min="0" step="1">
-    <label>備註</label><textarea id="notes" rows="3"></textarea>
-    <button id="send">送出訂單</button>
-    <pre id="log"></pre>
     <script>
   var hub = $.connection.ordersHub;
   var lookupUrl = '@Url.Action("TableInfo","Home")';
+  var mealLookupUrl = '@Url.Action("ShopMeals","Home")';
   var currentTable = null;
+  var initialTable = @Html.Raw(Json.Encode(tablePayload));
+  var initialMeals = @Html.Raw(Json.Encode(mealsPayload));
+  var initialError = @Html.Raw(Json.Encode(errorMessage));
 
   function setTableStatus(message, type){
     var $status = $('#tableStatus');
@@ -97,7 +268,10 @@
 
   function clearTableSelection(){
     currentTable = null;
+    initialTable = null;
     $('#shop').val('');
+    $('#shopName').val('');
+    renderMeals([]);
   }
 
   function lookupTable(number){
@@ -123,9 +297,11 @@
         if(res && res.ok){
           currentTable = res;
           $('#shop').val(res.shopId);
+          $('#shopName').val(res.shopName || '');
           var zoneText = res.zone ? ('（'+res.zone+'）') : '';
           setTableStatus('餐廳：'+(res.shopName || res.shopId)+'　桌號：'+res.number+zoneText, 'success');
           log('桌號 '+res.number+' 查詢成功，餐廳：'+(res.shopName || res.shopId));
+          fetchMealsForShop(res.shopId);
         } else {
           var msg = res && res.error ? res.error : '查無對應桌號。';
           setTableStatus(msg, 'error');
@@ -139,11 +315,63 @@
       });
   }
 
+  function renderMeals(meals){
+    var $list = $('#mealList').empty();
+    var hasTable = !!(currentTable || initialTable);
+    if(!meals || !meals.length){
+      var text = hasTable ? '此餐廳目前沒有可顯示的餐點。' : '請先選擇桌號以顯示餐點。';
+      $list.append($('<div class="meal-empty"/>').text(text));
+      return;
+    }
+
+    meals.forEach(function(m){
+      var $card = $('<div class="meal-card"/>');
+      $card.append($('<div class="meal-name"/>').text(m.name));
+      $card.append($('<div class="meal-price"/>').text('NT$ '+ m.money));
+      if(m.element){
+        $card.append($('<div class="meal-element"/>').text(m.element));
+      }
+      var $btn = $('<button type="button"/>').text('套用餐點').on('click', function(){
+        $('#name').val(m.name);
+        $('#price').val(m.money);
+        setTableStatus('已套用餐點：'+m.name, 'success');
+        log('已套用餐點：'+m.name+'（價格：'+m.money+'）');
+      });
+      $card.append($btn);
+      $list.append($card);
+    });
+  }
+
+  function fetchMealsForShop(shopId){
+    if(!shopId){
+      renderMeals([]);
+      return;
+    }
+
+    $.getJSON(mealLookupUrl, { shopId: shopId })
+      .done(function(res){
+        if(res && res.ok){
+          renderMeals(res.items || []);
+          log('已載入餐點 '+((res.items && res.items.length) || 0)+' 項。');
+        } else {
+          var msg = res && res.error ? res.error : '載入餐點失敗。';
+          renderMeals([]);
+          log(msg);
+        }
+      })
+      .fail(function(xhr){
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '載入餐點時發生錯誤。';
+        renderMeals([]);
+        log(msg);
+      });
+  }
+
   $('#lookupTable').on('click', function(){ lookupTable($('#tableNumber').val()); });
   $('#tableNumber').on('keyup', function(evt){ if(evt.key === 'Enter'){ lookupTable(this.value); } });
   $('#tableNumber').on('blur', function(){ if(this.value){ lookupTable(this.value); } });
 
   function tryFillFromQuery(){
+    if(initialTable){ return; }
     var params = new URLSearchParams(window.location.search);
     var val = params.get('table') || params.get('tableNumber');
     if(val){
@@ -154,9 +382,31 @@
 
   hub.client.orderChanged = function(p){ log('[orderChanged] '+JSON.stringify(p)); };
 
+  function applyInitialTable(){
+    if(initialTable){
+      currentTable = initialTable;
+      $('#tableNumber').val(initialTable.number);
+      $('#shop').val(initialTable.shopId);
+      $('#shopName').val(initialTable.shopName || '');
+      var zoneText = initialTable.zone ? ('（'+initialTable.zone+'）') : '';
+      setTableStatus('餐廳：'+(initialTable.shopName || initialTable.shopId)+'　桌號：'+initialTable.number+zoneText, 'success');
+      log('已載入桌號 '+initialTable.number+' 的資料。');
+    } else if(initialError){
+      setTableStatus(initialError, 'error');
+      log(initialError);
+    }
+  }
+
+  applyInitialTable();
+  renderMeals(initialMeals);
+
   $.connection.hub.start().done(function(){
-    $('#log').text('已連線\n');
-    tryFillFromQuery();
+    $('#log').append('已連線\n');
+    if(initialTable && initialTable.shopId){
+      fetchMealsForShop(initialTable.shopId);
+    } else {
+      tryFillFromQuery();
+    }
     $('#send').click(function(){
       if(!currentTable || !currentTable.shopId){
         var msg = '請先查詢有效的桌號後再下單。';
