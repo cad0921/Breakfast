@@ -172,6 +172,10 @@
                     <div class="card" style="grid-column: span 2">
                         <div class="card-head"><strong>分類清單</strong></div>
                         <div class="card-body">
+                            <div class="form-inline" style="gap:.5rem;display:flex;align-items:center;margin-bottom:.5rem">
+                                <label class="muted">店家</label>
+                                <select id="catShop" class="form-control" style="max-width:240px"></select>
+                            </div>
                             <table class="table table-bordered table-hover" id="catsT">
                                 <thead><tr><th>Id</th><th>名稱</th><th>排序</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
                                 <tbody></tbody>
@@ -193,6 +197,12 @@
                     <div class="card" style="grid-column: span 2">
                         <div class="card-head"><strong>餐點清單</strong></div>
                         <div class="card-body">
+                            <div class="form-inline" style="gap:.5rem;display:flex;align-items:center;margin-bottom:.5rem;flex-wrap:wrap">
+                                <label class="muted">店家</label>
+                                <select id="mealShop" class="form-control" style="max-width:240px"></select>
+                                <label class="muted">分類</label>
+                                <select id="mealCat" class="form-control" style="max-width:240px"></select>
+                            </div>
                             <table class="table table-bordered table-hover" id="mealsT">
                                 <thead><tr><th>Id</th><th>名稱</th><th>價格</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
                                 <tbody></tbody>
@@ -214,6 +224,10 @@
                     <div class="card" style="grid-column: span 2">
                         <div class="card-head"><strong>桌位清單</strong></div>
                         <div class="card-body">
+                            <div class="form-inline" style="gap:.5rem;display:flex;align-items:center;margin-bottom:.5rem">
+                                <label class="muted">店家</label>
+                                <select id="tableShop" class="form-control" style="max-width:240px"></select>
+                            </div>
                             <table class="table table-bordered table-hover" id="tablesT">
                                 <thead><tr><th>Id</th><th>桌號</th><th>區域</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
                                 <tbody></tbody>
