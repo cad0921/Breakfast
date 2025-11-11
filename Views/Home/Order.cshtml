@@ -1,4 +1,4 @@
-﻿@{ Layout = null; }
+@{ Layout = null; }
 <!doctype html>
 <html>
 <head>
@@ -22,27 +22,188 @@
             width: 24rem;
             padding: .5rem
         }
+
+        .table-input {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            margin-bottom: .25rem;
+        }
+
+        .table-input input {
+            flex: 1;
+        }
+
+        .table-input button {
+            padding: .5rem 1rem;
+        }
+
+        .table-status {
+            margin-bottom: .75rem;
+            font-size: .95rem;
+            color: #555;
+        }
+
+        .table-status.error {
+            color: #b21f1f;
+        }
+
+        .table-status.success {
+            color: #0f5132;
+        }
+
+        #log {
+            margin-top: 1rem;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            width: 26rem;
+            height: 14rem;
+            overflow: auto;
+        }
     </style>
 </head>
 <body>
     <h1>下單頁</h1>
-    <label>商店 Id</label><input id="shop" value="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa">
+    <label>桌號</label>
+    <div class="table-input">
+        <input id="tableNumber" type="number" min="1" placeholder="請輸入桌號">
+        <button id="lookupTable" type="button">查詢桌號</button>
+    </div>
+    <div class="table-status" id="tableStatus">請輸入桌號後按查詢。</div>
+    <label>商店 Id</label><input id="shop" readonly placeholder="查詢後自動帶入">
     <label>餐點名稱</label><input id="name" value="拿鐵">
     <label>數量</label><input id="qty" type="number" value="1" min="1">
     <label>價格</label><input id="price" type="number" value="80" min="0" step="1">
     <label>備註</label><textarea id="notes" rows="3"></textarea>
     <button id="send">送出訂單</button>
-<pre id="log"></pre>
+    <pre id="log"></pre>
     <script>
   var hub = $.connection.ordersHub;
-  hub.client.orderChanged = function(p){ $('#log').append('[orderChanged] '+JSON.stringify(p)+'\n'); };
+  var lookupUrl = '@Url.Action("TableInfo","Home")';
+  var currentTable = null;
+
+  function setTableStatus(message, type){
+    var $status = $('#tableStatus');
+    $status.removeClass('error success');
+    if(type === 'error'){ $status.addClass('error'); }
+    if(type === 'success'){ $status.addClass('success'); }
+    $status.text(message);
+  }
+
+  function log(message){
+    $('#log').append(message+'\n');
+  }
+
+  function clearTableSelection(){
+    currentTable = null;
+    $('#shop').val('');
+  }
+
+  function lookupTable(number){
+    var trimmed = $.trim(number || '');
+    if(!trimmed){
+      clearTableSelection();
+      setTableStatus('請輸入桌號後按查詢。', '');
+      return;
+    }
+
+    var num = parseInt(trimmed, 10);
+    if(!isFinite(num) || num <= 0){
+      clearTableSelection();
+      setTableStatus('桌號必須為正整數。', 'error');
+      return;
+    }
+
+    setTableStatus('查詢中…', '');
+    clearTableSelection();
+
+    $.getJSON(lookupUrl, { number: num })
+      .done(function(res){
+        if(res && res.ok){
+          currentTable = res;
+          $('#shop').val(res.shopId);
+          var zoneText = res.zone ? ('（'+res.zone+'）') : '';
+          setTableStatus('餐廳：'+(res.shopName || res.shopId)+'　桌號：'+res.number+zoneText, 'success');
+          log('桌號 '+res.number+' 查詢成功，餐廳：'+(res.shopName || res.shopId));
+        } else {
+          var msg = res && res.error ? res.error : '查無對應桌號。';
+          setTableStatus(msg, 'error');
+          log('桌號查詢失敗：'+msg);
+        }
+      })
+      .fail(function(xhr){
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢時發生錯誤。';
+        setTableStatus(msg, 'error');
+        log('桌號查詢失敗：'+msg);
+      });
+  }
+
+  $('#lookupTable').on('click', function(){ lookupTable($('#tableNumber').val()); });
+  $('#tableNumber').on('keyup', function(evt){ if(evt.key === 'Enter'){ lookupTable(this.value); } });
+  $('#tableNumber').on('blur', function(){ if(this.value){ lookupTable(this.value); } });
+
+  function tryFillFromQuery(){
+    var params = new URLSearchParams(window.location.search);
+    var val = params.get('table') || params.get('tableNumber');
+    if(val){
+      $('#tableNumber').val(val);
+      lookupTable(val);
+    }
+  }
+
+  hub.client.orderChanged = function(p){ log('[orderChanged] '+JSON.stringify(p)); };
+
   $.connection.hub.start().done(function(){
     $('#log').text('已連線\n');
+    tryFillFromQuery();
     $('#send').click(function(){
-      var dto = { shopId: $('#shop').val(), notes: $('#notes').val(), items: [{ name: $('#name').val(), qty: +$('#qty').val(), price: +$('#price').val() }] };
+      if(!currentTable || !currentTable.shopId){
+        var msg = '請先查詢有效的桌號後再下單。';
+        setTableStatus(msg, 'error');
+        log(msg);
+        return;
+      }
+
+      var name = $.trim($('#name').val() || '');
+      if(!name){
+        var nameMsg = '請輸入餐點名稱。';
+        setTableStatus(nameMsg, 'error');
+        log(nameMsg);
+        return;
+      }
+
+      var qty = +$('#qty').val();
+      if(!qty || qty <= 0){
+        var qtyMsg = '數量必須大於 0。';
+        setTableStatus(qtyMsg, 'error');
+        log(qtyMsg);
+        return;
+      }
+
+      var price = +$('#price').val();
+      if(price < 0){
+        var priceMsg = '價格不可小於 0。';
+        setTableStatus(priceMsg, 'error');
+        log(priceMsg);
+        return;
+      }
+
+      var dto = {
+        shopId: currentTable.shopId,
+        shopName: currentTable.shopName,
+        tableId: currentTable.tableId,
+        tableNumber: currentTable.number,
+        tableZone: currentTable.zone,
+        notes: $('#notes').val(),
+        items: [{ name: name, qty: qty, price: price }]
+      };
+
       hub.server.createOrder(dto);
-      $('#log').append('已送出：'+JSON.stringify(dto)+'\n');
+      log('已送出：'+JSON.stringify(dto));
     });
+  }).fail(function(){
+    setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
   });
     </script>
 </body>
