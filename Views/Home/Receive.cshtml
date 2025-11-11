@@ -1,4 +1,4 @@
-﻿@{ Layout = null; }
+@{ Layout = null; }
 <!doctype html>
 <html>
 <head>
@@ -9,24 +9,260 @@
     <script src="~/signalr/hubs"></script>
     <style>
         body {
-            font-family: system-ui,"Noto Sans TC",sans-serif;
-            margin: 2rem
+            font-family: system-ui, "Noto Sans TC", sans-serif;
+            margin: 2rem;
+            background: #f8f9fa;
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: .5rem;
+        }
+
+        input {
+            flex: 1;
+            padding: .5rem .75rem;
+            border-radius: .375rem;
+            border: 1px solid #ced4da;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: .55rem 1.25rem;
+            border-radius: .375rem;
+            border: none;
+            background: #0d6efd;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .panel {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: .5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            max-width: 640px;
+        }
+
+        .shop-input {
+            display: flex;
+            gap: .75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .shop-input input {
+            min-width: 260px;
+        }
+
+        .status {
+            margin-top: .75rem;
+            font-size: .95rem;
+        }
+
+        .status.info {
+            color: #495057;
+        }
+
+        .status.success {
+            color: #0f5132;
+        }
+
+        .status.error {
+            color: #b21f1f;
         }
 
         .log {
+            margin-top: 1.5rem;
             white-space: pre-wrap;
-            border: 1px solid #ddd;
-            padding: 1rem
+            border: 1px solid #dee2e6;
+            padding: 1rem;
+            border-radius: .5rem;
+            background: #fff;
+            height: 18rem;
+            overflow: auto;
+            box-shadow: inset 0 0.25rem 0.5rem rgba(0, 0, 0, 0.03);
+        }
+
+        @media (max-width: 640px) {
+            body {
+                margin: 1.25rem;
+            }
+
+            .panel {
+                padding: 1.25rem;
+            }
+
+            .shop-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .shop-input input,
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>接收頁</h1>
-<pre class="log" id="log">連線中…</pre>
+    <div class="panel">
+        <h1>接收頁</h1>
+        <label for="shopId">店家識別碼</label>
+        <div class="shop-input">
+            <input id="shopId" type="text" placeholder="請輸入店家 Id">
+            <button id="applyShop" type="button">開始接收</button>
+        </div>
+        <div id="status" class="status info">沒有此店家，請輸入店家識別碼以訂閱訂單通知。</div>
+        <pre class="log" id="log">尚未接收資料。</pre>
+    </div>
     <script>
-  var hub = $.connection.ordersHub;
-  hub.client.orderChanged = function(p){ $('#log').append('[orderChanged] '+JSON.stringify(p)+'\n'); };
-  $.connection.hub.start().done(function(){ $('#log').text('已連線\n'); });
+        (function () {
+            var hub = $.connection.ordersHub;
+            var shopInfoUrl = '@Url.Action("ShopInfo")';
+            var $status = $('#status');
+            var $log = $('#log');
+            var $apply = $('#applyShop');
+            var $input = $('#shopId');
+            var isHubReady = false;
+            var hasLog = false;
+            var currentShop = null;
+
+            function setStatus(message, type) {
+                type = type || 'info';
+                $status.removeClass('info success error').addClass(type).text(message);
+            }
+
+            function log(message) {
+                if (!hasLog) {
+                    $log.text('');
+                    hasLog = true;
+                }
+
+                var now = new Date();
+                var timestamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0')
+                    + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+                $log.append('[' + timestamp + '] ' + message + '\n');
+                $log.scrollTop($log[0].scrollHeight);
+            }
+
+            function normalizeShopId(value) {
+                return (value || '').toString().toLowerCase();
+            }
+
+            function subscribeToShop(shopId) {
+                if (!isHubReady) {
+                    setStatus('SignalR 尚未連線完成，請稍候。', 'error');
+                    return;
+                }
+
+                shopId = $.trim(shopId || '');
+                if (!shopId) {
+                    currentShop = null;
+                    setStatus('沒有此店家', 'error');
+                    return;
+                }
+
+                $.getJSON(shopInfoUrl, { id: shopId })
+                    .done(function (res) {
+                        if (!res || !res.ok || !res.shop || !res.shop.id) {
+                            var message = res && res.error ? res.error : '沒有此店家';
+                            currentShop = null;
+                            setStatus(message, 'error');
+                            return;
+                        }
+
+                        var targetRawId = res.shop.id;
+                        var targetId = normalizeShopId(targetRawId);
+                        var targetName = res.shop.name || '';
+                        var displayName = targetName || targetRawId;
+
+                        if (currentShop && currentShop.id === targetId) {
+                            setStatus('目前顯示店家：' + displayName, 'success');
+                            return;
+                        }
+
+                        var joinShop = function () {
+                            hub.server.joinShop(targetRawId)
+                                .done(function (success) {
+                                    if (!success) {
+                                        currentShop = null;
+                                        setStatus('沒有此店家', 'error');
+                                        return;
+                                    }
+
+                                    currentShop = { id: targetId, rawId: targetRawId, name: targetName };
+                                    setStatus('目前顯示店家：' + displayName, 'success');
+                                    log('已訂閱店家 ' + displayName + ' 的訂單。');
+                                })
+                                .fail(function () {
+                                    currentShop = null;
+                                    setStatus('加入店家通道失敗。', 'error');
+                                });
+                        };
+
+                        if (currentShop && currentShop.rawId) {
+                            var leaving = currentShop;
+                            currentShop = null;
+                            hub.server.leaveShop(leaving.rawId).always(function () {
+                                log('已離開店家 ' + (leaving.name || leaving.rawId) + ' 的訂閱。');
+                                joinShop();
+                            });
+                        } else {
+                            joinShop();
+                        }
+                    })
+                    .fail(function (xhr) {
+                        var message = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢店家時發生錯誤。';
+                        currentShop = null;
+                        setStatus(message, 'error');
+                    });
+            }
+
+            function getInitialShopId() {
+                var params = new URLSearchParams(window.location.search);
+                return params.get('shopId') || params.get('shop');
+            }
+
+            hub.client.orderChanged = function (payload) {
+                log('[orderChanged] ' + JSON.stringify(payload));
+            };
+
+            $.connection.hub.start()
+                .done(function () {
+                    isHubReady = true;
+                    log('SignalR 已連線。');
+                    var initial = getInitialShopId();
+                    if (initial) {
+                        $input.val(initial);
+                        subscribeToShop(initial);
+                    }
+                })
+                .fail(function () {
+                    setStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
+                });
+
+            $apply.on('click', function () {
+                subscribeToShop($input.val());
+            });
+
+            $input.on('keyup', function (evt) {
+                if (evt.key === 'Enter') {
+                    subscribeToShop($input.val());
+                }
+            });
+        })();
     </script>
 </body>
 </html>
