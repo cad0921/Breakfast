@@ -141,7 +141,7 @@
             </section>
 
             <!-- 餐點 -->
-            <section class="tab-pane" id="pane-meals">
+            <section class="tab-pane" id="pane-meals" hidden>
                 <div class="grid">
                     <div class="card">
                         <div class="card-head"><strong>餐點管理</strong></div>
@@ -167,7 +167,7 @@
             </section>
 
             <!-- 套餐 -->
-            <section class="tab-pane" id="pane-combos">
+            <section class="tab-pane" id="pane-combos" hidden>
                 <div class="grid">
                     <div class="card">
                         <div class="card-head"><strong>套餐管理</strong></div>
@@ -188,7 +188,7 @@
             </section>
 
             <!-- 桌位 -->
-            <section class="tab-pane" id="pane-tables">
+            <section class="tab-pane" id="pane-tables" hidden>
                 <div class="grid">
                     <div class="card">
                         <div class="card-head"><strong>桌位管理</strong></div>
@@ -209,7 +209,7 @@
             </section>
 
             <!-- 訂單 -->
-            <section class="tab-pane" id="pane-orders">
+            <section class="tab-pane" id="pane-orders" hidden>
                 <div class="card">
                     <div class="card-head"><strong>訂單（最新 100 筆）</strong></div>
                     <div class="card-body">
@@ -380,8 +380,9 @@
   function switchTo(tab){
     $('.nav-link').removeClass('active');
     $('.nav-link[data-tab="'+tab+'"]').addClass('active');
-    $('.tab-pane').removeClass('active');
-    $('#pane-'+tab).addClass('active');
+    $('.tab-pane').removeClass('active').attr('hidden', true);
+    var $target = $('#pane-'+tab);
+    $target.addClass('active').removeAttr('hidden');
     $('#pageTitle').text(titles[tab]||'');
     if(tab==='cats'){ loadCats(); }
     if(tab==='meals'){ loadMealCats().then(loadMeals); }
