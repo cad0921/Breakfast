@@ -1,0 +1,236 @@
+@{
+    Layout = null;
+    ViewBag.Title = "店家登入";
+    var error = ViewBag.Error as string;
+    var message = ViewBag.Message as string;
+    var account = ViewBag.Account as string ?? string.Empty;
+}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title - BreakfastShop</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg-2: #1e293b;
+            --card: rgba(255, 255, 255, 0.97);
+            --accent: #22d3ee;
+            --accent-2: #38bdf8;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(34, 211, 238, .18), transparent 55%),
+                radial-gradient(circle at 80% 30%, rgba(56, 189, 248, .18), transparent 55%),
+                linear-gradient(160deg, var(--bg), #020617 75%);
+            font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            color: var(--text);
+        }
+
+        .login-shell {
+            width: min(420px, calc(100% - 32px));
+        }
+
+        .login-card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 40px 36px 32px;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, .28);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: "";
+            position: absolute;
+            inset: -60px -60px auto auto;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.25), transparent 70%);
+            z-index: 0;
+        }
+
+        .login-card::after {
+            content: "";
+            position: absolute;
+            inset: auto auto -70px -40px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.22), transparent 70%);
+            z-index: 0;
+        }
+
+        .login-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 28px;
+        }
+
+        .login-header small {
+            color: var(--muted);
+            letter-spacing: 1.5px;
+        }
+
+        .login-header h1 {
+            margin: 6px 0 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .alert-lite {
+            position: relative;
+            z-index: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .alert-lite.success {
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(22, 163, 74, 0.35);
+            color: #166534;
+        }
+
+        .alert-lite.danger {
+            background: rgba(248, 113, 113, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #b91c1c;
+        }
+
+        .login-form {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 18px;
+        }
+
+        .form-floating > label {
+            color: var(--muted);
+        }
+
+        .form-floating > .form-control {
+            border-radius: 14px;
+            padding: 16px 14px;
+            border: 1px solid #cbd5f5;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.18);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            font-size: 13px;
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .btn-login {
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            border: 0;
+            padding: 12px 28px;
+            border-radius: 999px;
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: .5px;
+            box-shadow: 0 12px 30px rgba(14, 165, 233, .32);
+        }
+
+        .brand-footer {
+            margin-top: 34px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(15, 23, 42, .65);
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 540px) {
+            body {
+                padding: 24px 0;
+            }
+
+            .login-card {
+                padding: 32px 28px 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-shell">
+        <div class="login-card">
+            <div class="login-header">
+                <small>BREAKFASTSHOP</small>
+                <h1>店家管理登入</h1>
+            </div>
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert-lite success">@message</div>
+            }
+
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="alert-lite danger">@error</div>
+            }
+
+            @using (Html.BeginForm("Login", "Shop", FormMethod.Post, new { @class = "login-form" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="account" name="account" placeholder="登入帳號" value="@account" required autofocus />
+                    <label for="account">登入帳號</label>
+                </div>
+                <div class="form-floating password-wrapper">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="登入密碼" required />
+                    <label for="password">登入密碼</label>
+                    <button type="button" class="toggle-password" id="togglePassword">顯示</button>
+                </div>
+                <button type="submit" class="btn btn-login">登入</button>
+            }
+
+            <div class="brand-footer">
+                <strong>BreakfastShop</strong> 商家後台登入介面
+            </div>
+        </div>
+    </div>
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script>
+        $(function () {
+            $('#togglePassword').on('click', function () {
+                var $input = $('#password');
+                var type = $input.attr('type') === 'password' ? 'text' : 'password';
+                $input.attr('type', type);
+                $(this).text(type === 'password' ? '顯示' : '隱藏');
+            });
+        });
+    </script>
+</body>
+</html>
