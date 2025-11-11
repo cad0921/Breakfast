@@ -110,12 +110,13 @@
         <aside class="sidebar">
             <div class="brand">
                 <h1>BreakfastShop 後台</h1>
-                <small class="muted">管理商店 / 分類 / 餐點 / 桌位 / 訂單</small>
+                <small class="muted">管理商店 / 分類 / 餐點 / 套餐 / 桌位 / 訂單</small>
             </div>
             <ul class="nav">
                 <li><a href="#" class="nav-link active" data-tab="shops">店家</a></li>
                 <li><a href="#" class="nav-link" data-tab="cats">分類</a></li>
                 <li><a href="#" class="nav-link" data-tab="meals">餐點</a></li>
+                <li><a href="#" class="nav-link" data-tab="combos">套餐</a></li>
                 <li><a href="#" class="nav-link" data-tab="tables">桌位</a></li>
                 <li><a href="#" class="nav-link" data-tab="orders">訂單 <span class="badge">即時</span></a></li>
             </ul>
@@ -126,7 +127,7 @@
             <div class="topbar">
                 <div class="meta">
                     <strong>@adminUser，歡迎回來</strong>
-                    <span>使用「Shift + 1~5」快速切換模組以提升管理效率</span>
+                    <span>使用「Shift + 1~6」快速切換模組以提升管理效率</span>
                 </div>
                 <a class="logout-btn" href="@Url.Action("Logout","Admin")">
                     <span aria-hidden="true">⎋</span> 登出
@@ -134,7 +135,7 @@
             </div>
             <div class="page-title">
                 <h3 id="pageTitle" style="margin:0">店家</h3>
-                <span class="pill" id="pageHint">SHIFT + 1~5 可快速切換</span>
+                <span class="pill" id="pageHint">SHIFT + 1~6 可快速切換</span>
             </div>
 
             <!-- 店家 -->
@@ -151,7 +152,7 @@
                         <div class="card-head"><strong>店家清單</strong></div>
                         <div class="card-body">
                             <table class="table table-bordered table-hover" id="shopsT">
-                                <thead><tr><th>Id</th><th>名稱</th><th>電話</th><th>地址</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
+                                <thead><tr><th>Id</th><th>名稱</th><th>登入帳號</th><th>電話</th><th>地址</th><th>啟用</th><th style="width:160px">操作</th></tr></thead>
                                 <tbody></tbody>
                             </table>
                             <div class="muted">提示：點「刪」會直接刪除；點「帶入」可把資料帶到左側表單。</div>
@@ -204,7 +205,32 @@
                                 <select id="mealCat" class="form-control" style="max-width:240px"></select>
                             </div>
                             <table class="table table-bordered table-hover" id="mealsT">
-                                <thead><tr><th>Id</th><th>名稱</th><th>價格</th><th>啟用</th><th style="width:140px">操作</th></tr></thead>
+                                <thead><tr><th>Id</th><th>名稱</th><th>成分描述</th><th>價格</th><th>啟用</th><th style="width:160px">操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 套餐 -->
+            <section class="tab-pane" id="pane-combos">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-head"><strong>套餐管理</strong></div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" id="btnNewCombo">新增套餐</button>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 2">
+                        <div class="card-head"><strong>套餐清單</strong></div>
+                        <div class="card-body">
+                            <div class="form-inline" style="gap:.5rem;display:flex;align-items:center;margin-bottom:.5rem;flex-wrap:wrap">
+                                <label class="muted">店家</label>
+                                <select id="comboShop" class="form-control" style="max-width:240px"></select>
+                            </div>
+                            <table class="table table-bordered table-hover" id="combosT">
+                                <thead><tr><th>Id</th><th>標題</th><th>內容</th><th>價格</th><th>啟用</th><th style="width:160px">操作</th></tr></thead>
                                 <tbody></tbody>
                             </table>
                         </div>
@@ -248,7 +274,7 @@
                             <button class="btn btn-default" id="btnReloadOrders">重新整理</button>
                         </div>
                         <table class="table table-bordered table-hover" id="ordersT">
-                            <thead><tr><th>Id</th><th>狀態</th><th>型態</th><th>桌位</th><th>建立時間</th><th>動作</th></tr></thead>
+                            <thead><tr><th>Id</th><th>狀態</th><th>型態</th><th>外帶碼</th><th>桌位</th><th>備註</th><th>建立時間</th><th>更新時間</th><th>操作</th></tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -268,6 +294,8 @@
                                 <div class="form-group"><label>名稱</label><input class="form-control" id="mShopName" required /></div>
                                 <div class="form-group"><label>電話</label><input class="form-control" id="mShopPhone" /></div>
                                 <div class="form-group"><label>地址</label><input class="form-control" id="mShopAddr" /></div>
+                                <div class="form-group"><label>登入帳號</label><input class="form-control" id="mShopAccount" /></div>
+                                <div class="form-group"><label>登入密碼</label><input class="form-control" id="mShopPassword" type="password" /></div>
                                 <div class="checkbox"><label><input type="checkbox" id="mShopActive" checked /> 啟用</label></div>
                             </form>
                         </div>
@@ -313,6 +341,7 @@
                                 <div class="form-group"><label>分類（可空）</label><select id="mMealCat" class="form-control"></select></div>
                                 <div class="form-group"><label>名稱</label><input class="form-control" id="mMealName" required /></div>
                                 <div class="form-group"><label>價格</label><input class="form-control" id="mMealMoney" type="number" value="80" /></div>
+                                <div class="form-group"><label>成分描述（可空）</label><textarea class="form-control" id="mMealElement" rows="2"></textarea></div>
                                 <div class="checkbox"><label><input type="checkbox" id="mMealActive" checked /> 啟用</label></div>
                             </form>
                         </div>
@@ -345,6 +374,58 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Combo Modal -->
+            <div class="modal fade" id="comboModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="comboModalTitle">新增套餐</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <form id="comboForm">
+                                <input type="hidden" id="comboId" />
+                                <div class="form-group"><label>店家</label><select id="mComboShop" class="form-control"></select></div>
+                                <div class="form-group"><label>標題</label><input class="form-control" id="mComboTitle" required /></div>
+                                <div class="form-group"><label>套餐內容（可空）</label><textarea class="form-control" id="mComboContent" rows="3"></textarea></div>
+                                <div class="form-group"><label>價格</label><input class="form-control" id="mComboMoney" type="number" value="0" min="0" step="1" /></div>
+                                <div class="checkbox"><label><input type="checkbox" id="mComboActive" checked /> 啟用</label></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="saveCombo">儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Modal -->
+            <div class="modal fade" id="orderModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title" id="orderModalTitle">訂單明細</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <div class="mb-2">
+                                <div><strong>訂單編號：</strong><span id="orderModalId"></span></div>
+                                <div><strong>訂單狀態：</strong><span id="orderModalStatus"></span></div>
+                                <div><strong>訂單型態：</strong><span id="orderModalType"></span></div>
+                                <div><strong>外帶碼：</strong><span id="orderModalTakeout"></span></div>
+                                <div><strong>桌位：</strong><span id="orderModalTable"></span></div>
+                                <div><strong>備註：</strong><span id="orderModalNotes"></span></div>
+                                <div><strong>建立時間：</strong><span id="orderModalCreated"></span></div>
+                                <div><strong>更新時間：</strong><span id="orderModalUpdated"></span></div>
+                            </div>
+                            <table class="table table-bordered" id="orderItemsT">
+                                <thead><tr><th>品項</th><th>數量</th><th>單價</th><th>小計</th><th>備註</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="text-end"><strong>總計：</strong><span id="orderModalTotal"></span></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">關閉</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -355,7 +436,7 @@
   // ====== URL Map ======
   var U = {
     Shops: '@Url.Action("Shops","Admin")',
-    CreateShop: '@Url.Action("CreateShop","Admin")',
+    UpsertShop: '@Url.Action("UpsertShop","Admin")',
     DeleteShop: '@Url.Action("DeleteShop","Admin")',
     Categories: '@Url.Action("Categories","Admin")',
     UpsertCategory: '@Url.Action("UpsertCategory","Admin")',
@@ -364,9 +445,14 @@
     DeleteMeal: '@Url.Action("DeleteMeal","Admin")',
     Tables: '@Url.Action("Tables","Admin")',
     UpsertTable: '@Url.Action("UpsertTable","Admin")',
+    DeleteTable: '@Url.Action("DeleteTable","Admin")',
+    Combos: '@Url.Action("Combos","Admin")',
+    UpsertCombo: '@Url.Action("UpsertCombo","Admin")',
+    DeleteCombo: '@Url.Action("DeleteCombo","Admin")',
     Orders: '@Url.Action("Orders","Admin")',
     UpdateOrderStatus: '@Url.Action("UpdateOrderStatus","Admin")',
-    DeleteCategory: '@Url.Action("DeleteCategory","Admin")'
+    DeleteCategory: '@Url.Action("DeleteCategory","Admin")',
+    OrderItems: '@Url.Action("OrderItems","Admin")'
   };
 
   function getJSON(u){ return $.getJSON(u); }
@@ -377,9 +463,9 @@
   function fmtDate(s){ return s ? (''+s).replace('T',' ').replace('Z','') : ''; }
 
   // ===== Side Navigation Switch =====
-  var titles = { shops:'店家', cats:'分類', meals:'餐點', tables:'桌位', orders:'訂單' };
+  var titles = { shops:'店家', cats:'分類', meals:'餐點', combos:'套餐', tables:'桌位', orders:'訂單' };
   $('.nav-link').on('click', function(e){ e.preventDefault(); var tab=$(this).data('tab'); switchTo(tab); });
-  $(document).on('keydown', function(e){ if(e.shiftKey){ var map={49:'shops',50:'cats',51:'meals',52:'tables',53:'orders'}; var t=map[e.which]; if(t){ switchTo(t);} } });
+  $(document).on('keydown', function(e){ if(e.shiftKey){ var map={49:'shops',50:'cats',51:'meals',52:'combos',53:'tables',54:'orders'}; var t=map[e.which]; if(t){ switchTo(t);} } });
 
   function switchTo(tab){
     $('.nav-link').removeClass('active');
@@ -391,6 +477,7 @@
     if(tab==='shops') loadShopsInto(true);
     if(tab==='cats'){ syncShopSelects(); loadCats(); }
     if(tab==='meals'){ syncShopSelects(); loadMealCats(); loadMeals(); }
+    if(tab==='combos'){ syncShopSelects(); loadCombos(); }
     if(tab==='tables'){ syncShopSelects(); loadTables(); }
     if(tab==='orders'){ syncShopSelects(); loadOrders(); }
   }
@@ -401,16 +488,13 @@
   // ===== Shops =====
   function fillShopSelect($sel, shops, keepVal){ var old = keepVal ? $sel.val() : null; $sel.empty().append($('<option/>').val('').text('(全部/未指定)')); shops.forEach(function(s){ $sel.append($('<option/>').val(s.Id).text(s.Name)); }); if(keepVal && old!==null) $sel.val(old); }
 
-  function renderShops(list){ var $t=$('#shopsT tbody').empty(); list.forEach(function(s){ var tr=$('<tr/>'); tr.append($('<td/>').text(s.Id)); tr.append($('<td/>').text(s.Name)); tr.append($('<td/>').text(s.Phone||'')); tr.append($('<td/>').text(s.Addr||'')); tr.append($('<td/>').html(badgeYN(s.IsActive)));
+  function renderShops(list){ var $t=$('#shopsT tbody').empty(); list.forEach(function(s){ var tr=$('<tr/>'); tr.append($('<td/>').text(s.Id)); tr.append($('<td/>').text(s.Name)); tr.append($('<td/>').text(s.Account||'')); tr.append($('<td/>').text(s.Phone||'')); tr.append($('<td/>').text(s.Addr||'')); tr.append($('<td/>').html(badgeYN(s.IsActive)));
     var $td=$('<td/>' );
       var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openShopModal(s); });
       var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除店家？')) return; post(U.DeleteShop,{id:s.Id}).done(function(){ loadShopsInto(); toast('已刪除'); });});
       $td.append($edit).append(' ').append($del); tr.append($td); $t.append(tr); }); }
 
-  function loadShopsInto(initial){ return getJSON(U.Shops).then(function(list){ renderShops(list); fillShopSelect($('#catShop'), list, !initial); fillShopSelect($('#mealShop'), list, !initial); fillShopSelect($('#tableShop'), list, !initial); fillShopSelect($('#orderShop'), list, !initial); }); }
-
-  $('#btnAddShop').on('click', function(){ var $btn=$(this); var d={ id:null, name:$('#shopName').val(), phone:$('#shopPhone').val(), addr:$('#shopAddr').val(), isActive:$('#shopActive').prop('checked') }; post(U.CreateShop,d,$btn).done(function(){ toast('店家已儲存'); $('#btnResetShop').click(); loadShopsInto(); }); });
-  $('#btnResetShop').on('click', function(){ $('#shopName,#shopPhone,#shopAddr').val(''); $('#shopActive').prop('checked', true); });
+  function loadShopsInto(initial){ return getJSON(U.Shops).then(function(list){ renderShops(list); fillShopSelect($('#catShop'), list, !initial); fillShopSelect($('#mealShop'), list, !initial); fillShopSelect($('#comboShop'), list, !initial); fillShopSelect($('#tableShop'), list, !initial); fillShopSelect($('#orderShop'), list, !initial); }); }
 
   function syncShopSelects(){ if(!$('#catShop option').length){ loadShopsInto(); } }
 
@@ -427,34 +511,92 @@
   // ===== Meals =====
   function rebuildMealCatOptions(cats){ var $sel=$('#mealCat').empty(); $sel.append($('<option/>').val('').text('(未分類)')); cats.forEach(function(c){ $sel.append($('<option/>').val(c.Id).text(c.Name)); }); }
   function loadMealCats(){ var sid=$('#mealShop').val()||''; return getJSON(U.Categories+'?shopId='+sid).then(rebuildMealCatOptions); }
-  function loadMeals(){ var sid=$('#mealShop').val()||''; var cid=$('#mealCat').val()||''; return getJSON(U.Meals+'?shopId='+sid+'&categoryId='+cid).then(function(list){ var $t=$('#mealsT tbody').empty(); list.forEach(function(m){ var tr=$('<tr/>'); tr.append($('<td/>').text(m.Id)); tr.append($('<td/>').text(m.Name)); tr.append($('<td/>').text(m.Money)); tr.append($('<td/>').html(badgeYN(m.IsActive)));
+  function loadMeals(){ var sid=$('#mealShop').val()||''; var cid=$('#mealCat').val()||''; return getJSON(U.Meals+'?shopId='+sid+'&categoryId='+cid).then(function(list){ var $t=$('#mealsT tbody').empty(); list.forEach(function(m){ var tr=$('<tr/>'); tr.append($('<td/>').text(m.Id)); tr.append($('<td/>').text(m.Name)); tr.append($('<td/>').text(m.Element||'')); tr.append($('<td/>').text(m.Money)); tr.append($('<td/>').html(badgeYN(m.IsActive)));
       var $td=$('<td/>' );
-        var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openMealModal({ Id:m.Id, ShopId:$('#mealShop').val()||'', Name:m.Name, Money:m.Money, CategoryId:m.CategoryId, IsActive:m.IsActive }); });
+        var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openMealModal({ Id:m.Id, ShopId:$('#mealShop').val()||'', Name:m.Name, Money:m.Money, CategoryId:m.CategoryId, Element:m.Element, IsActive:m.IsActive }); });
         var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除餐點？')) return; post(U.DeleteMeal,{id:m.Id}).done(function(){ loadMeals(); toast('已刪除'); }); });
         tr.append($td.append($edit).append(' ').append($del)); $t.append(tr); }); }); }
   $('#mealShop').on('change', function(){ loadMealCats().then(loadMeals); });
   $('#mealCat').on('change', loadMeals);
-  $('#btnAddMeal').on('click', function(){ var $btn=$(this); var d={ shopId:$('#mealShop').val(), id:null, name:$('#mealName').val(), money:$('#mealMoney').val(), categoryId:$('#mealCat').val()||null, isActive:$('#mealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ toast('餐點已儲存'); $('#btnResetMeal').click(); loadMeals(); }); });
-  $('#btnResetMeal').on('click', function(){ $('#mealName').val(''); $('#mealMoney').val(80); $('#mealActive').prop('checked', true); });
 
+  // ===== Combos =====
+  function loadCombos(){ var sid=$('#comboShop').val(); if(!sid){ $('#combosT tbody').empty(); return $.Deferred().resolve().promise(); } return getJSON(U.Combos+'?shopId='+sid).then(function(list){ var $t=$('#combosT tbody').empty(); list.forEach(function(c){ var tr=$('<tr/>'); tr.append($('<td/>').text(c.Id)); tr.append($('<td/>').text(c.Title)); tr.append($('<td/>').text(c.ComboMeal||'')); tr.append($('<td/>').text(c.Money)); tr.append($('<td/>').html(badgeYN(c.IsActive)));
+      var $td=$('<td/>');
+        var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openComboModal({ Id:c.Id, ShopId:c.ShopId || $('#comboShop').val(), Title:c.Title, ComboMeal:c.ComboMeal, Money:c.Money, IsActive:c.IsActive }); });
+        var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除套餐？')) return; post(U.DeleteCombo,{ id:c.Id }).done(function(){ loadCombos(); toast('已刪除'); }); });
+        $td.append($edit).append(' ').append($del); tr.append($td);
+      $t.append(tr); }); }); }
+  $('#comboShop').on('change', loadCombos);
+  $('#btnNewCombo').on('click', function(){ var sid=$('#comboShop').val(); if(!sid){ toast('請先選擇店家'); return; } openComboModal({ ShopId:sid, IsActive:true }); });
+  function openComboModal(c){ ensureShopOptions($('#mComboShop')).then(function(){ $('#comboModalTitle').text(c && c.Id ? '編輯套餐':'新增套餐'); $('#comboId').val(c && c.Id ? c.Id : ''); var defaultShop = c && c.ShopId ? c.ShopId : ($('#comboShop').val()||''); $('#mComboShop').val(defaultShop); $('#mComboTitle').val(c && c.Title ? c.Title : ''); $('#mComboContent').val(c && c.ComboMeal ? c.ComboMeal : ''); $('#mComboMoney').val(c && typeof c.Money !== 'undefined' ? c.Money : 0); $('#mComboActive').prop('checked', c ? !!c.IsActive : true); new bootstrap.Modal(document.getElementById('comboModal')).show(); }); }
+  $('#saveCombo').on('click', function(){ var $btn=$(this); var id=$('#comboId').val()||null; var d={ shopId:$('#mComboShop').val(), id:id, title:$('#mComboTitle').val(), comboMeal:$('#mComboContent').val(), money:$('#mComboMoney').val(), isActive:$('#mComboActive').prop('checked') }; post(U.UpsertCombo,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('comboModal')).hide(); loadCombos(); toast('套餐已儲存'); }); });
   // ===== Tables =====
-  function loadTables(){ var sid=$('#tableShop').val()||''; return getJSON(U.Tables+'?shopId='+sid).then(function(list){ var $t=$('#tablesT tbody').empty(); list.forEach(function(t){ var tr=$('<tr/>'); tr.append($('<td/>').text(t.Id)); tr.append($('<td/>').text(t.Number)); tr.append($('<td/>').text(t.Zone||'')); tr.append($('<td/>').html(badgeYN(t.IsActive))); $t.append(tr); }); }); }
+  function loadTables(){ var sid=$('#tableShop').val()||''; return getJSON(U.Tables+'?shopId='+sid).then(function(list){ var $t=$('#tablesT tbody').empty(); list.forEach(function(t){ var tr=$('<tr/>'); tr.append($('<td/>').text(t.Id)); tr.append($('<td/>').text(t.Number)); tr.append($('<td/>').text(t.Zone||'')); tr.append($('<td/>').html(badgeYN(t.IsActive)));
+      var $td=$('<td/>');
+        var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openTableModal({ Id:t.Id, ShopId:t.ShopId||($('#tableShop').val()||''), Number:t.Number, Zone:t.Zone, IsActive:t.IsActive }); });
+        var $del =$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除桌位？')) return; post(U.DeleteTable,{ id:t.Id }).done(function(){ loadTables(); toast('已刪除'); }); });
+        $td.append($edit).append(' ').append($del); tr.append($td);
+      $t.append(tr); }); }); }
   $('#tableShop').on('change', loadTables);
-  $('#btnAddTable').on('click', function(){ var $btn=$(this); var d={ shopId:$('#tableShop').val(), id:null, number:$('#tableNumber').val(), zone:$('#tableZone').val(), isActive:$('#tableActive').prop('checked') }; post(U.UpsertTable,d,$btn).done(function(){ toast('桌位已儲存'); $('#btnResetTable').click(); loadTables(); }); });
-  $('#btnResetTable').on('click', function(){ $('#tableNumber').val(1); $('#tableZone').val(''); $('#tableActive').prop('checked', true); });
 
   // ===== Orders =====
-  function loadOrders(){ var sid=$('#orderShop').val()||''; var url=U.Orders+(sid?('?shopId='+sid):''); return getJSON(url).then(function(list){ var $t=$('#ordersT tbody').empty(); var statuses=['Pending','Preparing','Completed','Cancelled']; list.forEach(function(o){ var tr=$('<tr/>'); tr.append($('<td/>').text(o.Id)); tr.append($('<td/>').text(o.Status)); tr.append($('<td/>').text(o.OrderType)); tr.append($('<td/>').text(o.TableId||'')); tr.append($('<td/>').text(fmtDate(o.CreatedAt))); var $td=$('<td/>'); statuses.forEach(function(st){ var $b=$('<button class="btn btn-xs btn-default"/>').text(st).on('click', function(){ post(U.UpdateOrderStatus,{id:o.Id,status:st}).done(function(){ toast('狀態已更新'); loadOrders(); }); }); $td.append($b).append(' '); }); tr.append($td); $t.append(tr); }); }); }
+  function loadOrders(){ var sid=$('#orderShop').val()||''; var url=U.Orders+(sid?('?shopId='+sid):''); return getJSON(url).then(function(list){ var $t=$('#ordersT tbody').empty(); var statuses=['Pending','Preparing','Completed','Cancelled']; list.forEach(function(o){ var tr=$('<tr/>'); tr.append($('<td/>').text(o.Id)); tr.append($('<td/>').text(o.Status)); tr.append($('<td/>').text(o.OrderType)); tr.append($('<td/>').text(o.TakeoutCode||'')); tr.append($('<td/>').text(o.TableId||'')); tr.append($('<td/>').text(o.Notes||'')); tr.append($('<td/>').text(fmtDate(o.CreatedAt))); tr.append($('<td/>').text(fmtDate(o.UpdatedAt)));
+      var $td=$('<td/>');
+        var $view=$('<button class="btn btn-xs btn-info text-white"/>').text('明細').on('click', function(){ openOrderModal(o); });
+        $td.append($view).append(' ');
+        statuses.forEach(function(st){ var $b=$('<button class="btn btn-xs btn-default"/>').text(st).on('click', function(){ post(U.UpdateOrderStatus,{id:o.Id,status:st}).done(function(){ toast('狀態已更新'); loadOrders(); }); }); $td.append($b).append(' '); });
+      tr.append($td);
+      $t.append(tr); }); }); }
   $('#orderShop').on('change', loadOrders);
   $('#btnReloadOrders').on('click', loadOrders);
 
   // ===== Modal Helpers & Actions =====
-  function openShopModal(s){ $('#shopModalTitle').text(s? '編輯店家':'新增店家'); $('#shopId').val(s? s.Id:''); $('#mShopName').val(s? s.Name:''); $('#mShopPhone').val(s? (s.Phone||''):''); $('#mShopAddr').val(s? (s.Addr||''):''); $('#mShopActive').prop('checked', s? !!s.IsActive : true); new bootstrap.Modal(document.getElementById('shopModal')).show(); }
+  function openShopModal(s){ $('#shopModalTitle').text(s? '編輯店家':'新增店家'); $('#shopId').val(s? s.Id:''); $('#mShopName').val(s? s.Name:''); $('#mShopPhone').val(s? (s.Phone||''):''); $('#mShopAddr').val(s? (s.Addr||''):''); $('#mShopAccount').val(s? (s.Account||''):''); $('#mShopPassword').val(s? (s.Password||''):''); $('#mShopActive').prop('checked', s? !!s.IsActive : true); new bootstrap.Modal(document.getElementById('shopModal')).show(); }
   function ensureShopOptions($sel){ return getJSON(U.Shops).then(function(shops){ $sel.empty(); shops.forEach(function(s){ $sel.append($('<option/>').val(s.Id).text(s.Name)); }); return shops; }); }
   function openCatModal(c){ ensureShopOptions($('#mCatShop')).then(function(){ $('#catModalTitle').text(c? '編輯分類':'新增分類'); $('#catId').val(c? c.Id:''); $('#mCatShop').val(c? (c.ShopId||'') : ($('#catShop').val()||'')); $('#mCatName').val(c? c.Name:''); $('#mCatSort').val(c? c.SortOrder:0); $('#mCatActive').prop('checked', c? !!c.IsActive : true); new bootstrap.Modal(document.getElementById('catModal')).show(); }); }
   function ensureCategoryOptions(shopId){ return $.getJSON(U.Categories+'?shopId='+ (shopId||'')).then(function(list){ var $sel=$('#mMealCat').empty(); $sel.append($('<option/>').val('').text('(未分類)')); list.forEach(function(c){ $sel.append($('<option/>').val(c.Id).text(c.Name)); }); return list; }); }
-  function openMealModal(m){ ensureShopOptions($('#mMealShop')).then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealShop').val(m? (m.ShopId||'') : ($('#mealShop').val()||'')); return ensureCategoryOptions($('#mMealShop').val()); }).then(function(){ $('#mMealCat').val(m? (m.CategoryId||'') : ($('#mealCat').val()||'')); $('#mMealName').val(m? m.Name:''); $('#mMealMoney').val(m? m.Money:80); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
+  function openMealModal(m){ ensureShopOptions($('#mMealShop')).then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealShop').val(m? (m.ShopId||'') : ($('#mealShop').val()||'')); return ensureCategoryOptions($('#mMealShop').val()); }).then(function(){ $('#mMealCat').val(m? (m.CategoryId||'') : ($('#mealCat').val()||'')); $('#mMealName').val(m? m.Name:''); $('#mMealElement').val(m? (m.Element||''):''); $('#mMealMoney').val(m? m.Money:80); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
   function openTableModal(t){ ensureShopOptions($('#mTableShop')).then(function(){ $('#tableModalTitle').text(t? '編輯桌位':'新增桌位'); $('#tableId').val(t? t.Id:''); $('#mTableShop').val(t? (t.ShopId||'') : ($('#tableShop').val()||'')); $('#mTableNumber').val(t? t.Number:1); $('#mTableZone').val(t? (t.Zone||''):''); $('#mTableActive').prop('checked', t? !!t.IsActive : true); new bootstrap.Modal(document.getElementById('tableModal')).show(); }); }
+  function openOrderModal(o){
+    $('#orderModalId').text(o.Id);
+    $('#orderModalStatus').text(o.Status);
+    $('#orderModalType').text(o.OrderType);
+    $('#orderModalTakeout').text(o.TakeoutCode||'');
+    $('#orderModalTable').text(o.TableId||'');
+    $('#orderModalNotes').text(o.Notes||'');
+    $('#orderModalCreated').text(fmtDate(o.CreatedAt));
+    $('#orderModalUpdated').text(fmtDate(o.UpdatedAt));
+    var $tbody=$('#orderItemsT tbody').empty().append('<tr><td colspan="5" class="text-center text-muted">載入中…</td></tr>');
+    $('#orderModalTotal').text('計算中…');
+    var modal = new bootstrap.Modal(document.getElementById('orderModal'));
+    modal.show();
+    getJSON(U.OrderItems+'?orderId='+o.Id).done(function(items){
+      var total=0;
+      $tbody.empty();
+      if(!items.length){
+        $tbody.append('<tr><td colspan="5" class="text-center text-muted">沒有品項</td></tr>');
+      } else {
+        items.forEach(function(it){
+          var qty = it.Quantity || 0;
+          var price = typeof it.UnitPrice === 'number' ? it.UnitPrice : parseFloat(it.UnitPrice || 0);
+          if (isNaN(price)) { price = 0; }
+          var sub = qty * price;
+          total += sub;
+          var tr=$('<tr/>');
+          tr.append($('<td/>').text(it.MealName));
+          tr.append($('<td/>').text(qty));
+          tr.append($('<td/>').text(price.toFixed(2)));
+          tr.append($('<td/>').text(sub.toFixed(2)));
+          tr.append($('<td/>').text(it.Notes||''));
+          $tbody.append(tr);
+        });
+      }
+      $('#orderModalTotal').text(total.toFixed(2));
+    }).fail(function(){
+      $tbody.empty().append('<tr><td colspan="5" class="text-center text-danger">載入明細失敗</td></tr>');
+      $('#orderModalTotal').text('—');
+    });
+  }
 
   // New top buttons
   $('#btnNewShop').on('click', function(){ openShopModal(null); });
@@ -463,13 +605,13 @@
   $('#btnNewTable').on('click', function(){ openTableModal(null); });
 
   // Save from modal
-  $('#saveShop').on('click', function(){ var $btn=$(this); var id=$('#shopId').val()||null; var d={ id:id, name:$('#mShopName').val(), phone:$('#mShopPhone').val(), addr:$('#mShopAddr').val(), isActive:$('#mShopActive').prop('checked') }; post(U.CreateShop,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('shopModal')).hide(); loadShopsInto(); toast('店家已儲存'); }); });
+  $('#saveShop').on('click', function(){ var $btn=$(this); var id=$('#shopId').val()||null; var d={ id:id, name:$('#mShopName').val(), phone:$('#mShopPhone').val(), addr:$('#mShopAddr').val(), account:$('#mShopAccount').val(), password:$('#mShopPassword').val(), isActive:$('#mShopActive').prop('checked') }; post(U.UpsertShop,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('shopModal')).hide(); loadShopsInto(); toast('店家已儲存'); }); });
   $('#saveCat').on('click', function(){ var $btn=$(this); var id=$('#catId').val()||null; var d={ shopId:$('#mCatShop').val(), id:id, name:$('#mCatName').val(), sortOrder:$('#mCatSort').val(), isActive:$('#mCatActive').prop('checked') }; post(U.UpsertCategory,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).hide(); loadCats(); toast('分類已儲存'); }); });
-  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var d={ shopId:$('#mMealShop').val(), id:id, name:$('#mMealName').val(), money:$('#mMealMoney').val(), categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); loadMeals(); toast('餐點已儲存'); }); });
+  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var d={ shopId:$('#mMealShop').val(), id:id, name:$('#mMealName').val(), element:$('#mMealElement').val(), money:$('#mMealMoney').val(), categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); loadMeals(); toast('餐點已儲存'); }); });
   $('#saveTable').on('click', function(){ var $btn=$(this); var id=$('#tableId').val()||null; var d={ shopId:$('#mTableShop').val(), id:id, number:$('#mTableNumber').val(), zone:$('#mTableZone').val(), isActive:$('#mTableActive').prop('checked') }; post(U.UpsertTable,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('tableModal')).hide(); loadTables(); toast('桌位已儲存'); }); });
 
   // ===== Initial =====
-  function init(){ loadShopsInto(true).then(function(){ $('#catShop,#mealShop,#tableShop,#orderShop').val(''); }); }
+  function init(){ loadShopsInto(true).then(function(){ $('#catShop,#mealShop,#comboShop,#tableShop,#orderShop').val(''); }); }
   var initialToast = '@HttpUtility.JavaScriptStringEncode(initialToast)';
   if(initialToast){ toast(initialToast, 2000); }
   init();
