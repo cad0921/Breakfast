@@ -104,19 +104,132 @@
             width: 100%;
         }
 
-        #log {
+        .cart-container {
             background: #fff;
-            border: 1px solid #ddd;
-            padding: 1rem;
-            width: 100%;
-            height: 14rem;
-            overflow: auto;
-            border-radius: .375rem;
-            box-sizing: border-box;
+            border: 1px solid #dee2e6;
+            border-radius: .5rem;
+            padding: 1rem 1.25rem;
+            margin-top: 1.5rem;
+            box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
         }
 
-        .order-panel #log {
-            margin-top: 1.5rem;
+        .cart-container h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .cart-summary {
+            font-size: .95rem;
+            margin-bottom: .75rem;
+            color: #495057;
+        }
+
+        .cart-list {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+            max-height: 14rem;
+            overflow-y: auto;
+            padding-right: .25rem;
+        }
+
+        .cart-empty {
+            padding: 1.25rem;
+            border: 1px dashed #ced4da;
+            border-radius: .5rem;
+            text-align: center;
+            color: #6c757d;
+            background: #fff;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: .5rem 1rem;
+            background: #f8f9fa;
+            border-radius: .5rem;
+            padding: .75rem 1rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .cart-item-header {
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .cart-item-price {
+            color: #6c757d;
+            font-size: .95rem;
+        }
+
+        .cart-item-note {
+            font-size: .85rem;
+            color: #868e96;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .cart-item-qty {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+        }
+
+        .cart-item-qty button,
+        .cart-remove {
+            padding: .25rem .6rem;
+            border-radius: .375rem;
+            background: #0d6efd;
+            color: #fff;
+            font-size: .9rem;
+        }
+
+        .cart-item-qty-value {
+            min-width: 2rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .cart-remove {
+            background: #dc3545;
+        }
+
+        .cart-footer {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .cart-total {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .cart-clear {
+            padding: .35rem .75rem;
+            background: #6c757d;
+            color: #fff;
+            border-radius: .375rem;
+            font-size: .9rem;
+        }
+
+        #send:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
         }
 
         .order-layout {
@@ -142,24 +255,12 @@
             gap: 1rem;
         }
 
-        .table-summary,
-        .meal-selection-status {
+        .table-summary {
             padding: .75rem 1rem;
             border-radius: .5rem;
             background: #f8f9fa;
             color: #495057;
             line-height: 1.5;
-        }
-
-        .meal-selection-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .meal-selection-status button {
-            flex-shrink: 0;
         }
 
         .order-submit {
@@ -273,15 +374,28 @@
 
         .meal-card button {
             margin-top: .75rem;
-            padding: .5rem 1rem;
+            padding: .55rem 1.25rem;
             background: #0d6efd;
             color: #fff;
             font-size: .95rem;
+            font-weight: 600;
+            border-radius: .5rem;
+            transition: background .2s ease;
+        }
+
+        .meal-card button:hover {
+            background: #0b5ed7;
         }
 
         .meal-card button:disabled {
             background: #6c757d;
             cursor: default;
+        }
+
+        .meal-cart-indicator {
+            margin-top: .5rem;
+            font-size: .9rem;
+            color: #0f5132;
         }
 
         .meal-empty {
@@ -319,12 +433,16 @@
                 </div>
                 <div class="table-status" id="tableStatus">請輸入桌號後按查詢。</div>
                 <div class="table-summary" id="tableSummary" style="display:none;"></div>
-                <div class="meal-selection-status" id="mealSelection">
-                    <span id="selectedMealText">尚未選擇餐點。</span>
-                    <button id="clearMeal" type="button" style="display:none;">清除選擇</button>
+                <div class="cart-container">
+                    <h2>購物車</h2>
+                    <div class="cart-summary" id="cartSummary">購物車目前沒有餐點。</div>
+                    <div class="cart-list" id="cartList"></div>
+                    <div class="cart-footer">
+                        <div class="cart-total" id="cartTotal">總計：NT$ 0</div>
+                        <button id="clearCart" type="button" class="cart-clear" style="display:none;">清空購物車</button>
+                    </div>
                 </div>
             </div>
-            <pre id="log"></pre>
             <div class="order-submit">
                 <button id="send">送出訂單</button>
             </div>
@@ -336,317 +454,451 @@
         </aside>
     </div>
     <script>
-  var hub = $.connection.ordersHub;
-  var lookupUrl = '@Url.Action("TableInfo","Home")';
-  var mealLookupUrl = '@Url.Action("ShopMeals","Home")';
-  var currentTable = null;
-  var initialTable = @Html.Raw(Json.Encode(tablePayload));
-  var initialMeals = @Html.Raw(Json.Encode(mealsPayload));
-  var initialCategories = @Html.Raw(Json.Encode(categoriesPayload));
-  var initialError = @Html.Raw(Json.Encode(errorMessage));
-  var allMeals = [];
-  var allCategories = [];
-  var activeCategoryId = null;
-  var selectedMeal = null;
+  (function(){
+    var hub = $.connection.ordersHub;
+    var lookupUrl = '@Url.Action("TableInfo","Home")';
+    var mealLookupUrl = '@Url.Action("ShopMeals","Home")';
+    var currentTable = null;
+    var initialTable = @Html.Raw(Json.Encode(tablePayload));
+    var initialMeals = @Html.Raw(Json.Encode(mealsPayload));
+    var initialCategories = @Html.Raw(Json.Encode(categoriesPayload));
+    var initialError = @Html.Raw(Json.Encode(errorMessage));
+    var allMeals = [];
+    var allCategories = [];
+    var activeCategoryId = null;
+    var cartItems = [];
 
-  function setTableStatus(message, type){
-    var $status = $('#tableStatus');
-    $status.removeClass('error success');
-    if(type === 'error'){ $status.addClass('error'); }
-    if(type === 'success'){ $status.addClass('success'); }
-    $status.text(message);
-  }
+    var $cartSummary = $('#cartSummary');
+    var $cartList = $('#cartList');
+    var $cartTotal = $('#cartTotal');
+    var $clearCart = $('#clearCart');
+    var $sendButton = $('#send');
 
-  function log(message){
-    $('#log').append(message+'\n');
-  }
-
-  function isSameCategory(a, b){
-    return (a || '') === (b || '');
-  }
-
-  function setCategories(categories){
-    allCategories = categories || [];
-    if(activeCategoryId && !allCategories.some(function(c){ return isSameCategory(c.id, activeCategoryId); })){
-      activeCategoryId = null;
-    }
-    renderCategories();
-  }
-
-  function renderCategories(){
-    var $container = $('#mealCategories').empty();
-    var hasTable = !!(currentTable || initialTable);
-    if(!hasTable){
-      $container.append($('<div class="meal-categories-empty"/>').text('請先選擇桌號以顯示分類。'));
-      return;
+    function formatCurrency(value){
+      return 'NT$ ' + (Number(value) || 0).toLocaleString('zh-TW');
     }
 
-    if(!allCategories.length){
-      $container.append($('<div class="meal-categories-empty"/>').text('此餐廳尚無設定分類。'));
-      return;
+    function setTableStatus(message, type){
+      var $status = $('#tableStatus');
+      $status.removeClass('error success');
+      if(type === 'error'){ $status.addClass('error'); }
+      if(type === 'success'){ $status.addClass('success'); }
+      $status.text(message);
     }
 
-    var $list = $('<div class="meal-categories-list"/>');
-    var items = [{ id: null, name: '全部' }].concat(allCategories);
-    items.forEach(function(cat){
-      var isActive = (!cat.id && !activeCategoryId) || (cat.id && isSameCategory(cat.id, activeCategoryId));
-      var $btn = $('<button type="button" class="meal-category-btn"/>')
-        .toggleClass('active', !!isActive)
-        .text(cat.name)
-        .on('click', function(){
-          if(isActive){ return; }
-          activeCategoryId = cat.id || null;
-          renderCategories();
-          renderMeals();
-          log(cat.id ? ('已切換分類：'+cat.name) : '顯示全部餐點。');
-        });
-      $list.append($btn);
-    });
-
-    $container.append($list);
-  }
-
-  function setMeals(meals){
-    allMeals = meals || [];
-    renderMeals();
-  }
-
-  function clearTableSelection(){
-    currentTable = null;
-    initialTable = null;
-    initialMeals = [];
-    initialCategories = [];
-    $('#tableSummary').hide().empty();
-    clearMealSelection({ skipRender: true });
-    setCategories([]);
-    setMeals([]);
-  }
-
-  function lookupTable(number){
-    var trimmed = $.trim(number || '');
-    if(!trimmed){
-      clearTableSelection();
-      setTableStatus('請輸入桌號後按查詢。', '');
-      return;
+    function updateSendButtonState(){
+      var canSend = !!(currentTable && currentTable.shopId && cartItems.length);
+      $sendButton.prop('disabled', !canSend);
     }
 
-    var num = parseInt(trimmed, 10);
-    if(!isFinite(num) || num <= 0){
-      clearTableSelection();
-      setTableStatus('桌號必須為正整數。', 'error');
-      return;
+    function cartKeyMatches(item, meal){
+      if(item.id && meal.id){
+        return item.id === meal.id;
+      }
+      return !item.id && !meal.id && item.name === meal.name && item.price === Number(meal.money || 0);
     }
 
-    setTableStatus('查詢中…', '');
-    clearTableSelection();
-
-    $.getJSON(lookupUrl, { number: num })
-      .done(function(res){
-        if(res && res.ok){
-          currentTable = res;
-          var zoneText = res.zone ? ('（'+res.zone+'）') : '';
-          var summary = '餐廳：'+(res.shopName || res.shopId)+'　桌號：'+res.number+zoneText;
-          setTableStatus(summary, 'success');
-          $('#tableSummary').text(summary).show();
-          log('桌號 '+res.number+' 查詢成功，餐廳：'+(res.shopName || res.shopId));
-          clearMealSelection({ skipRender: true });
-          fetchMealsForShop(res.shopId);
-        } else {
-          var msg = res && res.error ? res.error : '查無對應桌號。';
-          setTableStatus(msg, 'error');
-          log('桌號查詢失敗：'+msg);
+    function getCartQtyForMeal(meal){
+      var foundQty = 0;
+      cartItems.some(function(item){
+        if(cartKeyMatches(item, meal)){
+          foundQty = item.qty;
+          return true;
         }
-      })
-      .fail(function(xhr){
-        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢時發生錯誤。';
-        setTableStatus(msg, 'error');
-        log('桌號查詢失敗：'+msg);
+        return false;
       });
-  }
-
-  function renderMeals(){
-    var $list = $('#mealList').empty();
-    var hasTable = !!(currentTable || initialTable);
-    if(!hasTable){
-      $list.append($('<div class="meal-empty"/>').text('請先選擇桌號以顯示餐點。'));
-      return;
+      return foundQty;
     }
 
-    if(!allMeals.length){
-      $list.append($('<div class="meal-empty"/>').text('此餐廳目前沒有可顯示的餐點。'));
-      return;
-    }
-
-    var mealsToShow = !activeCategoryId ? allMeals : allMeals.filter(function(m){
-      return isSameCategory(m.categoryId, activeCategoryId);
-    });
-
-    if(!mealsToShow.length){
-      $list.append($('<div class="meal-empty"/>').text('此分類目前沒有餐點。'));
-      return;
-    }
-
-    mealsToShow.forEach(function(m){
-      var isSelected = !!(selectedMeal && (
-        (selectedMeal.id && m.id && selectedMeal.id === m.id) ||
-        (!selectedMeal.id && !m.id && selectedMeal.name === m.name && selectedMeal.money === m.money)
-      ));
-      var $card = $('<div class="meal-card"/>').toggleClass('selected', !!isSelected);
-      $card.append($('<div class="meal-name"/>').text(m.name));
-      if(m.categoryName){
-        $card.append($('<div class="meal-category-label"/>').text(m.categoryName));
+    function renderCart(){
+      $cartList.empty();
+      if(!cartItems.length){
+        $cartSummary.text('購物車目前沒有餐點。');
+        $cartList.append($('<div class="cart-empty"/>').text('尚未加入餐點。'));
+        $cartTotal.text('總計：NT$ 0');
+        $clearCart.hide();
+        updateSendButtonState();
+        return;
       }
-      $card.append($('<div class="meal-price"/>').text('NT$ '+ m.money));
-      if(m.element){
-        $card.append($('<div class="meal-element"/>').text(m.element));
+
+      var totalQty = 0;
+      var totalAmount = 0;
+
+      cartItems.forEach(function(item, index){
+        totalQty += item.qty;
+        totalAmount += item.price * item.qty;
+
+        var $item = $('<div class="cart-item"/>');
+        var $header = $('<div class="cart-item-header"/>');
+        $header.append($('<div class="cart-item-name"/>').text(item.name));
+        $header.append($('<div class="cart-item-price"/>').text(formatCurrency(item.price) + ' × ' + item.qty));
+        if(item.categoryName){
+          $header.append($('<div class="cart-item-note"/>').text(item.categoryName));
+        }
+        if(item.element){
+          $header.append($('<div class="cart-item-note"/>').text(item.element));
+        }
+        $item.append($header);
+
+        var $actions = $('<div class="cart-item-actions"/>');
+        var $qty = $('<div class="cart-item-qty"/>');
+        $('<button type="button">-</button>')
+          .on('click', function(){ changeCartItemQuantity(index, -1); })
+          .appendTo($qty);
+        $('<div class="cart-item-qty-value"/>').text(item.qty).appendTo($qty);
+        $('<button type="button">+</button>')
+          .on('click', function(){ changeCartItemQuantity(index, 1); })
+          .appendTo($qty);
+        $actions.append($qty);
+
+        $('<button type="button" class="cart-remove"/>')
+          .text('移除')
+          .on('click', function(){ removeCartItem(index); })
+          .appendTo($actions);
+
+        $item.append($actions);
+        $cartList.append($item);
+      });
+
+      $cartSummary.text('購物車共有 ' + totalQty + ' 份餐點（' + cartItems.length + ' 項）。');
+      $cartTotal.text('總計：' + formatCurrency(totalAmount));
+      $clearCart.show();
+      updateSendButtonState();
+    }
+
+    function changeCartItemQuantity(index, delta){
+      if(index < 0 || index >= cartItems.length){ return; }
+      var item = cartItems[index];
+      var nextQty = item.qty + delta;
+      if(nextQty <= 0){
+        cartItems.splice(index, 1);
+      } else {
+        item.qty = nextQty;
       }
-      var $btn = $('<button type="button"/>')
-        .text(isSelected ? '已選擇' : '選擇餐點')
-        .prop('disabled', !!isSelected)
-        .on('click', function(){
-          applyMealSelection(m);
-        });
-      $card.append($btn);
-      $list.append($card);
-    });
-  }
-
-  function applyMealSelection(meal){
-    selectedMeal = meal;
-    $('#selectedMealText').text('已選擇餐點：'+meal.name+'（NT$ '+meal.money+'）');
-    $('#clearMeal').show();
-    setTableStatus('已選擇餐點：'+meal.name, 'success');
-    log('已選擇餐點：'+meal.name+'（價格：'+meal.money+'）');
-    renderMeals();
-  }
-
-  function clearMealSelection(options){
-    selectedMeal = null;
-    $('#selectedMealText').text('尚未選擇餐點。');
-    $('#clearMeal').hide();
-    if(!(options && options.skipRender)){
+      renderCart();
       renderMeals();
     }
-  }
 
-  function fetchMealsForShop(shopId){
-    if(!shopId){
-      setCategories([]);
-      setMeals([]);
-      clearMealSelection({ skipRender: true });
-      return;
+    function removeCartItem(index){
+      if(index < 0 || index >= cartItems.length){ return; }
+      cartItems.splice(index, 1);
+      renderCart();
+      renderMeals();
+      setTableStatus('已從購物車移除餐點。', '');
     }
 
-    $.getJSON(mealLookupUrl, { shopId: shopId })
-      .done(function(res){
-        if(res && res.ok){
-          initialCategories = res.categories || [];
-          initialMeals = res.items || [];
-          clearMealSelection({ skipRender: true });
-          setCategories(initialCategories);
-          setMeals(initialMeals);
-          log('已載入餐點 '+((res.items && res.items.length) || 0)+' 項，分類 '+((res.categories && res.categories.length) || 0)+' 個。');
-        } else {
-          var msg = res && res.error ? res.error : '載入餐點失敗。';
+    function clearCart(options){
+      var skipStatus = options && options.skipStatus;
+      if(!cartItems.length){
+        renderCart();
+        renderMeals();
+        updateSendButtonState();
+        return;
+      }
+      cartItems = [];
+      renderCart();
+      renderMeals();
+      if(!skipStatus){
+        setTableStatus('購物車已清空。', '');
+      }
+    }
+
+    function addMealToCart(meal){
+      var price = Number(meal.money || 0);
+      var existing = null;
+      cartItems.some(function(item){
+        if(cartKeyMatches(item, meal)){
+          existing = item;
+          return true;
+        }
+        return false;
+      });
+
+      if(existing){
+        existing.qty += 1;
+      } else {
+        cartItems.push({
+          id: meal.id || null,
+          name: meal.name,
+          price: price,
+          qty: 1,
+          categoryName: meal.categoryName || '',
+          element: meal.element || ''
+        });
+      }
+
+      renderCart();
+      renderMeals();
+      setTableStatus('已加入餐點：' + meal.name, 'success');
+    }
+
+    function isSameCategory(a, b){
+      return (a || '') === (b || '');
+    }
+
+    function setCategories(categories){
+      allCategories = categories || [];
+      if(activeCategoryId && !allCategories.some(function(c){ return isSameCategory(c.id, activeCategoryId); })){
+        activeCategoryId = null;
+      }
+      renderCategories();
+    }
+
+    function renderCategories(){
+      var $container = $('#mealCategories').empty();
+      var hasTable = !!(currentTable || initialTable);
+      if(!hasTable){
+        $container.append($('<div class="meal-categories-empty"/>').text('請先選擇桌號以顯示分類。'));
+        return;
+      }
+
+      if(!allCategories.length){
+        $container.append($('<div class="meal-categories-empty"/>').text('此餐廳尚無設定分類。'));
+        return;
+      }
+
+      var $list = $('<div class="meal-categories-list"/>');
+      var items = [{ id: null, name: '全部' }].concat(allCategories);
+      items.forEach(function(cat){
+        var isActive = (!cat.id && !activeCategoryId) || (cat.id && isSameCategory(cat.id, activeCategoryId));
+        var $btn = $('<button type="button" class="meal-category-btn"/>')
+          .toggleClass('active', !!isActive)
+          .text(cat.name)
+          .on('click', function(){
+            if(isActive){ return; }
+            activeCategoryId = cat.id || null;
+            renderCategories();
+            renderMeals();
+          });
+        $list.append($btn);
+      });
+
+      $container.append($list);
+    }
+
+    function setMeals(meals){
+      allMeals = meals || [];
+      renderMeals();
+    }
+
+    function clearTableSelection(){
+      currentTable = null;
+      initialTable = null;
+      initialMeals = [];
+      initialCategories = [];
+      $('#tableSummary').hide().empty();
+      clearCart({ skipStatus: true });
+      setCategories([]);
+      setMeals([]);
+      updateSendButtonState();
+    }
+
+    function lookupTable(number){
+      var trimmed = $.trim(number || '');
+      if(!trimmed){
+        clearTableSelection();
+        setTableStatus('請輸入桌號後按查詢。', '');
+        return;
+      }
+
+      var num = parseInt(trimmed, 10);
+      if(!isFinite(num) || num <= 0){
+        clearTableSelection();
+        setTableStatus('桌號必須為正整數。', 'error');
+        return;
+      }
+
+      setTableStatus('查詢中…', '');
+      clearTableSelection();
+
+      $.getJSON(lookupUrl, { number: num })
+        .done(function(res){
+          if(res && res.ok){
+            currentTable = res;
+            var zoneText = res.zone ? ('（' + res.zone + '）') : '';
+            var summary = '餐廳：' + (res.shopName || res.shopId) + '　桌號：' + res.number + zoneText;
+            setTableStatus(summary, 'success');
+            $('#tableSummary').text(summary).show();
+            clearCart({ skipStatus: true });
+            fetchMealsForShop(res.shopId);
+          } else {
+            var msg = res && res.error ? res.error : '查無對應桌號。';
+            setTableStatus(msg, 'error');
+          }
+        })
+        .fail(function(xhr){
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢時發生錯誤。';
+          setTableStatus(msg, 'error');
+        });
+    }
+
+    function renderMeals(){
+      var $list = $('#mealList').empty();
+      var hasTable = !!(currentTable || initialTable);
+      if(!hasTable){
+        $list.append($('<div class="meal-empty"/>').text('請先選擇桌號以顯示餐點。'));
+        return;
+      }
+
+      if(!allMeals.length){
+        $list.append($('<div class="meal-empty"/>').text('此餐廳目前沒有可顯示的餐點。'));
+        return;
+      }
+
+      var mealsToShow = !activeCategoryId ? allMeals : allMeals.filter(function(m){
+        return isSameCategory(m.categoryId, activeCategoryId);
+      });
+
+      if(!mealsToShow.length){
+        $list.append($('<div class="meal-empty"/>').text('此分類目前沒有餐點。'));
+        return;
+      }
+
+      mealsToShow.forEach(function(m){
+        var $card = $('<div class="meal-card"/>');
+        $card.append($('<div class="meal-name"/>').text(m.name));
+        if(m.categoryName){
+          $card.append($('<div class="meal-category-label"/>').text(m.categoryName));
+        }
+        $card.append($('<div class="meal-price"/>').text(formatCurrency(m.money)));
+        if(m.element){
+          $card.append($('<div class="meal-element"/>').text(m.element));
+        }
+        var $btn = $('<button type="button"/>')
+          .text('加入購物車')
+          .on('click', function(){
+            addMealToCart(m);
+          });
+        $card.append($btn);
+
+        var qty = getCartQtyForMeal(m);
+        if(qty > 0){
+          $card.append($('<div class="meal-cart-indicator"/>').text('購物車中已有 ' + qty + ' 份。'));
+        }
+
+        $list.append($card);
+      });
+    }
+
+    function fetchMealsForShop(shopId){
+      if(!shopId){
+        setCategories([]);
+        setMeals([]);
+        clearCart({ skipStatus: true });
+        return;
+      }
+
+      $.getJSON(mealLookupUrl, { shopId: shopId })
+        .done(function(res){
+          if(res && res.ok){
+            initialCategories = res.categories || [];
+            initialMeals = res.items || [];
+            clearCart({ skipStatus: true });
+            setCategories(initialCategories);
+            setMeals(initialMeals);
+          } else {
+            var msg = res && res.error ? res.error : '載入餐點失敗。';
+            initialCategories = [];
+            initialMeals = [];
+            setCategories([]);
+            setMeals([]);
+            clearCart({ skipStatus: true });
+            setTableStatus(msg, 'error');
+          }
+        })
+        .fail(function(xhr){
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '載入餐點時發生錯誤。';
           initialCategories = [];
           initialMeals = [];
           setCategories([]);
           setMeals([]);
-          clearMealSelection({ skipRender: true });
-          log(msg);
-        }
-      })
-      .fail(function(xhr){
-        var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '載入餐點時發生錯誤。';
-        initialCategories = [];
-        initialMeals = [];
-        setCategories([]);
-        setMeals([]);
-        clearMealSelection({ skipRender: true });
-        log(msg);
-      });
-  }
-
-  $('#lookupTable').on('click', function(){ lookupTable($('#tableNumber').val()); });
-  $('#tableNumber').on('keyup', function(evt){ if(evt.key === 'Enter'){ lookupTable(this.value); } });
-  $('#tableNumber').on('blur', function(){ if(this.value){ lookupTable(this.value); } });
-  $('#clearMeal').on('click', function(){
-    clearMealSelection();
-    setTableStatus('已清除餐點選擇。', '');
-    log('已清除餐點選擇。');
-  });
-
-  function tryFillFromQuery(){
-    if(initialTable){ return; }
-    var params = new URLSearchParams(window.location.search);
-    var val = params.get('table') || params.get('tableNumber');
-    if(val){
-      $('#tableNumber').val(val);
-      lookupTable(val);
+          clearCart({ skipStatus: true });
+          setTableStatus(msg, 'error');
+        });
     }
-  }
 
-  hub.client.orderChanged = function(p){ log('[orderChanged] '+JSON.stringify(p)); };
+    $('#lookupTable').on('click', function(){ lookupTable($('#tableNumber').val()); });
+    $('#tableNumber').on('keyup', function(evt){ if(evt.key === 'Enter'){ lookupTable(this.value); } });
+    $('#tableNumber').on('blur', function(){ if(this.value){ lookupTable(this.value); } });
 
-  function applyInitialTable(){
-    if(initialTable){
-      currentTable = initialTable;
-      $('#tableNumber').val(initialTable.number);
-      var zoneText = initialTable.zone ? ('（'+initialTable.zone+'）') : '';
-      var summary = '餐廳：'+(initialTable.shopName || initialTable.shopId)+'　桌號：'+initialTable.number+zoneText;
-      setTableStatus(summary, 'success');
-      $('#tableSummary').text(summary).show();
-      clearMealSelection({ skipRender: true });
-      log('已載入桌號 '+initialTable.number+' 的資料。');
-    } else if(initialError){
-      setTableStatus(initialError, 'error');
-      log(initialError);
-    }
-  }
-
-  applyInitialTable();
-  setCategories(initialCategories);
-  setMeals(initialMeals);
-
-  $.connection.hub.start().done(function(){
-    $('#log').append('已連線\n');
-    if(initialTable && initialTable.shopId){
-      fetchMealsForShop(initialTable.shopId);
-    } else {
-      tryFillFromQuery();
-    }
-    $('#send').click(function(){
-      if(!currentTable || !currentTable.shopId){
-        var msg = '請先查詢有效的桌號後再下單。';
-        setTableStatus(msg, 'error');
-        log(msg);
-        return;
-      }
-
-      if(!selectedMeal){
-        var mealMsg = '請先從餐點列表選擇餐點。';
-        setTableStatus(mealMsg, 'error');
-        log(mealMsg);
-        return;
-      }
-
-      var dto = {
-        shopId: currentTable.shopId,
-        shopName: currentTable.shopName,
-        tableId: currentTable.tableId,
-        tableNumber: currentTable.number,
-        tableZone: currentTable.zone,
-        notes: null,
-        items: [{ name: selectedMeal.name, qty: 1, price: selectedMeal.money }]
-      };
-
-      hub.server.createOrder(dto);
-      setTableStatus('已送出訂單，餐點：'+selectedMeal.name, 'success');
-      log('已送出：'+JSON.stringify(dto));
+    $clearCart.on('click', function(){
+      clearCart({ skipStatus: false });
     });
-  }).fail(function(){
-    setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
-  });
+
+    function tryFillFromQuery(){
+      if(initialTable){ return; }
+      var params = new URLSearchParams(window.location.search);
+      var val = params.get('table') || params.get('tableNumber');
+      if(val){
+        $('#tableNumber').val(val);
+        lookupTable(val);
+      }
+    }
+
+    hub.client.orderChanged = function(payload){
+      console.log('orderChanged', payload);
+    };
+
+    function applyInitialTable(){
+      if(initialTable){
+        currentTable = initialTable;
+        $('#tableNumber').val(initialTable.number);
+        var zoneText = initialTable.zone ? ('（' + initialTable.zone + '）') : '';
+        var summary = '餐廳：' + (initialTable.shopName || initialTable.shopId) + '　桌號：' + initialTable.number + zoneText;
+        setTableStatus(summary, 'success');
+        $('#tableSummary').text(summary).show();
+      } else if(initialError){
+        setTableStatus(initialError, 'error');
+      }
+    }
+
+    applyInitialTable();
+    setCategories(initialCategories);
+    setMeals(initialMeals);
+    renderCart();
+    updateSendButtonState();
+
+    $.connection.hub.start().done(function(){
+      if(initialTable && initialTable.shopId){
+        fetchMealsForShop(initialTable.shopId);
+      } else {
+        tryFillFromQuery();
+      }
+      $sendButton.on('click', function(){
+        if(!currentTable || !currentTable.shopId){
+          var msg = '請先查詢有效的桌號後再下單。';
+          setTableStatus(msg, 'error');
+          return;
+        }
+
+        if(!cartItems.length){
+          var emptyMsg = '請先將餐點加入購物車。';
+          setTableStatus(emptyMsg, 'error');
+          return;
+        }
+
+        var dto = {
+          shopId: currentTable.shopId,
+          shopName: currentTable.shopName,
+          tableId: currentTable.tableId,
+          tableNumber: currentTable.number,
+          tableZone: currentTable.zone,
+          notes: null,
+          items: cartItems.map(function(item){
+            return { name: item.name, qty: item.qty, price: item.price };
+          })
+        };
+
+        hub.server.createOrder(dto);
+        var totalQty = cartItems.reduce(function(sum, item){ return sum + item.qty; }, 0);
+        setTableStatus('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
+        clearCart({ skipStatus: true });
+        updateSendButtonState();
+      });
+    }).fail(function(){
+      setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
+    });
+  })();
     </script>
 </body>
 </html>

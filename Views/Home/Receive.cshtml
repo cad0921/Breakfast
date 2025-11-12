@@ -83,16 +83,78 @@
             color: #b21f1f;
         }
 
-        .log {
+        .orders {
             margin-top: 1.5rem;
-            white-space: pre-wrap;
             border: 1px solid #dee2e6;
-            padding: 1rem;
+            padding: 1.25rem;
             border-radius: .5rem;
             background: #fff;
-            height: 18rem;
-            overflow: auto;
+            max-height: 24rem;
+            overflow-y: auto;
             box-shadow: inset 0 0.25rem 0.5rem rgba(0, 0, 0, 0.03);
+        }
+
+        .orders-empty {
+            text-align: center;
+            color: #6c757d;
+            font-size: .95rem;
+        }
+
+        .orders-entry {
+            border-bottom: 1px solid #e9ecef;
+            padding: .75rem 0;
+        }
+
+        .orders-entry:last-child {
+            border-bottom: none;
+        }
+
+        .orders-entry-time {
+            font-size: .8rem;
+            color: #6c757d;
+        }
+
+        .orders-entry-title {
+            margin-top: .25rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #212529;
+        }
+
+        .orders-entry-status {
+            color: #0d6efd;
+        }
+
+        .orders-entry-items {
+            margin: .5rem 0 0;
+            padding-left: 1.25rem;
+            color: #495057;
+        }
+
+        .orders-entry-items li {
+            margin: .25rem 0;
+        }
+
+        .orders-entry-meta {
+            margin-top: .35rem;
+            font-size: .9rem;
+            color: #495057;
+        }
+
+        .orders-entry-note {
+            margin-top: .5rem;
+            font-size: .9rem;
+            color: #495057;
+        }
+
+        .orders-entry-body {
+            margin-top: .5rem;
+            background: #f8f9fa;
+            border-radius: .375rem;
+            padding: .75rem;
+            font-size: .85rem;
+            white-space: pre-wrap;
+            color: #212529;
         }
 
         @media (max-width: 640px) {
@@ -125,18 +187,20 @@
             <button id="applyShop" type="button">開始接收</button>
         </div>
         <div id="status" class="status info">沒有此店家，請輸入店家識別碼以訂閱訂單通知。</div>
-        <pre class="log" id="log">尚未接收資料。</pre>
+        <div class="orders" id="orderUpdates">
+            <div class="orders-empty">尚未接收資料。</div>
+        </div>
     </div>
     <script>
         (function () {
             var hub = $.connection.ordersHub;
             var shopInfoUrl = '@Url.Action("ShopInfo")';
             var $status = $('#status');
-            var $log = $('#log');
+            var $orders = $('#orderUpdates');
             var $apply = $('#applyShop');
             var $input = $('#shopId');
             var isHubReady = false;
-            var hasLog = false;
+            var hasOrders = false;
             var currentShop = null;
 
             function setStatus(message, type) {
@@ -144,17 +208,94 @@
                 $status.removeClass('info success error').addClass(type).text(message);
             }
 
-            function log(message) {
-                if (!hasLog) {
-                    $log.text('');
-                    hasLog = true;
+            function formatTimestamp(date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0')
+                    + ' ' + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0') + ':' + String(date.getSeconds()).padStart(2, '0');
+            }
+
+            function formatCurrency(value) {
+                return 'NT$ ' + (Number(value) || 0).toLocaleString('zh-TW');
+            }
+
+            function resetOrders() {
+                hasOrders = false;
+                $orders.empty().append($('<div class="orders-empty"/>').text('尚未接收資料。'));
+            }
+
+            function ensureOrdersContainer() {
+                if (!hasOrders) {
+                    $orders.empty();
+                    hasOrders = true;
+                }
+            }
+
+            function appendStatus(message) {
+                ensureOrdersContainer();
+                var now = new Date();
+                var $entry = $('<div class="orders-entry"/>');
+                $entry.append($('<div class="orders-entry-time"/>').text(formatTimestamp(now)));
+                $entry.append($('<div class="orders-entry-title orders-entry-status"/>').text(message));
+                $orders.append($entry);
+                $orders.scrollTop($orders[0].scrollHeight);
+            }
+
+            function appendOrderNotification(payload) {
+                ensureOrdersContainer();
+                var now = new Date();
+                var $entry = $('<div class="orders-entry"/>');
+                $entry.append($('<div class="orders-entry-time"/>').text(formatTimestamp(now)));
+
+                if (!payload) {
+                    $entry.append($('<div class="orders-entry-title"/>').text('收到未知通知。'));
+                    $orders.append($entry);
+                    $orders.scrollTop($orders[0].scrollHeight);
+                    return;
                 }
 
-                var now = new Date();
-                var timestamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0')
-                    + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
-                $log.append('[' + timestamp + '] ' + message + '\n');
-                $log.scrollTop($log[0].scrollHeight);
+                if (payload.type === 'error') {
+                    var errorText = payload.error || '發生錯誤。';
+                    $entry.append($('<div class="orders-entry-title"/>').text('訂單處理錯誤'));
+                    $entry.append($('<div class="orders-entry-body"/>').text(errorText));
+                    $orders.append($entry);
+                    $orders.scrollTop($orders[0].scrollHeight);
+                    return;
+                }
+
+                if (payload.type === 'created' && payload.dto) {
+                    var dto = payload.dto || {};
+                    var header = '收到新訂單';
+                    if (dto.tableNumber) {
+                        header += '（桌號 ' + dto.tableNumber + '）';
+                    }
+                    $entry.append($('<div class="orders-entry-title"/>').text(header));
+                    if (dto.shopName) {
+                        $entry.append($('<div class="orders-entry-meta"/>').text('餐廳：' + dto.shopName));
+                    }
+                    if (dto.items && dto.items.length) {
+                        var $items = $('<ul class="orders-entry-items"/>');
+                        dto.items.forEach(function (item) {
+                            var line = item.name || '餐點';
+                            if (item.qty) {
+                                line += ' × ' + item.qty;
+                            }
+                            if (item.price !== undefined && item.price !== null) {
+                                line += '（' + formatCurrency(item.price) + '）';
+                            }
+                            $('<li/>').text(line).appendTo($items);
+                        });
+                        $entry.append($items);
+                    }
+                    if (dto.notes) {
+                        $entry.append($('<div class="orders-entry-note"/>').text('備註：' + dto.notes));
+                    }
+                } else {
+                    var details = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+                    $entry.append($('<div class="orders-entry-title"/>').text('收到通知'));
+                    $entry.append($('<pre class="orders-entry-body"/>').text(details));
+                }
+
+                $orders.append($entry);
+                $orders.scrollTop($orders[0].scrollHeight);
             }
 
             function normalizeShopId(value) {
@@ -204,7 +345,8 @@
 
                                     currentShop = { id: targetId, rawId: targetRawId, name: targetName };
                                     setStatus('目前顯示店家：' + displayName, 'success');
-                                    log('已訂閱店家 ' + displayName + ' 的訂單。');
+                                    resetOrders();
+                                    appendStatus('已訂閱店家 ' + displayName + ' 的訂單。');
                                 })
                                 .fail(function () {
                                     currentShop = null;
@@ -216,7 +358,7 @@
                             var leaving = currentShop;
                             currentShop = null;
                             hub.server.leaveShop(leaving.rawId).always(function () {
-                                log('已離開店家 ' + (leaving.name || leaving.rawId) + ' 的訂閱。');
+                                appendStatus('已離開店家 ' + (leaving.name || leaving.rawId) + ' 的訂閱。');
                                 joinShop();
                             });
                         } else {
@@ -235,14 +377,16 @@
                 return params.get('shopId') || params.get('shop');
             }
 
+            resetOrders();
+
             hub.client.orderChanged = function (payload) {
-                log('[orderChanged] ' + JSON.stringify(payload));
+                appendOrderNotification(payload);
             };
 
             $.connection.hub.start()
                 .done(function () {
                     isHubReady = true;
-                    log('SignalR 已連線。');
+                    appendStatus('SignalR 已連線。');
                     var initial = getInitialShopId();
                     if (initial) {
                         $input.val(initial);
