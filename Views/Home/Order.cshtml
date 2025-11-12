@@ -437,6 +437,15 @@
             .meal-panel {
                 max-width: none;
             }
+
+            .meal-panel {
+                order: 1;
+            }
+
+            .order-panel {
+                order: 2;
+                margin-top: 1rem;
+            }
         }
 
         @@media (max-width: 768px) {
@@ -508,7 +517,7 @@
     </style>
 </head>
 <body>
-    <h1>下單頁</h1>
+    <h1 id="pageTitle">下單頁</h1>
     <div class="order-layout">
         <section class="order-panel">
             <div class="order-fields">
@@ -559,7 +568,9 @@
     var $tableSummary = $('#tableSummary');
     var $tableMessage = $('#tableMessage');
     var $tableDetail = $('#tableDetail');
+    var $pageTitle = $('#pageTitle');
     var defaultTableMessage = '請掃描桌號 QR Code 開始點餐。';
+    var defaultPageTitle = '下單頁';
 
     function setTableMessage(message, type){
       $tableSummary.removeClass('is-error is-success');
@@ -576,6 +587,19 @@
         $tableDetail.text(text).addClass('show');
       } else {
         $tableDetail.text('').removeClass('show');
+      }
+    }
+
+    function updatePageTitle(table){
+      if(table && table.number !== undefined && table.number !== null){
+        var name = table.shopName || table.shopId || defaultPageTitle;
+        var zoneText = table.zone ? ('（' + table.zone + '）') : '';
+        var titleText = name + ' 桌號 ' + table.number + zoneText;
+        $pageTitle.text(titleText);
+        document.title = titleText;
+      } else {
+        $pageTitle.text(defaultPageTitle);
+        document.title = defaultPageTitle;
       }
     }
 
@@ -788,6 +812,7 @@
       if(!opts.skipMessage){
         setTableMessage(defaultTableMessage, '');
       }
+      updatePageTitle(null);
       clearCart({ skipStatus: true });
       setCategories([]);
       setMeals([]);
@@ -819,6 +844,7 @@
             var detail = '餐廳：' + (res.shopName || res.shopId) + '　桌號：' + res.number + zoneText;
             setTableMessage('已連線至桌號 ' + res.number + zoneText + '。', 'success');
             setTableDetail(detail);
+            updatePageTitle(currentTable);
             clearCart({ skipStatus: true });
             fetchMealsForShop(res.shopId);
           } else {
@@ -941,12 +967,15 @@
         var detail = '餐廳：' + (initialTable.shopName || initialTable.shopId) + '　桌號：' + initialTable.number + zoneText;
         setTableMessage('已連線至桌號 ' + initialTable.number + zoneText + '。', 'success');
         setTableDetail(detail);
+        updatePageTitle(initialTable);
       } else if(initialError){
         setTableMessage(initialError, 'error');
         setTableDetail('');
+        updatePageTitle(null);
       } else {
         setTableMessage(defaultTableMessage, '');
         setTableDetail('');
+        updatePageTitle(null);
       }
     }
 
