@@ -115,13 +115,17 @@
             box-sizing: border-box;
         }
 
+        .order-panel #log {
+            margin-top: 1.5rem;
+        }
+
         .order-layout {
             display: flex;
             flex-wrap: wrap;
             gap: 2rem;
         }
 
-        .order-form {
+        .order-panel {
             flex: 1 1 320px;
             max-width: 420px;
             background: #fff;
@@ -132,21 +136,19 @@
             flex-direction: column;
         }
 
-        .order-form .field {
-            margin-bottom: .75rem;
-        }
-
-        .order-form-content {
+        .order-fields {
             display: flex;
             flex-direction: column;
+            gap: .75rem;
         }
 
-        .order-form-footer {
+        .order-fields .field {
+            margin: 0;
+        }
+
+        .order-submit {
             margin-top: auto;
             padding-top: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
         }
 
         .meal-panel {
@@ -267,7 +269,7 @@
                 margin: 1.25rem;
             }
 
-            .order-form {
+            .order-panel {
                 max-width: 100%;
             }
         }
@@ -276,8 +278,8 @@
 <body>
     <h1>下單頁</h1>
     <div class="order-layout">
-        <section class="order-form">
-            <div class="order-form-content">
+        <section class="order-panel">
+            <div class="order-fields">
                 <div class="field">
                     <label>桌號</label>
                     <div class="table-input">
@@ -311,8 +313,8 @@
                     <textarea id="notes" rows="3"></textarea>
                 </div>
             </div>
-            <div class="order-form-footer">
-                <pre id="log"></pre>
+            <pre id="log"></pre>
+            <div class="order-submit">
                 <button id="send">送出訂單</button>
             </div>
         </section>
