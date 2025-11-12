@@ -83,9 +83,14 @@
             transition: background .2s ease, border-color .2s ease, color .2s ease;
         }
 
-        .table-summary-message {
+        .table-summary-status {
             font-weight: 600;
             font-size: 1rem;
+            display: none;
+        }
+
+        .table-summary-status.show {
+            display: block;
         }
 
         .table-summary-detail {
@@ -103,7 +108,7 @@
             border-color: #badbcc;
         }
 
-        .table-summary.is-success .table-summary-message {
+        .table-summary.is-success .table-summary-status {
             color: #0f5132;
         }
 
@@ -112,7 +117,7 @@
             border-color: #f5c2c7;
         }
 
-        .table-summary.is-error .table-summary-message {
+        .table-summary.is-error .table-summary-status {
             color: #842029;
         }
 
@@ -122,6 +127,131 @@
             color: #fff;
             font-size: 1rem;
             width: 100%;
+        }
+
+        .order-confirm-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(33, 37, 41, .5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 1000;
+        }
+
+        .order-confirm-modal.is-active {
+            display: flex;
+        }
+
+        .order-confirm-modal__content {
+            background: #fff;
+            border-radius: .75rem;
+            box-shadow: 0 1.5rem 4rem rgba(33, 37, 41, .35);
+            width: min(520px, 100%);
+            max-height: min(90vh, 640px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .order-confirm-modal__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem 0;
+            gap: 1rem;
+        }
+
+        .order-confirm-modal__title {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .order-confirm-modal__close {
+            background: transparent;
+            color: #6c757d;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: .25rem;
+        }
+
+        .order-confirm-modal__body {
+            padding: 1rem 1.5rem;
+            overflow-y: auto;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .order-confirm-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: .5rem;
+            padding: .75rem 1rem;
+            font-size: .95rem;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .order-confirm-items table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .95rem;
+        }
+
+        .order-confirm-items th,
+        .order-confirm-items td {
+            padding: .5rem .25rem;
+            text-align: left;
+        }
+
+        .order-confirm-items th {
+            font-weight: 600;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .order-confirm-items td {
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .order-confirm-items td:last-child,
+        .order-confirm-items th:last-child {
+            text-align: right;
+        }
+
+        .order-confirm-items th:nth-child(2),
+        .order-confirm-items td:nth-child(2) {
+            text-align: center;
+            width: 4rem;
+        }
+
+        .order-confirm-total {
+            display: flex;
+            justify-content: flex-end;
+            font-weight: 700;
+            margin-top: .5rem;
+            font-size: 1rem;
+        }
+
+        .order-confirm-modal__footer {
+            padding: 1rem 1.5rem 1.25rem;
+            border-top: 1px solid #f1f3f5;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #confirmSubmit {
+            padding: .75rem 1.5rem;
+            background: #198754;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        #confirmSubmit:disabled {
+            opacity: .7;
+            cursor: not-allowed;
         }
 
         .cart-container {
@@ -522,7 +652,7 @@
         <section class="order-panel">
             <div class="order-fields">
                 <div class="table-summary" id="tableSummary" role="status" aria-live="polite">
-                    <div class="table-summary-message" id="tableMessage">請掃描桌號 QR Code 開始點餐。</div>
+                    <div class="table-summary-status show" id="tableStatus">請掃描桌號 QR Code 開始點餐。</div>
                     <div class="table-summary-detail" id="tableDetail"></div>
                 </div>
                 <div class="cart-container">
@@ -536,7 +666,7 @@
                 </div>
             </div>
             <div class="order-submit">
-                <button id="send">送出訂單</button>
+                <button id="send">確認訂單</button>
             </div>
         </section>
         <aside class="meal-panel">
@@ -544,6 +674,33 @@
             <div class="meal-categories" id="mealCategories"></div>
             <div class="meal-list" id="mealList"></div>
         </aside>
+    </div>
+    <div class="order-confirm-modal" id="orderConfirmModal" role="dialog" aria-modal="true" aria-labelledby="orderConfirmTitle" aria-hidden="true">
+        <div class="order-confirm-modal__content" tabindex="-1">
+            <div class="order-confirm-modal__header">
+                <h3 class="order-confirm-modal__title" id="orderConfirmTitle">訂單確認</h3>
+                <button type="button" class="order-confirm-modal__close" id="orderConfirmClose" aria-label="關閉訂單確認視窗">×</button>
+            </div>
+            <div class="order-confirm-modal__body">
+                <div class="order-confirm-info" id="orderConfirmTable"></div>
+                <div class="order-confirm-items">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">餐點</th>
+                                <th scope="col">數量</th>
+                                <th scope="col">小計</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderConfirmItems"></tbody>
+                    </table>
+                    <div class="order-confirm-total" id="orderConfirmTotal"></div>
+                </div>
+            </div>
+            <div class="order-confirm-modal__footer">
+                <button type="button" id="confirmSubmit">送出訂單</button>
+            </div>
+        </div>
     </div>
     <script>
   (function(){
@@ -566,20 +723,34 @@
     var $clearCart = $('#clearCart');
     var $sendButton = $('#send');
     var $tableSummary = $('#tableSummary');
-    var $tableMessage = $('#tableMessage');
+    var $tableStatus = $('#tableStatus');
     var $tableDetail = $('#tableDetail');
     var $pageTitle = $('#pageTitle');
-    var defaultTableMessage = '請掃描桌號 QR Code 開始點餐。';
+    var $orderConfirmModal = $('#orderConfirmModal');
+    var $orderConfirmClose = $('#orderConfirmClose');
+    var $orderConfirmContent = $orderConfirmModal.find('.order-confirm-modal__content');
+    var $orderConfirmTable = $('#orderConfirmTable');
+    var $orderConfirmItems = $('#orderConfirmItems');
+    var $orderConfirmTotal = $('#orderConfirmTotal');
+    var $confirmSubmit = $('#confirmSubmit');
+    var defaultTableStatus = '請掃描桌號 QR Code 開始點餐。';
     var defaultPageTitle = '下單頁';
+    var isSubmitting = false;
+    var confirmSubmitDefaultText = $confirmSubmit.text();
 
-    function setTableMessage(message, type){
+    function setTableStatus(message, type){
       $tableSummary.removeClass('is-error is-success');
       if(type === 'error'){
         $tableSummary.addClass('is-error');
       } else if(type === 'success'){
         $tableSummary.addClass('is-success');
       }
-      $tableMessage.text(message || defaultTableMessage);
+      var text = message || defaultTableStatus;
+      if(text){
+        $tableStatus.text(text).addClass('show');
+      } else {
+        $tableStatus.text('').removeClass('show');
+      }
     }
 
     function setTableDetail(text){
@@ -612,6 +783,61 @@
       $sendButton.prop('disabled', !canSend);
     }
 
+    function closeOrderConfirmModal(){
+      var wasActive = $orderConfirmModal.hasClass('is-active');
+      $orderConfirmModal.removeClass('is-active').attr('aria-hidden', 'true');
+      $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+      isSubmitting = false;
+      if(wasActive){
+        $sendButton.trigger('focus');
+      }
+    }
+
+    function openOrderConfirmModal(){
+      if(!$orderConfirmModal.length){ return; }
+
+      var detailParts = [];
+      if(currentTable){
+        if(currentTable.shopName || currentTable.shopId){
+          detailParts.push('餐廳：' + (currentTable.shopName || currentTable.shopId));
+        }
+        if(currentTable.number !== undefined && currentTable.number !== null){
+          var zoneText = currentTable.zone ? ('（' + currentTable.zone + '）') : '';
+          detailParts.push('桌號：' + currentTable.number + zoneText);
+        }
+      }
+      if(!detailParts.length){
+        detailParts.push('桌號資訊尚未提供');
+      }
+      $orderConfirmTable.text(detailParts.join('　'));
+
+      $orderConfirmItems.empty();
+      var totalAmount = 0;
+      var totalQty = 0;
+
+      cartItems.forEach(function(item){
+        var subtotal = (Number(item.price) || 0) * item.qty;
+        totalAmount += subtotal;
+        totalQty += item.qty;
+
+        var $row = $('<tr/>');
+        $('<td/>').text(item.name).appendTo($row);
+        $('<td/>').text(item.qty).appendTo($row);
+        $('<td/>').text(formatCurrency(subtotal)).appendTo($row);
+        $orderConfirmItems.append($row);
+      });
+
+      $orderConfirmTotal.text('總計：' + formatCurrency(totalAmount) + '（共 ' + totalQty + ' 份）');
+
+      $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+      isSubmitting = false;
+
+      $orderConfirmModal.addClass('is-active').attr('aria-hidden', 'false');
+      setTimeout(function(){
+        $orderConfirmContent.trigger('focus');
+      }, 0);
+    }
+
     function cartKeyMatches(item, meal){
       if(item.id && meal.id){
         return item.id === meal.id;
@@ -638,6 +864,7 @@
         $cartList.append($('<div class="cart-empty"/>').text('尚未加入餐點。'));
         $cartTotal.text('總計：NT$ 0');
         $clearCart.hide();
+        closeOrderConfirmModal();
         updateSendButtonState();
         return;
       }
@@ -705,7 +932,7 @@
       cartItems.splice(index, 1);
       renderCart();
       renderMeals();
-      setTableMessage('已從購物車移除餐點。', '');
+      setTableStatus('已從購物車移除餐點。', '');
     }
 
     function clearCart(options){
@@ -720,7 +947,7 @@
       renderCart();
       renderMeals();
       if(!skipStatus){
-        setTableMessage('購物車已清空。', '');
+        setTableStatus('購物車已清空。', '');
       }
     }
 
@@ -750,7 +977,7 @@
 
       renderCart();
       renderMeals();
-      setTableMessage('已加入餐點：' + meal.name, 'success');
+      setTableStatus('已加入餐點：' + meal.name, 'success');
     }
 
     function isSameCategory(a, b){
@@ -810,7 +1037,7 @@
       initialCategories = [];
       setTableDetail('');
       if(!opts.skipMessage){
-        setTableMessage(defaultTableMessage, '');
+        setTableStatus(defaultTableStatus, '');
       }
       updatePageTitle(null);
       clearCart({ skipStatus: true });
@@ -829,11 +1056,11 @@
       var num = parseInt(trimmed, 10);
       if(!isFinite(num) || num <= 0){
         clearTableSelection();
-        setTableMessage('桌號必須為正整數。', 'error');
+        setTableStatus('桌號必須為正整數。', 'error');
         return;
       }
 
-      setTableMessage('查詢中…', '');
+      setTableStatus('查詢中…', '');
       clearTableSelection({ skipMessage: true });
 
       $.getJSON(lookupUrl, { number: num })
@@ -842,19 +1069,19 @@
             currentTable = res;
             var zoneText = res.zone ? ('（' + res.zone + '）') : '';
             var detail = '餐廳：' + (res.shopName || res.shopId) + '　桌號：' + res.number + zoneText;
-            setTableMessage('已連線至桌號 ' + res.number + zoneText + '。', 'success');
+            setTableStatus('已連線至桌號 ' + res.number + zoneText + '。', 'success');
             setTableDetail(detail);
             updatePageTitle(currentTable);
             clearCart({ skipStatus: true });
             fetchMealsForShop(res.shopId);
           } else {
             var msg = res && res.error ? res.error : '查無對應桌號。';
-            setTableMessage(msg, 'error');
+            setTableStatus(msg, 'error');
           }
         })
         .fail(function(xhr){
           var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢時發生錯誤。';
-          setTableMessage(msg, 'error');
+          setTableStatus(msg, 'error');
         });
     }
 
@@ -929,7 +1156,7 @@
             setCategories([]);
             setMeals([]);
             clearCart({ skipStatus: true });
-            setTableMessage(msg, 'error');
+            setTableStatus(msg, 'error');
           }
         })
         .fail(function(xhr){
@@ -939,7 +1166,7 @@
           setCategories([]);
           setMeals([]);
           clearCart({ skipStatus: true });
-          setTableMessage(msg, 'error');
+          setTableStatus(msg, 'error');
         });
     }
 
@@ -956,6 +1183,22 @@
       }
     }
 
+    $orderConfirmClose.on('click', function(){
+      closeOrderConfirmModal();
+    });
+
+    $orderConfirmModal.on('click', function(event){
+      if(event.target === this){
+        closeOrderConfirmModal();
+      }
+    });
+
+    $(document).on('keydown', function(event){
+      if(event.key === 'Escape' && $orderConfirmModal.hasClass('is-active')){
+        closeOrderConfirmModal();
+      }
+    });
+
     hub.client.orderChanged = function(payload){
       console.log('orderChanged', payload);
     };
@@ -965,15 +1208,15 @@
         currentTable = initialTable;
         var zoneText = initialTable.zone ? ('（' + initialTable.zone + '）') : '';
         var detail = '餐廳：' + (initialTable.shopName || initialTable.shopId) + '　桌號：' + initialTable.number + zoneText;
-        setTableMessage('已連線至桌號 ' + initialTable.number + zoneText + '。', 'success');
+        setTableStatus('已連線至桌號 ' + initialTable.number + zoneText + '。', 'success');
         setTableDetail(detail);
         updatePageTitle(initialTable);
       } else if(initialError){
-        setTableMessage(initialError, 'error');
+        setTableStatus(initialError, 'error');
         setTableDetail('');
         updatePageTitle(null);
       } else {
-        setTableMessage(defaultTableMessage, '');
+        setTableStatus(defaultTableStatus, '');
         setTableDetail('');
         updatePageTitle(null);
       }
@@ -994,15 +1237,38 @@
       $sendButton.on('click', function(){
         if(!currentTable || !currentTable.shopId){
           var msg = '請先查詢有效的桌號後再下單。';
-          setTableMessage(msg, 'error');
+          setTableStatus(msg, 'error');
           return;
         }
 
         if(!cartItems.length){
           var emptyMsg = '請先將餐點加入購物車。';
-          setTableMessage(emptyMsg, 'error');
+          setTableStatus(emptyMsg, 'error');
           return;
         }
+
+        openOrderConfirmModal();
+      });
+
+      $confirmSubmit.on('click', function(){
+        if(isSubmitting){ return; }
+
+        if(!currentTable || !currentTable.shopId){
+          var msg = '請先查詢有效的桌號後再下單。';
+          setTableStatus(msg, 'error');
+          closeOrderConfirmModal();
+          return;
+        }
+
+        if(!cartItems.length){
+          var emptyMsg = '請先將餐點加入購物車。';
+          setTableStatus(emptyMsg, 'error');
+          closeOrderConfirmModal();
+          return;
+        }
+
+        isSubmitting = true;
+        $confirmSubmit.prop('disabled', true).text('送出中…');
 
         var dto = {
           shopId: currentTable.shopId,
@@ -1018,12 +1284,13 @@
 
         hub.server.createOrder(dto);
         var totalQty = cartItems.reduce(function(sum, item){ return sum + item.qty; }, 0);
-        setTableMessage('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
+        setTableStatus('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
         clearCart({ skipStatus: true });
         updateSendButtonState();
+        closeOrderConfirmModal();
       });
     }).fail(function(){
-      setTableMessage('SignalR 連線失敗，請重新整理頁面。', 'error');
+      setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
     });
   })();
     </script>
