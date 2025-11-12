@@ -41,10 +41,16 @@ namespace BreakFastShop.Controllers
                                  INNER JOIN Shop s ON s.Id = t.ShopId
                                  WHERE t.Id=@Id AND t.IsActive=1 AND s.IsActive=1";
 
-            const string mealsSql = @"SELECT Id,Name,Money,Element
-                                FROM Meals
-                                WHERE ShopId=@ShopId AND IsActive=1
-                                ORDER BY Name";
+            const string categoriesSql = @"SELECT Id,Name
+                                 FROM MealCategory
+                                 WHERE ShopId=@ShopId AND IsActive=1
+                                 ORDER BY SortOrder,Name";
+
+            const string mealsSql = @"SELECT m.Id,m.Name,m.Money,m.Element,m.CategoryId,c.Name
+                                FROM Meals m
+                                LEFT JOIN MealCategory c ON c.Id = m.CategoryId AND c.IsActive=1
+                                WHERE m.ShopId=@ShopId AND m.IsActive=1
+                                ORDER BY c.SortOrder,c.Name,m.Name";
 
             try
             {
@@ -74,6 +80,23 @@ namespace BreakFastShop.Controllers
 
                     if (model.Table != null)
                     {
+                        using (var categoriesCommand = new SqlCommand(categoriesSql, connection))
+                        {
+                            categoriesCommand.Parameters.AddWithValue("@ShopId", model.Table.ShopId);
+
+                            using (var reader = await categoriesCommand.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    model.Categories.Add(new OrderMealCategoryInfo
+                                    {
+                                        Id = reader.GetGuid(0),
+                                        Name = reader.GetString(1)
+                                    });
+                                }
+                            }
+                        }
+
                         using (var mealsCommand = new SqlCommand(mealsSql, connection))
                         {
                             mealsCommand.Parameters.AddWithValue("@ShopId", model.Table.ShopId);
@@ -87,7 +110,9 @@ namespace BreakFastShop.Controllers
                                         Id = reader.GetGuid(0),
                                         Name = reader.GetString(1),
                                         Money = reader.GetDecimal(2),
-                                        Element = reader.IsDBNull(3) ? null : reader.GetString(3)
+                                        Element = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                        CategoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
+                                        CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5)
                                     });
                                 }
                             }
@@ -242,10 +267,16 @@ namespace BreakFastShop.Controllers
                 return Json(new { ok = false, error = "尚未設定資料庫連線字串。" }, JsonRequestBehavior.AllowGet);
             }
 
-            const string sql = @"SELECT Id,Name,Money,Element
-                                 FROM Meals
+            const string categoriesSql = @"SELECT Id,Name
+                                 FROM MealCategory
                                  WHERE ShopId=@ShopId AND IsActive=1
-                                 ORDER BY Name";
+                                 ORDER BY SortOrder,Name";
+
+            const string sql = @"SELECT m.Id,m.Name,m.Money,m.Element,m.CategoryId,c.Name
+                                 FROM Meals m
+                                 LEFT JOIN MealCategory c ON c.Id = m.CategoryId AND c.IsActive=1
+                                 WHERE m.ShopId=@ShopId AND m.IsActive=1
+                                 ORDER BY c.SortOrder,c.Name,m.Name";
 
             try
             {
@@ -255,10 +286,29 @@ namespace BreakFastShop.Controllers
                     command.Parameters.AddWithValue("@ShopId", shopId.Value);
 
                     await connection.OpenAsync();
+
+                    var categories = new List<object>();
+                    using (var catCommand = new SqlCommand(categoriesSql, connection))
+                    {
+                        catCommand.Parameters.AddWithValue("@ShopId", shopId.Value);
+
+                        using (var catReader = await catCommand.ExecuteReaderAsync())
+                        {
+                            while (await catReader.ReadAsync())
+                            {
+                                categories.Add(new
+                                {
+                                    id = catReader.GetGuid(0),
+                                    name = catReader.GetString(1)
+                                });
+                            }
+                        }
+                    }
+
+                    var list = new List<object>();
+
                     using (var reader = await command.ExecuteReaderAsync())
                     {
-                        var list = new List<object>();
-
                         while (await reader.ReadAsync())
                         {
                             list.Add(new
@@ -266,12 +316,14 @@ namespace BreakFastShop.Controllers
                                 id = reader.GetGuid(0),
                                 name = reader.GetString(1),
                                 money = reader.GetDecimal(2),
-                                element = reader.IsDBNull(3) ? null : reader.GetString(3)
+                                element = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                categoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
+                                categoryName = reader.IsDBNull(5) ? null : reader.GetString(5)
                             });
                         }
-
-                        return Json(new { ok = true, items = list }, JsonRequestBehavior.AllowGet);
                     }
+
+                    return Json(new { ok = true, items = list, categories }, JsonRequestBehavior.AllowGet);
                 }
             }
             catch

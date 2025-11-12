@@ -12,7 +12,10 @@
         zone = Model.Table.Zone
     };
     var mealsPayload = Model?.Meals?
-        .Select(m => (object)new { id = m.Id, name = m.Name, money = m.Money, element = m.Element })
+        .Select(m => (object)new { id = m.Id, name = m.Name, money = m.Money, element = m.Element, categoryId = m.CategoryId, categoryName = m.CategoryName })
+        .ToList() ?? new List<object>();
+    var categoriesPayload = Model?.Categories?
+        .Select(c => (object)new { id = c.Id, name = c.Name })
         .ToList() ?? new List<object>();
     var errorMessage = Model?.Error;
 }
@@ -142,6 +145,49 @@
             margin-bottom: 1rem;
         }
 
+        .meal-categories {
+            margin-bottom: 1rem;
+        }
+
+        .meal-categories-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .meal-categories-empty {
+            color: #6c757d;
+            font-style: italic;
+            background: #fff;
+            border: 1px dashed #ced4da;
+            padding: .75rem 1rem;
+            border-radius: .5rem;
+            text-align: center;
+        }
+
+        .meal-category-btn {
+            padding: .5rem 1rem;
+            background: #e9ecef;
+            color: #212529;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            font-size: .95rem;
+            transition: all .2s ease;
+        }
+
+        .meal-category-btn:hover,
+        .meal-category-btn:focus {
+            background: #d1e7ff;
+            color: #0d6efd;
+        }
+
+        .meal-category-btn.active {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0a58ca;
+            box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.2);
+        }
+
         .meal-list {
             display: flex;
             flex-direction: column;
@@ -172,6 +218,16 @@
             color: #6c757d;
             font-size: .9rem;
             white-space: pre-wrap;
+        }
+
+        .meal-category-label {
+            display: inline-block;
+            margin-top: .35rem;
+            padding: .25rem .5rem;
+            background: #e7f1ff;
+            color: #0d6efd;
+            border-radius: .375rem;
+            font-size: .85rem;
         }
 
         .meal-card button {
@@ -244,6 +300,7 @@
         </section>
         <aside class="meal-panel">
             <h2>餐點列表</h2>
+            <div class="meal-categories" id="mealCategories"></div>
             <div class="meal-list" id="mealList"></div>
         </aside>
     </div>
@@ -254,7 +311,11 @@
   var currentTable = null;
   var initialTable = @Html.Raw(Json.Encode(tablePayload));
   var initialMeals = @Html.Raw(Json.Encode(mealsPayload));
+  var initialCategories = @Html.Raw(Json.Encode(categoriesPayload));
   var initialError = @Html.Raw(Json.Encode(errorMessage));
+  var allMeals = [];
+  var allCategories = [];
+  var activeCategoryId = null;
 
   function setTableStatus(message, type){
     var $status = $('#tableStatus');
@@ -268,12 +329,65 @@
     $('#log').append(message+'\n');
   }
 
+  function isSameCategory(a, b){
+    return (a || '') === (b || '');
+  }
+
+  function setCategories(categories){
+    allCategories = categories || [];
+    if(activeCategoryId && !allCategories.some(function(c){ return isSameCategory(c.id, activeCategoryId); })){
+      activeCategoryId = null;
+    }
+    renderCategories();
+  }
+
+  function renderCategories(){
+    var $container = $('#mealCategories').empty();
+    var hasTable = !!(currentTable || initialTable);
+    if(!hasTable){
+      $container.append($('<div class="meal-categories-empty"/>').text('請先選擇桌號以顯示分類。'));
+      return;
+    }
+
+    if(!allCategories.length){
+      $container.append($('<div class="meal-categories-empty"/>').text('此餐廳尚無設定分類。'));
+      return;
+    }
+
+    var $list = $('<div class="meal-categories-list"/>');
+    var items = [{ id: null, name: '全部' }].concat(allCategories);
+    items.forEach(function(cat){
+      var isActive = (!cat.id && !activeCategoryId) || (cat.id && isSameCategory(cat.id, activeCategoryId));
+      var $btn = $('<button type="button" class="meal-category-btn"/>')
+        .toggleClass('active', !!isActive)
+        .text(cat.name)
+        .on('click', function(){
+          if(isActive){ return; }
+          activeCategoryId = cat.id || null;
+          renderCategories();
+          renderMeals();
+          log(cat.id ? ('已切換分類：'+cat.name) : '顯示全部餐點。');
+        });
+      $list.append($btn);
+    });
+
+    $container.append($list);
+  }
+
+  function setMeals(meals){
+    allMeals = meals || [];
+    renderMeals();
+  }
+
   function clearTableSelection(){
     currentTable = null;
     initialTable = null;
+    initialMeals = [];
+    initialCategories = [];
     $('#shop').val('');
     $('#shopName').val('');
-    renderMeals([]);
+    setCategories([]);
+    setMeals([]);
   }
 
   function lookupTable(number){
@@ -317,18 +431,34 @@
       });
   }
 
-  function renderMeals(meals){
+  function renderMeals(){
     var $list = $('#mealList').empty();
     var hasTable = !!(currentTable || initialTable);
-    if(!meals || !meals.length){
-      var text = hasTable ? '此餐廳目前沒有可顯示的餐點。' : '請先選擇桌號以顯示餐點。';
-      $list.append($('<div class="meal-empty"/>').text(text));
+    if(!hasTable){
+      $list.append($('<div class="meal-empty"/>').text('請先選擇桌號以顯示餐點。'));
       return;
     }
 
-    meals.forEach(function(m){
+    if(!allMeals.length){
+      $list.append($('<div class="meal-empty"/>').text('此餐廳目前沒有可顯示的餐點。'));
+      return;
+    }
+
+    var mealsToShow = !activeCategoryId ? allMeals : allMeals.filter(function(m){
+      return isSameCategory(m.categoryId, activeCategoryId);
+    });
+
+    if(!mealsToShow.length){
+      $list.append($('<div class="meal-empty"/>').text('此分類目前沒有餐點。'));
+      return;
+    }
+
+    mealsToShow.forEach(function(m){
       var $card = $('<div class="meal-card"/>');
       $card.append($('<div class="meal-name"/>').text(m.name));
+      if(m.categoryName){
+        $card.append($('<div class="meal-category-label"/>').text(m.categoryName));
+      }
       $card.append($('<div class="meal-price"/>').text('NT$ '+ m.money));
       if(m.element){
         $card.append($('<div class="meal-element"/>').text(m.element));
@@ -346,24 +476,34 @@
 
   function fetchMealsForShop(shopId){
     if(!shopId){
-      renderMeals([]);
+      setCategories([]);
+      setMeals([]);
       return;
     }
 
     $.getJSON(mealLookupUrl, { shopId: shopId })
       .done(function(res){
         if(res && res.ok){
-          renderMeals(res.items || []);
-          log('已載入餐點 '+((res.items && res.items.length) || 0)+' 項。');
+          initialCategories = res.categories || [];
+          initialMeals = res.items || [];
+          setCategories(initialCategories);
+          setMeals(initialMeals);
+          log('已載入餐點 '+((res.items && res.items.length) || 0)+' 項，分類 '+((res.categories && res.categories.length) || 0)+' 個。');
         } else {
           var msg = res && res.error ? res.error : '載入餐點失敗。';
-          renderMeals([]);
+          initialCategories = [];
+          initialMeals = [];
+          setCategories([]);
+          setMeals([]);
           log(msg);
         }
       })
       .fail(function(xhr){
         var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '載入餐點時發生錯誤。';
-        renderMeals([]);
+        initialCategories = [];
+        initialMeals = [];
+        setCategories([]);
+        setMeals([]);
         log(msg);
       });
   }
@@ -400,7 +540,8 @@
   }
 
   applyInitialTable();
-  renderMeals(initialMeals);
+  setCategories(initialCategories);
+  setMeals(initialMeals);
 
   $.connection.hub.start().done(function(){
     $('#log').append('已連線\n');

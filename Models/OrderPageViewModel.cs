@@ -9,6 +9,8 @@ namespace BreakFastShop.Models
 
         public List<OrderMealInfo> Meals { get; set; } = new List<OrderMealInfo>();
 
+        public List<OrderMealCategoryInfo> Categories { get; set; } = new List<OrderMealCategoryInfo>();
+
         public string Error { get; set; }
     }
 
@@ -34,5 +36,16 @@ namespace BreakFastShop.Models
         public decimal Money { get; set; }
 
         public string Element { get; set; }
+
+        public Guid? CategoryId { get; set; }
+
+        public string CategoryName { get; set; }
+    }
+
+    public class OrderMealCategoryInfo
+    {
+        public Guid Id { get; set; }
+
+        public string Name { get; set; }
     }
 }
