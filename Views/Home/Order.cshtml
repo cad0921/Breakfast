@@ -23,6 +23,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>下單頁</title>
     <script src="~/Scripts/jquery-3.7.0.min.js"></script>
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
@@ -30,12 +31,16 @@
     <style>
         body {
             font-family: system-ui, "Noto Sans TC", sans-serif;
-            margin: 2rem;
+            margin: 0;
+            padding: 2rem;
             background: #f8f9fa;
         }
 
         h1 {
             margin-bottom: 1.5rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         label {
@@ -64,36 +69,51 @@
             cursor: pointer;
         }
 
-        .table-input {
+        .table-summary {
+            padding: 1rem 1.25rem;
+            border-radius: .5rem;
+            background: #fff;
+            border: 1px solid #ced4da;
+            color: #495057;
+            line-height: 1.6;
             display: flex;
-            gap: .5rem;
-            align-items: center;
-            margin-bottom: .25rem;
+            flex-direction: column;
+            gap: .35rem;
+            margin-bottom: 1rem;
+            transition: background .2s ease, border-color .2s ease, color .2s ease;
         }
 
-        .table-input input {
-            flex: 1;
+        .table-summary-message {
+            font-weight: 600;
+            font-size: 1rem;
         }
 
-        .table-input button {
-            padding: .5rem 1rem;
-            background: #0d6efd;
-            color: #fff;
-        }
-
-        .table-status {
-            margin-bottom: .75rem;
+        .table-summary-detail {
             font-size: .95rem;
-            color: #555;
-            min-height: 1.5rem;
+            color: #6c757d;
+            display: none;
         }
 
-        .table-status.error {
-            color: #b21f1f;
+        .table-summary-detail.show {
+            display: block;
         }
 
-        .table-status.success {
+        .table-summary.is-success {
+            background: #d1e7dd;
+            border-color: #badbcc;
+        }
+
+        .table-summary.is-success .table-summary-message {
             color: #0f5132;
+        }
+
+        .table-summary.is-error {
+            background: #f8d7da;
+            border-color: #f5c2c7;
+        }
+
+        .table-summary.is-error .table-summary-message {
+            color: #842029;
         }
 
         #send {
@@ -236,6 +256,8 @@
             display: flex;
             flex-wrap: wrap;
             gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .order-panel {
@@ -247,20 +269,13 @@
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
         .order-fields {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-        }
-
-        .table-summary {
-            padding: .75rem 1rem;
-            border-radius: .5rem;
-            background: #f8f9fa;
-            color: #495057;
-            line-height: 1.5;
         }
 
         .order-submit {
@@ -271,6 +286,7 @@
         .meal-panel {
             flex: 1 1 320px;
             min-width: 280px;
+            min-height: 0;
         }
 
         .meal-panel h2 {
@@ -408,13 +424,85 @@
             text-align: center;
         }
 
-        @@media (max-width: 768px) {
+        @@media (max-width: 992px) {
             body {
-                margin: 1.25rem;
+                padding: 1.75rem;
             }
 
-            .order-panel {
-                max-width: 100%;
+            .order-layout {
+                flex-direction: column;
+            }
+
+            .order-panel,
+            .meal-panel {
+                max-width: none;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .cart-item {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-item-actions {
+                justify-content: flex-end;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            body {
+                padding: 1.25rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .order-panel,
+            .meal-panel {
+                padding: 1.25rem;
+            }
+
+            .cart-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cart-total {
+                width: 100%;
+            }
+
+            .cart-clear {
+                width: 100%;
+                text-align: center;
+            }
+
+            .cart-item-actions {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: .35rem;
+            }
+
+            .cart-item-qty {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .cart-item-actions .cart-remove {
+                width: 100%;
+            }
+
+            .meal-categories-list {
+                overflow-x: auto;
+                padding-bottom: .5rem;
             }
         }
     </style>
@@ -424,15 +512,10 @@
     <div class="order-layout">
         <section class="order-panel">
             <div class="order-fields">
-                <div>
-                    <label>桌號</label>
-                    <div class="table-input">
-                        <input id="tableNumber" type="number" min="1" placeholder="請輸入桌號">
-                        <button id="lookupTable" type="button">查詢桌號</button>
-                    </div>
+                <div class="table-summary" id="tableSummary" role="status" aria-live="polite">
+                    <div class="table-summary-message" id="tableMessage">請掃描桌號 QR Code 開始點餐。</div>
+                    <div class="table-summary-detail" id="tableDetail"></div>
                 </div>
-                <div class="table-status" id="tableStatus">請輸入桌號後按查詢。</div>
-                <div class="table-summary" id="tableSummary" style="display:none;"></div>
                 <div class="cart-container">
                     <h2>購物車</h2>
                     <div class="cart-summary" id="cartSummary">購物車目前沒有餐點。</div>
@@ -473,17 +556,31 @@
     var $cartTotal = $('#cartTotal');
     var $clearCart = $('#clearCart');
     var $sendButton = $('#send');
+    var $tableSummary = $('#tableSummary');
+    var $tableMessage = $('#tableMessage');
+    var $tableDetail = $('#tableDetail');
+    var defaultTableMessage = '請掃描桌號 QR Code 開始點餐。';
+
+    function setTableMessage(message, type){
+      $tableSummary.removeClass('is-error is-success');
+      if(type === 'error'){
+        $tableSummary.addClass('is-error');
+      } else if(type === 'success'){
+        $tableSummary.addClass('is-success');
+      }
+      $tableMessage.text(message || defaultTableMessage);
+    }
+
+    function setTableDetail(text){
+      if(text){
+        $tableDetail.text(text).addClass('show');
+      } else {
+        $tableDetail.text('').removeClass('show');
+      }
+    }
 
     function formatCurrency(value){
       return 'NT$ ' + (Number(value) || 0).toLocaleString('zh-TW');
-    }
-
-    function setTableStatus(message, type){
-      var $status = $('#tableStatus');
-      $status.removeClass('error success');
-      if(type === 'error'){ $status.addClass('error'); }
-      if(type === 'success'){ $status.addClass('success'); }
-      $status.text(message);
     }
 
     function updateSendButtonState(){
@@ -584,7 +681,7 @@
       cartItems.splice(index, 1);
       renderCart();
       renderMeals();
-      setTableStatus('已從購物車移除餐點。', '');
+      setTableMessage('已從購物車移除餐點。', '');
     }
 
     function clearCart(options){
@@ -599,7 +696,7 @@
       renderCart();
       renderMeals();
       if(!skipStatus){
-        setTableStatus('購物車已清空。', '');
+        setTableMessage('購物車已清空。', '');
       }
     }
 
@@ -629,7 +726,7 @@
 
       renderCart();
       renderMeals();
-      setTableStatus('已加入餐點：' + meal.name, 'success');
+      setTableMessage('已加入餐點：' + meal.name, 'success');
     }
 
     function isSameCategory(a, b){
@@ -681,12 +778,16 @@
       renderMeals();
     }
 
-    function clearTableSelection(){
+    function clearTableSelection(options){
+      var opts = options || {};
       currentTable = null;
       initialTable = null;
       initialMeals = [];
       initialCategories = [];
-      $('#tableSummary').hide().empty();
+      setTableDetail('');
+      if(!opts.skipMessage){
+        setTableMessage(defaultTableMessage, '');
+      }
       clearCart({ skipStatus: true });
       setCategories([]);
       setMeals([]);
@@ -697,38 +798,37 @@
       var trimmed = $.trim(number || '');
       if(!trimmed){
         clearTableSelection();
-        setTableStatus('請輸入桌號後按查詢。', '');
         return;
       }
 
       var num = parseInt(trimmed, 10);
       if(!isFinite(num) || num <= 0){
         clearTableSelection();
-        setTableStatus('桌號必須為正整數。', 'error');
+        setTableMessage('桌號必須為正整數。', 'error');
         return;
       }
 
-      setTableStatus('查詢中…', '');
-      clearTableSelection();
+      setTableMessage('查詢中…', '');
+      clearTableSelection({ skipMessage: true });
 
       $.getJSON(lookupUrl, { number: num })
         .done(function(res){
           if(res && res.ok){
             currentTable = res;
             var zoneText = res.zone ? ('（' + res.zone + '）') : '';
-            var summary = '餐廳：' + (res.shopName || res.shopId) + '　桌號：' + res.number + zoneText;
-            setTableStatus(summary, 'success');
-            $('#tableSummary').text(summary).show();
+            var detail = '餐廳：' + (res.shopName || res.shopId) + '　桌號：' + res.number + zoneText;
+            setTableMessage('已連線至桌號 ' + res.number + zoneText + '。', 'success');
+            setTableDetail(detail);
             clearCart({ skipStatus: true });
             fetchMealsForShop(res.shopId);
           } else {
             var msg = res && res.error ? res.error : '查無對應桌號。';
-            setTableStatus(msg, 'error');
+            setTableMessage(msg, 'error');
           }
         })
         .fail(function(xhr){
           var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢時發生錯誤。';
-          setTableStatus(msg, 'error');
+          setTableMessage(msg, 'error');
         });
     }
 
@@ -803,7 +903,7 @@
             setCategories([]);
             setMeals([]);
             clearCart({ skipStatus: true });
-            setTableStatus(msg, 'error');
+            setTableMessage(msg, 'error');
           }
         })
         .fail(function(xhr){
@@ -813,13 +913,9 @@
           setCategories([]);
           setMeals([]);
           clearCart({ skipStatus: true });
-          setTableStatus(msg, 'error');
+          setTableMessage(msg, 'error');
         });
     }
-
-    $('#lookupTable').on('click', function(){ lookupTable($('#tableNumber').val()); });
-    $('#tableNumber').on('keyup', function(evt){ if(evt.key === 'Enter'){ lookupTable(this.value); } });
-    $('#tableNumber').on('blur', function(){ if(this.value){ lookupTable(this.value); } });
 
     $clearCart.on('click', function(){
       clearCart({ skipStatus: false });
@@ -830,7 +926,6 @@
       var params = new URLSearchParams(window.location.search);
       var val = params.get('table') || params.get('tableNumber');
       if(val){
-        $('#tableNumber').val(val);
         lookupTable(val);
       }
     }
@@ -842,13 +937,16 @@
     function applyInitialTable(){
       if(initialTable){
         currentTable = initialTable;
-        $('#tableNumber').val(initialTable.number);
         var zoneText = initialTable.zone ? ('（' + initialTable.zone + '）') : '';
-        var summary = '餐廳：' + (initialTable.shopName || initialTable.shopId) + '　桌號：' + initialTable.number + zoneText;
-        setTableStatus(summary, 'success');
-        $('#tableSummary').text(summary).show();
+        var detail = '餐廳：' + (initialTable.shopName || initialTable.shopId) + '　桌號：' + initialTable.number + zoneText;
+        setTableMessage('已連線至桌號 ' + initialTable.number + zoneText + '。', 'success');
+        setTableDetail(detail);
       } else if(initialError){
-        setTableStatus(initialError, 'error');
+        setTableMessage(initialError, 'error');
+        setTableDetail('');
+      } else {
+        setTableMessage(defaultTableMessage, '');
+        setTableDetail('');
       }
     }
 
@@ -867,13 +965,13 @@
       $sendButton.on('click', function(){
         if(!currentTable || !currentTable.shopId){
           var msg = '請先查詢有效的桌號後再下單。';
-          setTableStatus(msg, 'error');
+          setTableMessage(msg, 'error');
           return;
         }
 
         if(!cartItems.length){
           var emptyMsg = '請先將餐點加入購物車。';
-          setTableStatus(emptyMsg, 'error');
+          setTableMessage(emptyMsg, 'error');
           return;
         }
 
@@ -891,12 +989,12 @@
 
         hub.server.createOrder(dto);
         var totalQty = cartItems.reduce(function(sum, item){ return sum + item.qty; }, 0);
-        setTableStatus('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
+        setTableMessage('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
         clearCart({ skipStatus: true });
         updateSendButtonState();
       });
     }).fail(function(){
-      setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
+      setTableMessage('SignalR 連線失敗，請重新整理頁面。', 'error');
     });
   })();
     </script>
