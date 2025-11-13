@@ -28,7 +28,7 @@
     <script src="~/Scripts/jquery-3.7.0.min.js"></script>
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
-    
+
     <style>
         .modal, .modal-backdrop { position: fixed; }
         .modal { z-index: 1055; }
@@ -700,7 +700,7 @@
             box-shadow: none;
         }
 
-        @media (min-width: 768px) {
+        @@media (min-width: 768px) {
             #pageTitle {
                 font-size: 1.75rem;
             }
@@ -714,7 +714,7 @@
             }
         }
 
-        @media (min-width: 1024px) {
+        @@media (min-width: 1024px) {
             .order-shell {
                 max-width: 840px;
             }
@@ -729,11 +729,6 @@
             <header class="order-header">
                 <div class="order-header__title">
                     <h1 id="pageTitle">下單頁</h1>
-                    <span class="order-header__subtitle">專為手機設計的線上點餐體驗</span>
-                </div>
-                <div class="table-summary" id="tableSummary" role="status" aria-live="polite">
-                    <div class="table-summary-status" id="tableStatus">請掃描桌號 QR Code 開始點餐。</div>
-                    <div class="table-summary-detail is-hidden" id="tableDetail"></div>
                 </div>
             </header>
             <main class="order-main" role="main">
