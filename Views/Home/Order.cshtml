@@ -991,6 +991,7 @@
     }
 
     function renderMeals(){
+      updateSendButtonState();
       var $list = $('#mealList').empty();
       var hasTable = !!(currentTable || initialTable);
       if(!hasTable){
