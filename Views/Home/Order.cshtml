@@ -607,10 +607,64 @@
             text-align: right;
         }
 
+        .order-confirm-empty td {
+            text-align: center;
+            color: var(--muted);
+            padding: 1.25rem .35rem;
+        }
+
         .order-confirm-items th:nth-child(2),
         .order-confirm-items td:nth-child(2) {
-            width: 4rem;
+            width: 7rem;
             text-align: center;
+        }
+
+        .order-confirm-qty {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+        }
+
+        .order-confirm-qty-btn {
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            font-size: 1.1rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background .2s ease, color .2s ease, border-color .2s ease;
+        }
+
+        .order-confirm-qty-btn:focus,
+        .order-confirm-qty-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5f5;
+        }
+
+        .order-confirm-qty-value {
+            min-width: 1.5rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .order-confirm-subtotal-value {
+            font-weight: 700;
+        }
+
+        .order-confirm-remove {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: .75rem;
         }
 
         .order-confirm-total {
@@ -691,22 +745,10 @@
                     <div class="meal-categories" id="mealCategories" aria-live="polite"></div>
                     <div class="meal-list" id="mealList" aria-live="polite"></div>
                 </section>
-                <section class="cart-panel panel" aria-labelledby="cartSectionTitle">
-                    <div class="section-header">
-                        <h2 id="cartSectionTitle">我的餐點</h2>
-                        <button type="button" class="cart-clear" id="clearCart" disabled>清空</button>
-                    </div>
-                    <div class="cart-summary" id="cartSummary">尚未選擇餐點</div>
-                    <div class="cart-list" id="cartList" aria-live="polite"></div>
-                    <div class="cart-empty" id="cartEmpty">目前尚未選擇餐點。</div>
-                    <div class="cart-footer">
-                        <div class="cart-total" id="cartTotal">NT$ 0</div>
-                    </div>
-                </section>
             </main>
             <footer class="order-footer">
                 <button id="send" class="order-submit-button" disabled>
-                    <span class="order-submit-button__label">送出訂單</span>
+                    <span class="order-submit-button__label">確認訂單</span>
                     <span class="order-submit-button__count is-hidden" id="sendCount">0</span>
                 </button>
             </footer>
@@ -874,6 +916,83 @@
       }
 
       updateSendButtonState();
+
+      if($orderConfirmModal.hasClass('is-active')){
+        renderOrderConfirmContent();
+      }
+    }
+
+    function renderOrderConfirmContent(){
+      if(!$orderConfirmModal.length){ return; }
+
+      var detailParts = [];
+      if(currentTable){
+        if(currentTable.shopName || currentTable.shopId){
+          detailParts.push('餐廳：' + (currentTable.shopName || currentTable.shopId));
+        }
+        if(currentTable.number !== undefined && currentTable.number !== null){
+          var zoneText = currentTable.zone ? ('（' + currentTable.zone + '）') : '';
+          detailParts.push('桌號：' + currentTable.number + zoneText);
+        }
+      }
+      if(!detailParts.length){
+        detailParts.push('桌號資訊尚未提供');
+      }
+      $orderConfirmTable.text(detailParts.join('　'));
+
+      $orderConfirmItems.empty();
+
+      if(!cartItems.length){
+        $orderConfirmItems.append(
+          $('<tr class="order-confirm-empty"/>').append(
+            $('<td/>').attr('colspan', 3).text('目前尚未選擇餐點。')
+          )
+        );
+        $orderConfirmTotal.text('總計：' + formatCurrency(0) + '（共 0 份）');
+        if(!isSubmitting){
+          $confirmSubmit.prop('disabled', true).text(confirmSubmitDefaultText);
+        } else {
+          $confirmSubmit.prop('disabled', true);
+        }
+        return;
+      }
+
+      var totalAmount = 0;
+      var totalQty = 0;
+
+      cartItems.forEach(function(item, index){
+        var price = Number(item.price) || 0;
+        var subtotal = price * item.qty;
+        totalAmount += subtotal;
+        totalQty += item.qty;
+
+        var $row = $('<tr/>').attr('data-index', index);
+        $('<td/>').text(item.name).appendTo($row);
+
+        var $qtyCell = $('<td/>').appendTo($row);
+        var $qtyControl = $('<div class="order-confirm-qty" role="group"/>')
+          .attr('aria-label', '調整 ' + item.name + ' 數量')
+          .appendTo($qtyCell);
+        $('<button type="button" class="order-confirm-qty-btn" aria-label="減少一份" data-delta="-1">−</button>')
+          .appendTo($qtyControl);
+        $('<span class="order-confirm-qty-value"/>').text(item.qty).appendTo($qtyControl);
+        $('<button type="button" class="order-confirm-qty-btn" aria-label="增加一份" data-delta="1">＋</button>')
+          .appendTo($qtyControl);
+
+        var $subtotalCell = $('<td/>').appendTo($row);
+        $('<span class="order-confirm-subtotal-value"/>').text(formatCurrency(subtotal)).appendTo($subtotalCell);
+        $('<button type="button" class="order-confirm-remove">移除</button>').appendTo($subtotalCell);
+
+        $orderConfirmItems.append($row);
+      });
+
+      $orderConfirmTotal.text('總計：' + formatCurrency(totalAmount) + '（共 ' + totalQty + ' 份）');
+
+      if(isSubmitting){
+        $confirmSubmit.prop('disabled', true);
+      } else {
+        $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+      }
     }
 
     function updateSendButtonState(){
@@ -894,41 +1013,9 @@
     function openOrderConfirmModal(){
       if(!$orderConfirmModal.length){ return; }
 
-      var detailParts = [];
-      if(currentTable){
-        if(currentTable.shopName || currentTable.shopId){
-          detailParts.push('餐廳：' + (currentTable.shopName || currentTable.shopId));
-        }
-        if(currentTable.number !== undefined && currentTable.number !== null){
-          var zoneText = currentTable.zone ? ('（' + currentTable.zone + '）') : '';
-          detailParts.push('桌號：' + currentTable.number + zoneText);
-        }
-      }
-      if(!detailParts.length){
-        detailParts.push('桌號資訊尚未提供');
-      }
-      $orderConfirmTable.text(detailParts.join('　'));
-
-      $orderConfirmItems.empty();
-      var totalAmount = 0;
-      var totalQty = 0;
-
-      cartItems.forEach(function(item){
-        var subtotal = (Number(item.price) || 0) * item.qty;
-        totalAmount += subtotal;
-        totalQty += item.qty;
-
-        var $row = $('<tr/>');
-        $('<td/>').text(item.name).appendTo($row);
-        $('<td/>').text(item.qty).appendTo($row);
-        $('<td/>').text(formatCurrency(subtotal)).appendTo($row);
-        $orderConfirmItems.append($row);
-      });
-
-      $orderConfirmTotal.text('總計：' + formatCurrency(totalAmount) + '（共 ' + totalQty + ' 份）');
-
-      $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
       isSubmitting = false;
+
+      renderOrderConfirmContent();
 
       $orderConfirmModal.addClass('is-active').attr('aria-hidden', 'false');
       setTimeout(function(){
@@ -1231,6 +1318,19 @@
       if(event.target === this){
         closeOrderConfirmModal();
       }
+    });
+
+    $orderConfirmItems.on('click', '.order-confirm-qty-btn', function(){
+      var delta = parseInt($(this).attr('data-delta'), 10);
+      var index = parseInt($(this).closest('tr').data('index'), 10);
+      if(!isFinite(delta) || !isFinite(index)){ return; }
+      changeCartItemQuantity(index, delta);
+    });
+
+    $orderConfirmItems.on('click', '.order-confirm-remove', function(){
+      var index = parseInt($(this).closest('tr').data('index'), 10);
+      if(!isFinite(index)){ return; }
+      removeCartItem(index);
     });
 
     $(document).on('keydown', function(event){
