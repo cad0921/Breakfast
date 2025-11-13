@@ -391,6 +391,7 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            order: -1;
         }
 
         .order-submit {
@@ -402,6 +403,7 @@
             flex: 1 1 320px;
             min-width: 280px;
             min-height: 0;
+            order: 0;
         }
 
             .meal-panel h2 {
@@ -634,21 +636,21 @@
 <body>
     <h1 id="pageTitle">下單頁</h1>
     <div class="order-layout">
-        <section class="order-panel">
-            <div class="order-submit">
-                <button id="send">確認訂單</button>
-            </div>
-        </section>
         <aside class="meal-panel">
             <h2>餐點列表</h2>
             <div class="meal-categories" id="mealCategories"></div>
             <div class="meal-list" id="mealList"></div>
         </aside>
+        <section class="order-panel">
+            <div class="order-submit">
+                <button id="send">確認餐點</button>
+            </div>
+        </section>
     </div>
     <div class="order-confirm-modal" id="orderConfirmModal" role="dialog" aria-modal="true" aria-labelledby="orderConfirmTitle" aria-hidden="true">
         <div class="order-confirm-modal__content" tabindex="-1">
             <div class="order-confirm-modal__header">
-                <h3 class="order-confirm-modal__title" id="orderConfirmTitle">訂單確認</h3>
+                <h3 class="order-confirm-modal__title" id="orderConfirmTitle">餐點確認</h3>
                 <button type="button" class="order-confirm-modal__close" id="orderConfirmClose" aria-label="關閉訂單確認視窗">×</button>
             </div>
             <div class="order-confirm-modal__body">
@@ -668,7 +670,7 @@
                 </div>
             </div>
             <div class="order-confirm-modal__footer">
-                <button type="button" id="confirmSubmit">送出訂單</button>
+                <button type="button" id="confirmSubmit">確定送出</button>
             </div>
         </div>
     </div>
