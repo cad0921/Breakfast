@@ -69,58 +69,6 @@
             cursor: pointer;
         }
 
-        .table-summary {
-            padding: 1rem 1.25rem;
-            border-radius: .5rem;
-            background: #fff;
-            border: 1px solid #ced4da;
-            color: #495057;
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            gap: .35rem;
-            margin-bottom: 1rem;
-            transition: background .2s ease, border-color .2s ease, color .2s ease;
-        }
-
-        .table-summary-status {
-            font-weight: 600;
-            font-size: 1rem;
-            display: none;
-        }
-
-        .table-summary-status.show {
-            display: block;
-        }
-
-        .table-summary-detail {
-            font-size: .95rem;
-            color: #6c757d;
-            display: none;
-        }
-
-        .table-summary-detail.show {
-            display: block;
-        }
-
-        .table-summary.is-success {
-            background: #d1e7dd;
-            border-color: #badbcc;
-        }
-
-        .table-summary.is-success .table-summary-status {
-            color: #0f5132;
-        }
-
-        .table-summary.is-error {
-            background: #f8d7da;
-            border-color: #f5c2c7;
-        }
-
-        .table-summary.is-error .table-summary-status {
-            color: #842029;
-        }
-
         #send {
             padding: .75rem 1.5rem;
             background: #198754;
@@ -254,129 +202,6 @@
             cursor: not-allowed;
         }
 
-        .cart-container {
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: .5rem;
-            padding: 1rem 1.25rem;
-            margin-top: 1.5rem;
-            box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
-        }
-
-        .cart-container h2 {
-            margin-top: 0;
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-        }
-
-        .cart-summary {
-            font-size: .95rem;
-            margin-bottom: .75rem;
-            color: #495057;
-        }
-
-        .cart-list {
-            display: flex;
-            flex-direction: column;
-            gap: .75rem;
-            max-height: 14rem;
-            overflow-y: auto;
-            padding-right: .25rem;
-        }
-
-        .cart-empty {
-            padding: 1.25rem;
-            border: 1px dashed #ced4da;
-            border-radius: .5rem;
-            text-align: center;
-            color: #6c757d;
-            background: #fff;
-        }
-
-        .cart-item {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: .5rem 1rem;
-            background: #f8f9fa;
-            border-radius: .5rem;
-            padding: .75rem 1rem;
-            border: 1px solid #e9ecef;
-        }
-
-        .cart-item-header {
-            display: flex;
-            flex-direction: column;
-            gap: .25rem;
-        }
-
-        .cart-item-name {
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .cart-item-price {
-            color: #6c757d;
-            font-size: .95rem;
-        }
-
-        .cart-item-note {
-            font-size: .85rem;
-            color: #868e96;
-        }
-
-        .cart-item-actions {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
-
-        .cart-item-qty {
-            display: inline-flex;
-            align-items: center;
-            gap: .25rem;
-        }
-
-        .cart-item-qty button,
-        .cart-remove {
-            padding: .25rem .6rem;
-            border-radius: .375rem;
-            background: #0d6efd;
-            color: #fff;
-            font-size: .9rem;
-        }
-
-        .cart-item-qty-value {
-            min-width: 2rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .cart-remove {
-            background: #dc3545;
-        }
-
-        .cart-footer {
-            margin-top: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: .75rem;
-            flex-wrap: wrap;
-        }
-
-        .cart-total {
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .cart-clear {
-            padding: .35rem .75rem;
-            background: #6c757d;
-            color: #fff;
-            border-radius: .375rem;
-            font-size: .9rem;
-        }
-
         #send:disabled {
             background: #6c757d;
             cursor: not-allowed;
@@ -402,15 +227,9 @@
             min-width: 0;
         }
 
-        .order-fields {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
         .order-submit {
-            margin-top: auto;
-            padding-top: 1.5rem;
+            margin-top: 0;
+            padding-top: 0;
         }
 
         .meal-panel {
@@ -586,14 +405,6 @@
             h1 {
                 font-size: 1.75rem;
             }
-
-            .cart-item {
-                grid-template-columns: 1fr;
-            }
-
-            .cart-item-actions {
-                justify-content: flex-end;
-            }
         }
 
         @@media (max-width: 576px) {
@@ -610,35 +421,6 @@
                 padding: 1.25rem;
             }
 
-            .cart-footer {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .cart-total {
-                width: 100%;
-            }
-
-            .cart-clear {
-                width: 100%;
-                text-align: center;
-            }
-
-            .cart-item-actions {
-                flex-wrap: wrap;
-                justify-content: flex-start;
-                gap: .35rem;
-            }
-
-            .cart-item-qty {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .cart-item-actions .cart-remove {
-                width: 100%;
-            }
-
             .meal-categories-list {
                 overflow-x: auto;
                 padding-bottom: .5rem;
@@ -650,21 +432,6 @@
     <h1 id="pageTitle">下單頁</h1>
     <div class="order-layout">
         <section class="order-panel">
-            <div class="order-fields">
-                <div class="table-summary" id="tableSummary" role="status" aria-live="polite">
-                    <div class="table-summary-status show" id="tableStatus">請掃描桌號 QR Code 開始點餐。</div>
-                    <div class="table-summary-detail" id="tableDetail"></div>
-                </div>
-                <div class="cart-container">
-                    <h2>購物車</h2>
-                    <div class="cart-summary" id="cartSummary">購物車目前沒有餐點。</div>
-                    <div class="cart-list" id="cartList"></div>
-                    <div class="cart-footer">
-                        <div class="cart-total" id="cartTotal">總計：NT$ 0</div>
-                        <button id="clearCart" type="button" class="cart-clear" style="display:none;">清空購物車</button>
-                    </div>
-                </div>
-            </div>
             <div class="order-submit">
                 <button id="send">確認訂單</button>
             </div>
