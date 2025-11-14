@@ -462,6 +462,15 @@
   function badgeYN(v){ return v ? '<span class="badge-yn badge-success">啟用</span>' : '<span class="badge-yn badge-default">停用</span>'; }
   function fmtDate(s){ return s ? (''+s).replace('T',' ').replace('Z','') : ''; }
 
+  function sanitizeMediaContent(text){
+    var value = $.trim(text || '');
+    if(!value){ return ''; }
+    var lower = value.toLowerCase();
+    if(lower.indexOf('data:image/') === 0){ return '(圖片內容略)'; }
+    if(value.length > 180 && /^[a-z0-9+/=\s]+$/i.test(value)){ return '(媒體內容略)'; }
+    return text;
+  }
+
   // ===== Side Navigation Switch =====
   var titles = { shops:'店家', cats:'分類', meals:'餐點', combos:'套餐', tables:'桌位', orders:'訂單' };
   $('.nav-link').on('click', function(e){ e.preventDefault(); var tab=$(this).data('tab'); switchTo(tab); });
@@ -564,7 +573,7 @@
     $('#orderModalType').text(o.OrderType);
     $('#orderModalTakeout').text(o.TakeoutCode||'');
     $('#orderModalTable').text(o.TableId||'');
-    $('#orderModalNotes').text(o.Notes||'');
+    $('#orderModalNotes').text(sanitizeMediaContent(o.Notes));
     $('#orderModalCreated').text(fmtDate(o.CreatedAt));
     $('#orderModalUpdated').text(fmtDate(o.UpdatedAt));
     var $tbody=$('#orderItemsT tbody').empty().append('<tr><td colspan="5" class="text-center text-muted">載入中…</td></tr>');
@@ -588,7 +597,7 @@
           tr.append($('<td/>').text(qty));
           tr.append($('<td/>').text(price.toFixed(2)));
           tr.append($('<td/>').text(sub.toFixed(2)));
-          tr.append($('<td/>').text(it.Notes||''));
+          tr.append($('<td/>').text(sanitizeMediaContent(it.Notes)));
           $tbody.append(tr);
         });
       }
