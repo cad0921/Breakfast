@@ -11,6 +11,8 @@ namespace BreakFastShop.Hubs
 {
     public class OrdersHub : Hub
     {
+        private static readonly string[] AllowedStatusUpdates = new[] { "Completed", "Cancelled" };
+
         private static string BuildShopGroupName(Guid shopId) => $"shop:{shopId:D}";
 
         private static IReadOnlyList<OrderItemDto> NormalizeItems(IEnumerable<OrderItemDto> items, out bool hasInvalid)
@@ -205,6 +207,71 @@ namespace BreakFastShop.Hubs
             }
 
             return Groups.Remove(Context.ConnectionId, BuildShopGroupName(shopId));
+        }
+
+        public async Task<object> UpdateOrderStatus(Guid shopId, Guid orderId, string status)
+        {
+            if (shopId == Guid.Empty || orderId == Guid.Empty)
+            {
+                return new { ok = false, error = "訂單資訊不完整。" };
+            }
+
+            var normalizedStatus = status?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedStatus) || !AllowedStatusUpdates.Contains(normalizedStatus))
+            {
+                return new { ok = false, error = "不支援的狀態更新。" };
+            }
+
+            var connStr = ConfigurationManager.ConnectionStrings["BreakfastShop"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                return new { ok = false, error = "尚未設定資料庫連線字串。" };
+            }
+
+            const string sql = "UPDATE Orders SET Status=@Status, UpdatedAt=GETDATE() WHERE Id=@Id AND ShopId=@ShopId";
+
+            try
+            {
+                using (var connection = new SqlConnection(connStr))
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@Status", normalizedStatus);
+                    command.Parameters.AddWithValue("@Id", orderId);
+                    command.Parameters.AddWithValue("@ShopId", shopId);
+
+                    await connection.OpenAsync();
+                    var rows = await command.ExecuteNonQueryAsync();
+                    if (rows <= 0)
+                    {
+                        return new { ok = false, error = "找不到對應訂單。" };
+                    }
+                }
+            }
+            catch
+            {
+                return new { ok = false, error = "更新訂單狀態時發生錯誤。" };
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            var payload = new
+            {
+                type = "statusChanged",
+                orderId = orderId,
+                status = normalizedStatus,
+                order = new
+                {
+                    id = orderId,
+                    shopId,
+                    status = normalizedStatus,
+                    updatedAt = now.UtcDateTime
+                },
+                ts = now
+            };
+
+            Clients.Group(BuildShopGroupName(shopId)).orderChanged(payload);
+            Clients.Caller.orderChanged(payload);
+
+            return new { ok = true, status = normalizedStatus };
         }
     }
 }
