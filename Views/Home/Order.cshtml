@@ -108,6 +108,93 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
+        .order-header__controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+
+        .table-form {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: .55rem;
+        }
+
+        .table-form__label {
+            font-size: .75rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+        }
+
+        .table-form__controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem;
+            align-items: center;
+        }
+
+        .table-number-input {
+            flex: 1;
+            min-width: 130px;
+            padding: .6rem .85rem;
+            border-radius: 14px;
+            border: none;
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            font-size: 1rem;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+        }
+
+        .table-number-input::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .table-number-input:focus {
+            outline: none;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55);
+        }
+
+        .table-action {
+            padding: .55rem 1.25rem;
+            border-radius: 999px;
+            border: none;
+            font-weight: 700;
+            letter-spacing: .02em;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+        }
+
+        .table-action:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #tableLookupButton {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.75));
+            color: #be123c;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.15);
+        }
+
+        #tableLookupButton:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 20px 38px rgba(15, 23, 42, 0.18);
+        }
+
+        .table-clear {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+        }
+
+        .table-clear:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+        }
+
         .table-summary {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.35);
@@ -150,9 +237,9 @@
         .order-main {
             flex: 1;
             padding: 1.5rem 1.25rem 6.5rem;
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 1.75rem;
+            align-content: start;
         }
 
         .section-header {
@@ -441,6 +528,13 @@
             font-weight: 800;
         }
 
+        .cart-total-label {
+            margin-right: .75rem;
+            font-size: .85rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
         .cart-clear {
             border: 1px solid var(--border);
             background: #fff;
@@ -718,6 +812,10 @@
             .order-shell {
                 max-width: 840px;
             }
+
+            .order-main {
+                grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            }
         }
     </style>
 
@@ -729,6 +827,21 @@
             <header class="order-header">
                 <div class="order-header__title">
                     <h1 id="pageTitle">下單頁</h1>
+                    <p class="order-header__subtitle">輸入桌號或掃描 QR Code 以連線到餐廳桌位。</p>
+                </div>
+                <div class="order-header__controls">
+                    <form class="table-form" id="tableLookupForm" novalidate>
+                        <label class="table-form__label" for="tableNumberInput">桌號</label>
+                        <div class="table-form__controls">
+                            <input type="number" inputmode="numeric" min="1" step="1" placeholder="輸入桌號" id="tableNumberInput" class="table-number-input" aria-label="輸入桌號" />
+                            <button type="submit" id="tableLookupButton" class="table-action">連線</button>
+                            <button type="button" id="tableClearButton" class="table-action table-clear" disabled>清除</button>
+                        </div>
+                    </form>
+                    <div class="table-summary" id="tableSummary" aria-live="polite">
+                        <div class="table-summary-status" id="tableStatus"></div>
+                        <div class="table-summary-detail is-hidden" id="tableDetail"></div>
+                    </div>
                 </div>
             </header>
             <main class="order-main" role="main">
@@ -739,6 +852,18 @@
                     </div>
                     <div class="meal-categories" id="mealCategories" aria-live="polite"></div>
                     <div class="meal-list" id="mealList" aria-live="polite"></div>
+                </section>
+                <section class="cart-panel panel" aria-labelledby="cartSectionTitle">
+                    <div class="section-header">
+                        <h2 id="cartSectionTitle">購物車</h2>
+                        <span class="section-note" id="cartSummary">尚未選擇餐點</span>
+                    </div>
+                    <div class="cart-empty" id="cartEmpty">購物車目前沒有餐點。</div>
+                    <div class="cart-list" id="cartList" aria-live="polite"></div>
+                    <div class="cart-footer">
+                        <button type="button" class="cart-clear" id="clearCart" disabled>清空購物車</button>
+                        <div class="cart-total"><span class="cart-total-label">總計</span><span id="cartTotal">NT$ 0</span></div>
+                    </div>
                 </section>
             </main>
             <footer class="order-footer">
@@ -802,6 +927,10 @@
     var $tableStatus = $('#tableStatus');
     var $tableDetail = $('#tableDetail');
     var $pageTitle = $('#pageTitle');
+    var $tableNumberInput = $('#tableNumberInput');
+    var $tableLookupForm = $('#tableLookupForm');
+    var $tableLookupButton = $('#tableLookupButton');
+    var $tableClearButton = $('#tableClearButton');
     var $orderConfirmModal = $('#orderConfirmModal');
     var $orderConfirmClose = $('#orderConfirmClose');
     var $orderConfirmContent = $orderConfirmModal.find('.order-confirm-modal__content');
@@ -809,7 +938,7 @@
     var $orderConfirmItems = $('#orderConfirmItems');
     var $orderConfirmTotal = $('#orderConfirmTotal');
     var $confirmSubmit = $('#confirmSubmit');
-    var defaultTableStatus = '請掃描桌號 QR Code 開始點餐。';
+    var defaultTableStatus = '輸入桌號後即可開始點餐。';
     var defaultPageTitle = '下單頁';
     var isSubmitting = false;
     var confirmSubmitDefaultText = $confirmSubmit.text();
@@ -846,6 +975,19 @@
       } else {
         $pageTitle.text(defaultPageTitle);
         document.title = defaultPageTitle;
+      }
+    }
+
+    function updateTableControls(){
+      if($tableClearButton.length){
+        var hasTable = !!currentTable;
+        var hasInput = $tableNumberInput.length && $.trim($tableNumberInput.val()) !== '';
+        $tableClearButton.prop('disabled', !(hasTable || hasInput));
+      }
+
+      if($tableLookupButton.length){
+        var hasLookupValue = $tableNumberInput.length && $.trim($tableNumberInput.val()) !== '';
+        $tableLookupButton.prop('disabled', !hasLookupValue);
       }
     }
 
@@ -1155,6 +1297,7 @@
       initialTable = null;
       initialMeals = [];
       initialCategories = [];
+      initialError = null;
       setTableDetail('');
       if(!opts.skipMessage){
         setTableStatus(defaultTableStatus, '');
@@ -1164,6 +1307,10 @@
       setCategories([]);
       setMeals([]);
       updateSendButtonState();
+      if($tableNumberInput.length && !opts.preserveInput){
+        $tableNumberInput.val('');
+      }
+      updateTableControls();
     }
 
     function lookupTable(number){
@@ -1175,13 +1322,13 @@
 
       var num = parseInt(trimmed, 10);
       if(!isFinite(num) || num <= 0){
-        clearTableSelection();
+        clearTableSelection({ preserveInput: true });
         setTableStatus('桌號必須為正整數。', 'error');
         return;
       }
 
       setTableStatus('查詢中…', '');
-      clearTableSelection({ skipMessage: true });
+      clearTableSelection({ skipMessage: true, preserveInput: true });
 
       $.getJSON(lookupUrl, { number: num })
         .done(function(res){
@@ -1192,16 +1339,22 @@
             setTableStatus('已連線至桌號 ' + res.number + zoneText + '。', 'success');
             setTableDetail(detail);
             updatePageTitle(currentTable);
+            if($tableNumberInput.length){
+              $tableNumberInput.val(res.number);
+            }
             clearCart({ skipStatus: true });
             fetchMealsForShop(res.shopId);
+            updateTableControls();
           } else {
             var msg = res && res.error ? res.error : '查無對應桌號。';
             setTableStatus(msg, 'error');
+            updateTableControls();
           }
         })
         .fail(function(xhr){
           var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢時發生錯誤。';
           setTableStatus(msg, 'error');
+          updateTableControls();
         });
     }
 
@@ -1292,6 +1445,33 @@
         });
     }
 
+    if($tableNumberInput.length){
+      $tableNumberInput.on('input', function(){
+        updateTableControls();
+      });
+    }
+
+    if($tableLookupForm.length){
+      $tableLookupForm.on('submit', function(event){
+        event.preventDefault();
+        var value = $tableNumberInput.length ? $tableNumberInput.val() : null;
+        lookupTable(value);
+      });
+    }
+
+    if($tableClearButton.length){
+      $tableClearButton.on('click', function(){
+        if($tableNumberInput.length){
+          $tableNumberInput.val('');
+        }
+        clearTableSelection();
+        updateTableControls();
+        if($tableNumberInput.length){
+          $tableNumberInput.focus();
+        }
+      });
+    }
+
     $clearCart.on('click', function(){
       clearCart({ skipStatus: false });
     });
@@ -1380,15 +1560,25 @@
         setTableStatus('已連線至桌號 ' + initialTable.number + zoneText + '。', 'success');
         setTableDetail(detail);
         updatePageTitle(initialTable);
+        if($tableNumberInput.length){
+          $tableNumberInput.val(initialTable.number);
+        }
       } else if(initialError){
         setTableStatus(initialError, 'error');
         setTableDetail('');
         updatePageTitle(null);
+        if($tableNumberInput.length){
+          $tableNumberInput.val('');
+        }
       } else {
         setTableStatus(defaultTableStatus, '');
         setTableDetail('');
         updatePageTitle(null);
+        if($tableNumberInput.length){
+          $tableNumberInput.val('');
+        }
       }
+      updateTableControls();
     }
 
     applyInitialTable();
