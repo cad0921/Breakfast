@@ -1007,7 +1007,6 @@
                         $entry.append($actions);
                     }
 
-                    updateEntryStatus(orderId, statusValue, { notify: false, keepDisabled: !!finalOrderStatuses[statusValue] });
                     isNewOrderEntry = true;
                 } else {
                     var details = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
@@ -1018,6 +1017,7 @@
                 if (isNewOrderEntry) {
                     $orders.prepend($entry);
                     $orders.scrollTop(0);
+                    updateEntryStatus(orderId, statusValue, { notify: false, keepDisabled: !!finalOrderStatuses[statusValue] });
                 } else {
                     $orders.append($entry);
                     $orders.scrollTop($orders[0].scrollHeight);
