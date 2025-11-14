@@ -134,8 +134,16 @@ namespace BreakFastShop.Controllers
 
 
         //接收頁面
-        public ActionResult Receive() {
-            return View();
+        public ActionResult Receive(string id)
+        {
+            var model = new ReceivePageViewModel();
+
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                model.InitialShopId = id.Trim();
+            }
+
+            return View(model);
         }
 
         [HttpGet]

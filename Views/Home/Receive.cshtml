@@ -1,4 +1,13 @@
-@{ Layout = null; }
+@model BreakFastShop.Models.ReceivePageViewModel
+@using System.Web
+@{
+    Layout = null;
+    var initialShopId = Model?.InitialShopId?.Trim();
+    var hasInitialShopId = !string.IsNullOrWhiteSpace(initialShopId);
+    var initialStatusText = hasInitialShopId
+        ? "正在讀取店家資訊，請稍候。"
+        : "尚未指定店家，請於網址後加入 ?id=店家識別碼 後重新整理頁面。";
+}
 <!doctype html>
 <html>
 <head>
@@ -8,101 +17,197 @@
     <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <script src="~/signalr/hubs"></script>
     <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: system-ui, "Noto Sans TC", sans-serif;
-            margin: 2rem;
-            background: #f8f9fa;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #edf2ff, #f8f9fa 42%, #fff);
+            font-family: "Noto Sans TC", "Segoe UI", system-ui, -apple-system, sans-serif;
+            color: #1f2937;
         }
 
-        h1 {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: .5rem;
-        }
-
-        input {
-            flex: 1;
-            padding: .5rem .75rem;
-            border-radius: .375rem;
-            border: 1px solid #ced4da;
-            font-size: 1rem;
-        }
-
-        button {
-            padding: .55rem 1.25rem;
-            border-radius: .375rem;
-            border: none;
-            background: #0d6efd;
-            color: #fff;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        button:disabled {
-            opacity: .6;
-            cursor: not-allowed;
+        .page {
+            width: min(960px, 100%);
+            padding: clamp(1.5rem, 2vw, 2.5rem);
         }
 
         .panel {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: .5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
-            max-width: 640px;
+            background: rgba(255, 255, 255, .94);
+            border-radius: 1.25rem;
+            padding: clamp(1.75rem, 3vw, 2.75rem);
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            backdrop-filter: blur(6px);
         }
 
-        .shop-input {
+        .panel-header {
             display: flex;
+            flex-direction: column;
             gap: .75rem;
-            align-items: center;
-            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
         }
 
-        .shop-input input {
-            min-width: 260px;
+        .panel-tag {
+            align-self: flex-start;
+            background: linear-gradient(120deg, #3b82f6, #2563eb);
+            color: #fff;
+            padding: .35rem .85rem;
+            border-radius: 999px;
+            font-size: .85rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.65rem, 4vw, 2.25rem);
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .panel-header p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .shop-card {
+            position: relative;
+            padding: 1.25rem 1.5rem;
+            border-radius: 1rem;
+            background: linear-gradient(125deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.04));
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            display: flex;
+            flex-direction: column;
+            gap: .45rem;
+            margin-bottom: 1.5rem;
+            transition: background .3s ease, border-color .3s ease, transform .3s ease;
+        }
+
+        .shop-card.is-empty {
+            background: linear-gradient(125deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.04));
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .shop-card-label {
+            font-size: .85rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .shop-card-value {
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .shop-card.is-empty .shop-card-value {
+            color: #64748b;
+        }
+
+        .shop-card-id {
+            font-family: "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: .95rem;
+            color: rgba(15, 23, 42, 0.65);
+            overflow-wrap: anywhere;
+        }
+
+        .hint {
+            margin-bottom: 1.5rem;
+            padding: 1.1rem 1.25rem;
+            border-radius: .9rem;
+            background: rgba(248, 250, 252, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            color: #475569;
+        }
+
+        .hint strong {
+            display: block;
+            margin-bottom: .45rem;
+            color: #1f2937;
+        }
+
+        .hint code {
+            background: rgba(15, 23, 42, 0.07);
+            padding: .15rem .35rem;
+            border-radius: .45rem;
+            font-size: .9rem;
         }
 
         .status {
-            margin-top: .75rem;
+            margin-bottom: 1rem;
+            padding: .85rem 1.1rem;
+            border-radius: .75rem;
             font-size: .95rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            background: rgba(59, 130, 246, 0.08);
+            color: #1d4ed8;
         }
 
-        .status.info {
-            color: #495057;
+        .status::before {
+            content: '';
+            display: inline-block;
+            width: .65rem;
+            height: .65rem;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
         }
 
         .status.success {
-            color: #0f5132;
+            background: rgba(16, 185, 129, 0.12);
+            color: #047857;
+        }
+
+        .status.success::before {
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
         }
 
         .status.error {
-            color: #b21f1f;
+            background: rgba(239, 68, 68, 0.12);
+            color: #b91c1c;
+        }
+
+        .status.error::before {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18);
         }
 
         .orders {
-            margin-top: 1.5rem;
-            border: 1px solid #dee2e6;
-            padding: 1.25rem;
-            border-radius: .5rem;
-            background: #fff;
-            max-height: 24rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(248, 250, 252, 0.65);
+            padding: 1.1rem 1.25rem;
+            max-height: clamp(18rem, 32vh, 26rem);
             overflow-y: auto;
-            box-shadow: inset 0 0.25rem 0.5rem rgba(0, 0, 0, 0.03);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
         }
 
         .orders-empty {
             text-align: center;
-            color: #6c757d;
+            color: #94a3b8;
             font-size: .95rem;
+            padding: 1.75rem 0;
         }
 
         .orders-entry {
-            border-bottom: 1px solid #e9ecef;
-            padding: .75rem 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+            padding: .85rem 0;
         }
 
         .orders-entry:last-child {
@@ -111,94 +216,114 @@
 
         .orders-entry-time {
             font-size: .8rem;
-            color: #6c757d;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .08em;
         }
 
         .orders-entry-title {
-            margin-top: .25rem;
+            margin-top: .3rem;
             font-weight: 600;
-            font-size: 1rem;
-            color: #212529;
+            font-size: 1.05rem;
+            color: #0f172a;
         }
 
         .orders-entry-status {
-            color: #0d6efd;
+            color: #2563eb;
         }
 
         .orders-entry-items {
-            margin: .5rem 0 0;
-            padding-left: 1.25rem;
-            color: #495057;
+            margin: .55rem 0 0;
+            padding-left: 1.4rem;
+            color: #475569;
         }
 
         .orders-entry-items li {
             margin: .25rem 0;
         }
 
-        .orders-entry-meta {
-            margin-top: .35rem;
-            font-size: .9rem;
-            color: #495057;
-        }
-
+        .orders-entry-meta,
         .orders-entry-note {
-            margin-top: .5rem;
-            font-size: .9rem;
-            color: #495057;
+            margin-top: .35rem;
+            font-size: .92rem;
+            color: #475569;
         }
 
         .orders-entry-body {
             margin-top: .5rem;
-            background: #f8f9fa;
-            border-radius: .375rem;
+            background: rgba(226, 232, 240, 0.55);
+            border-radius: .65rem;
             padding: .75rem;
-            font-size: .85rem;
+            font-size: .9rem;
             white-space: pre-wrap;
-            color: #212529;
+            color: #1f2937;
         }
 
         @media (max-width: 640px) {
             body {
-                margin: 1.25rem;
-            }
-
-            .panel {
-                padding: 1.25rem;
-            }
-
-            .shop-input {
-                flex-direction: column;
                 align-items: stretch;
             }
 
-            .shop-input input,
-            button {
-                width: 100%;
+            .page {
+                padding: 1.25rem;
+            }
+
+            .panel {
+                padding: 1.5rem;
+                border-radius: 1rem;
+            }
+
+            .orders {
+                max-height: none;
             }
         }
     </style>
 </head>
 <body>
-    <div class="panel">
-        <h1>接收頁</h1>
-        <label for="shopId">店家識別碼</label>
-        <div class="shop-input">
-            <input id="shopId" type="text" placeholder="請輸入店家 Id">
-            <button id="applyShop" type="button">開始接收</button>
-        </div>
-        <div id="status" class="status info">沒有此店家，請輸入店家識別碼以訂閱訂單通知。</div>
-        <div class="orders" id="orderUpdates">
-            <div class="orders-empty">尚未接收資料。</div>
-        </div>
-    </div>
+    <main class="page">
+        <section class="panel">
+            <header class="panel-header">
+                <span class="panel-tag">Live Orders</span>
+                <h1>訂單接收中心</h1>
+                <p>即時掌握餐廳端送出的最新訂單通知，保持工作流程順暢。</p>
+            </header>
+
+            <div class="shop-card@(hasInitialShopId ? string.Empty : " is-empty")" id="shopCard">
+                <div class="shop-card-label">目前訂閱店家</div>
+                <div class="shop-card-value" id="shopDisplayName">
+                    @(hasInitialShopId ? "店家資訊載入中..." : "尚未指定店家")
+                </div>
+                <div class="shop-card-id" id="shopIdentifier">
+                    @(hasInitialShopId ? initialShopId : "URL 參數 id")
+                </div>
+            </div>
+
+            @if (!hasInitialShopId)
+            {
+                <div class="hint" id="missingShopHint">
+                    <strong>尚未指定店家。</strong>
+                    <p>請於網址最後加上 <code>?id=店家識別碼</code> 後重新載入，系統即可自動訂閱對應餐廳。</p>
+                </div>
+            }
+
+            <div id="status" class="status info">@initialStatusText</div>
+            <div class="orders" id="orderUpdates">
+                <div class="orders-empty">尚未接收資料。</div>
+            </div>
+        </section>
+    </main>
     <script>
         (function () {
             var hub = $.connection.ordersHub;
             var shopInfoUrl = '@Url.Action("ShopInfo")';
+            var initialShopId = '@Html.Raw(HttpUtility.JavaScriptStringEncode(initialShopId ?? string.Empty))';
+            var hasInitialShop = initialShopId.length > 0;
             var $status = $('#status');
             var $orders = $('#orderUpdates');
-            var $apply = $('#applyShop');
-            var $input = $('#shopId');
+            var $shopCard = $('#shopCard');
+            var $shopName = $('#shopDisplayName');
+            var $shopIdentifier = $('#shopIdentifier');
+            var $hint = $('#missingShopHint');
             var isHubReady = false;
             var hasOrders = false;
             var currentShop = null;
@@ -302,6 +427,22 @@
                 return (value || '').toString().toLowerCase();
             }
 
+            function updateShopCard(name, rawId) {
+                if (rawId) {
+                    $shopCard.removeClass('is-empty');
+                    $shopName.text(name || rawId);
+                    $shopIdentifier.text(rawId);
+                    $hint.hide();
+                } else {
+                    $shopCard.addClass('is-empty');
+                    $shopName.text('尚未指定店家');
+                    $shopIdentifier.text('URL 參數 id');
+                    if ($hint.length) {
+                        $hint.show();
+                    }
+                }
+            }
+
             function subscribeToShop(shopId) {
                 if (!isHubReady) {
                     setStatus('SignalR 尚未連線完成，請稍候。', 'error');
@@ -311,9 +452,13 @@
                 shopId = $.trim(shopId || '');
                 if (!shopId) {
                     currentShop = null;
-                    setStatus('沒有此店家', 'error');
+                    setStatus('尚未指定店家。', 'info');
+                    updateShopCard(null, null);
+                    resetOrders();
                     return;
                 }
+
+                updateShopCard('店家資訊載入中...', shopId);
 
                 $.getJSON(shopInfoUrl, { id: shopId })
                     .done(function (res) {
@@ -321,6 +466,7 @@
                             var message = res && res.error ? res.error : '沒有此店家';
                             currentShop = null;
                             setStatus(message, 'error');
+                            updateShopCard(null, null);
                             return;
                         }
 
@@ -331,6 +477,7 @@
 
                         if (currentShop && currentShop.id === targetId) {
                             setStatus('目前顯示店家：' + displayName, 'success');
+                            updateShopCard(targetName, targetRawId);
                             return;
                         }
 
@@ -340,17 +487,20 @@
                                     if (!success) {
                                         currentShop = null;
                                         setStatus('沒有此店家', 'error');
+                                        updateShopCard(null, null);
                                         return;
                                     }
 
                                     currentShop = { id: targetId, rawId: targetRawId, name: targetName };
                                     setStatus('目前顯示店家：' + displayName, 'success');
+                                    updateShopCard(targetName, targetRawId);
                                     resetOrders();
                                     appendStatus('已訂閱店家 ' + displayName + ' 的訂單。');
                                 })
                                 .fail(function () {
                                     currentShop = null;
                                     setStatus('加入店家通道失敗。', 'error');
+                                    updateShopCard(null, null);
                                 });
                         };
 
@@ -369,15 +519,29 @@
                         var message = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢店家時發生錯誤。';
                         currentShop = null;
                         setStatus(message, 'error');
+                        updateShopCard(null, null);
                     });
             }
 
             function getInitialShopId() {
                 var params = new URLSearchParams(window.location.search);
-                return params.get('shopId') || params.get('shop');
+                return params.get('id') || params.get('shopId') || params.get('shop');
             }
 
             resetOrders();
+
+            if (!hasInitialShop) {
+                var queryInitial = getInitialShopId();
+                if (queryInitial) {
+                    initialShopId = queryInitial;
+                    hasInitialShop = true;
+                    updateShopCard('店家資訊載入中...', queryInitial);
+                }
+            }
+
+            if (!hasInitialShop) {
+                setStatus('尚未指定店家，請於網址加入 ?id=店家識別碼 後重新整理頁面。', 'info');
+            }
 
             hub.client.orderChanged = function (payload) {
                 appendOrderNotification(payload);
@@ -387,25 +551,13 @@
                 .done(function () {
                     isHubReady = true;
                     appendStatus('SignalR 已連線。');
-                    var initial = getInitialShopId();
-                    if (initial) {
-                        $input.val(initial);
-                        subscribeToShop(initial);
+                    if (hasInitialShop) {
+                        subscribeToShop(initialShopId);
                     }
                 })
                 .fail(function () {
                     setStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
                 });
-
-            $apply.on('click', function () {
-                subscribeToShop($input.val());
-            });
-
-            $input.on('keyup', function (evt) {
-                if (evt.key === 'Enter') {
-                    subscribeToShop($input.val());
-                }
-            });
         })();
     </script>
 </body>
