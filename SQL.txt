@@ -1,0 +1,291 @@
+USE [BreakfastShop]
+GO
+/****** Object:  Table [dbo].[Combo]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Combo](
+	[Id] [uniqueidentifier] NOT NULL,
+	[ShopId] [uniqueidentifier] NOT NULL,
+	[Title] [nvarchar](100) NOT NULL,
+	[ComboMeal] [nvarchar](max) NULL,
+	[Money] [decimal](10, 2) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreateDate] [datetime2](0) NOT NULL,
+	[UpdateDate] [datetime2](0) NOT NULL,
+ CONSTRAINT [PK_Combo] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[MealCategory]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[MealCategory](
+	[Id] [uniqueidentifier] NOT NULL,
+	[ShopId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[SortOrder] [int] NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreateDate] [datetime2](0) NOT NULL,
+	[UpdateDate] [datetime2](0) NOT NULL,
+ CONSTRAINT [PK_MealCategory] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Meals]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Meals](
+	[Id] [uniqueidentifier] NOT NULL,
+	[ShopId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[Money] [decimal](10, 2) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreateDate] [datetime2](0) NOT NULL,
+	[UpdateDate] [datetime2](0) NOT NULL,
+	[Element] [nvarchar](200) NULL,
+	[CategoryId] [uniqueidentifier] NULL,
+ CONSTRAINT [PK_Meals] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[OrderItems]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[OrderItems](
+	[Id] [uniqueidentifier] NOT NULL,
+	[OrderId] [uniqueidentifier] NOT NULL,
+	[MealId] [uniqueidentifier] NOT NULL,
+	[MealName] [nvarchar](100) NOT NULL,
+	[Quantity] [int] NOT NULL,
+	[UnitPrice] [decimal](10, 2) NOT NULL,
+	[Notes] [nvarchar](200) NULL,
+	[CreateDate] [datetime2](0) NOT NULL,
+ CONSTRAINT [PK_OrderItems] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Orders]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Orders](
+	[Id] [uniqueidentifier] NOT NULL,
+	[ShopId] [uniqueidentifier] NULL,
+	[OrderType] [nvarchar](20) NOT NULL,
+	[TableId] [uniqueidentifier] NULL,
+	[TakeoutCode] [nvarchar](20) NULL,
+	[Notes] [nvarchar](500) NULL,
+	[Status] [nvarchar](20) NOT NULL,
+	[CreatedAt] [datetime2](0) NOT NULL,
+	[UpdatedAt] [datetime2](0) NOT NULL,
+ CONSTRAINT [PK_Orders] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Shop]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Shop](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[Phone] [nvarchar](20) NULL,
+	[Account] [nvarchar](50) NULL,
+	[Password] [nvarchar](100) NULL,
+	[Addr] [nvarchar](100) NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreateDate] [datetime2](0) NOT NULL,
+	[UpdateDate] [datetime2](0) NOT NULL,
+ CONSTRAINT [PK_Shop] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [UQ_Shop_Name] UNIQUE NONCLUSTERED 
+(
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Table]    Script Date: 2025/11/14 上午 08:31:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Table](
+	[Id] [uniqueidentifier] NOT NULL,
+	[ShopId] [uniqueidentifier] NOT NULL,
+	[Number] [int] NOT NULL,
+	[Zone] [nvarchar](50) NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreateDate] [datetime2](0) NOT NULL,
+	[UpdateDate] [datetime2](0) NOT NULL,
+ CONSTRAINT [PK_Table] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [UQ_Table_Shop_Number] UNIQUE NONCLUSTERED 
+(
+	[ShopId] ASC,
+	[Number] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Combo] ADD  CONSTRAINT [DF_Combo_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[Combo] ADD  CONSTRAINT [DF_Combo_Title]  DEFAULT (N'') FOR [Title]
+GO
+ALTER TABLE [dbo].[Combo] ADD  CONSTRAINT [DF_Combo_Money]  DEFAULT ((0)) FOR [Money]
+GO
+ALTER TABLE [dbo].[Combo] ADD  CONSTRAINT [DF_Combo_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[Combo] ADD  CONSTRAINT [DF_Combo_CreateDate]  DEFAULT (getdate()) FOR [CreateDate]
+GO
+ALTER TABLE [dbo].[Combo] ADD  CONSTRAINT [DF_Combo_UpdateDate]  DEFAULT (getdate()) FOR [UpdateDate]
+GO
+ALTER TABLE [dbo].[MealCategory] ADD  CONSTRAINT [DF_MealCategory_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[MealCategory] ADD  CONSTRAINT [DF_MealCategory_SortOrder]  DEFAULT ((0)) FOR [SortOrder]
+GO
+ALTER TABLE [dbo].[MealCategory] ADD  CONSTRAINT [DF_MealCategory_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[MealCategory] ADD  CONSTRAINT [DF_MealCategory_CreateDate]  DEFAULT (getdate()) FOR [CreateDate]
+GO
+ALTER TABLE [dbo].[MealCategory] ADD  CONSTRAINT [DF_MealCategory_UpdateDate]  DEFAULT (getdate()) FOR [UpdateDate]
+GO
+ALTER TABLE [dbo].[Meals] ADD  CONSTRAINT [DF_Meals_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[Meals] ADD  CONSTRAINT [DF_Meals_Money]  DEFAULT ((0)) FOR [Money]
+GO
+ALTER TABLE [dbo].[Meals] ADD  CONSTRAINT [DF_Meals_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[Meals] ADD  CONSTRAINT [DF_Meals_CreateDate]  DEFAULT (getdate()) FOR [CreateDate]
+GO
+ALTER TABLE [dbo].[Meals] ADD  CONSTRAINT [DF_Meals_UpdateDate]  DEFAULT (getdate()) FOR [UpdateDate]
+GO
+ALTER TABLE [dbo].[OrderItems] ADD  CONSTRAINT [DF_OrderItems_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[OrderItems] ADD  CONSTRAINT [DF_OrderItems_UnitPrice]  DEFAULT ((0)) FOR [UnitPrice]
+GO
+ALTER TABLE [dbo].[OrderItems] ADD  CONSTRAINT [DF_OrderItems_CreateDate]  DEFAULT (getdate()) FOR [CreateDate]
+GO
+ALTER TABLE [dbo].[Orders] ADD  CONSTRAINT [DF_Orders_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[Orders] ADD  CONSTRAINT [DF_Orders_CreatedAt]  DEFAULT (getdate()) FOR [CreatedAt]
+GO
+ALTER TABLE [dbo].[Orders] ADD  CONSTRAINT [DF_Orders_UpdatedAt]  DEFAULT (getdate()) FOR [UpdatedAt]
+GO
+ALTER TABLE [dbo].[Shop] ADD  CONSTRAINT [DF_Shop_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[Shop] ADD  CONSTRAINT [DF_Shop_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[Shop] ADD  CONSTRAINT [DF_Shop_CreateDate]  DEFAULT (getdate()) FOR [CreateDate]
+GO
+ALTER TABLE [dbo].[Shop] ADD  CONSTRAINT [DF_Shop_UpdateDate]  DEFAULT (getdate()) FOR [UpdateDate]
+GO
+ALTER TABLE [dbo].[Table] ADD  CONSTRAINT [DF_Table_Id]  DEFAULT (newid()) FOR [Id]
+GO
+ALTER TABLE [dbo].[Table] ADD  CONSTRAINT [DF_Table_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[Table] ADD  CONSTRAINT [DF_Table_CreateDate]  DEFAULT (getdate()) FOR [CreateDate]
+GO
+ALTER TABLE [dbo].[Table] ADD  CONSTRAINT [DF_Table_UpdateDate]  DEFAULT (getdate()) FOR [UpdateDate]
+GO
+ALTER TABLE [dbo].[Combo]  WITH CHECK ADD  CONSTRAINT [FK_Combo_Shop] FOREIGN KEY([ShopId])
+REFERENCES [dbo].[Shop] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Combo] CHECK CONSTRAINT [FK_Combo_Shop]
+GO
+ALTER TABLE [dbo].[MealCategory]  WITH CHECK ADD  CONSTRAINT [FK_MealCategory_Shop] FOREIGN KEY([ShopId])
+REFERENCES [dbo].[Shop] ([Id])
+GO
+ALTER TABLE [dbo].[MealCategory] CHECK CONSTRAINT [FK_MealCategory_Shop]
+GO
+ALTER TABLE [dbo].[Meals]  WITH CHECK ADD  CONSTRAINT [FK_Meals_Category] FOREIGN KEY([CategoryId])
+REFERENCES [dbo].[MealCategory] ([Id])
+ON DELETE SET NULL
+GO
+ALTER TABLE [dbo].[Meals] CHECK CONSTRAINT [FK_Meals_Category]
+GO
+ALTER TABLE [dbo].[Meals]  WITH CHECK ADD  CONSTRAINT [FK_Meals_Shop] FOREIGN KEY([ShopId])
+REFERENCES [dbo].[Shop] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Meals] CHECK CONSTRAINT [FK_Meals_Shop]
+GO
+ALTER TABLE [dbo].[OrderItems]  WITH CHECK ADD  CONSTRAINT [FK_OrderItems_Meal] FOREIGN KEY([MealId])
+REFERENCES [dbo].[Meals] ([Id])
+GO
+ALTER TABLE [dbo].[OrderItems] CHECK CONSTRAINT [FK_OrderItems_Meal]
+GO
+ALTER TABLE [dbo].[OrderItems]  WITH CHECK ADD  CONSTRAINT [FK_OrderItems_Order] FOREIGN KEY([OrderId])
+REFERENCES [dbo].[Orders] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[OrderItems] CHECK CONSTRAINT [FK_OrderItems_Order]
+GO
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD  CONSTRAINT [FK_Orders_Shop] FOREIGN KEY([ShopId])
+REFERENCES [dbo].[Shop] ([Id])
+ON DELETE SET NULL
+GO
+ALTER TABLE [dbo].[Orders] CHECK CONSTRAINT [FK_Orders_Shop]
+GO
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD  CONSTRAINT [FK_Orders_Table] FOREIGN KEY([TableId])
+REFERENCES [dbo].[Table] ([Id])
+GO
+ALTER TABLE [dbo].[Orders] CHECK CONSTRAINT [FK_Orders_Table]
+GO
+ALTER TABLE [dbo].[Table]  WITH CHECK ADD  CONSTRAINT [FK_Table_Shop] FOREIGN KEY([ShopId])
+REFERENCES [dbo].[Shop] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Table] CHECK CONSTRAINT [FK_Table_Shop]
+GO
+ALTER TABLE [dbo].[Combo]  WITH CHECK ADD  CONSTRAINT [CK_Combo_Money] CHECK  (([Money]>=(0)))
+GO
+ALTER TABLE [dbo].[Combo] CHECK CONSTRAINT [CK_Combo_Money]
+GO
+ALTER TABLE [dbo].[Meals]  WITH CHECK ADD  CONSTRAINT [CK_Meals_Money] CHECK  (([Money]>=(0)))
+GO
+ALTER TABLE [dbo].[Meals] CHECK CONSTRAINT [CK_Meals_Money]
+GO
+ALTER TABLE [dbo].[OrderItems]  WITH CHECK ADD  CONSTRAINT [CK_OrderItems_Quantity] CHECK  (([Quantity]>(0)))
+GO
+ALTER TABLE [dbo].[OrderItems] CHECK CONSTRAINT [CK_OrderItems_Quantity]
+GO
+ALTER TABLE [dbo].[OrderItems]  WITH CHECK ADD  CONSTRAINT [CK_OrderItems_UnitPrice] CHECK  (([UnitPrice]>=(0)))
+GO
+ALTER TABLE [dbo].[OrderItems] CHECK CONSTRAINT [CK_OrderItems_UnitPrice]
+GO
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD  CONSTRAINT [CK_Orders_OrderType] CHECK  (([OrderType]=N'TakeOut' OR [OrderType]=N'DineIn'))
+GO
+ALTER TABLE [dbo].[Orders] CHECK CONSTRAINT [CK_Orders_OrderType]
+GO
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD  CONSTRAINT [CK_Orders_Status] CHECK  (([Status]=N'Cancelled' OR [Status]=N'Completed' OR [Status]=N'Preparing' OR [Status]=N'Pending'))
+GO
+ALTER TABLE [dbo].[Orders] CHECK CONSTRAINT [CK_Orders_Status]
+GO
+ALTER TABLE [dbo].[Table]  WITH CHECK ADD  CONSTRAINT [CK_Table_Number] CHECK  (([Number]>(0)))
+GO
+ALTER TABLE [dbo].[Table] CHECK CONSTRAINT [CK_Table_Number]
+GO
