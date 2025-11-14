@@ -242,6 +242,10 @@
             border-bottom: none;
         }
 
+        .orders-entry.order-entry-disabled {
+            opacity: .9;
+        }
+
         .orders-entry-time {
             font-size: .8rem;
             color: #94a3b8;
@@ -258,6 +262,48 @@
 
         .orders-entry-status {
             color: #2563eb;
+        }
+
+        .orders-entry-statusline {
+            margin-top: .6rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .9rem;
+            color: #475569;
+            flex-wrap: wrap;
+        }
+
+        .orders-entry-status-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: .2rem .65rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .82rem;
+            letter-spacing: .03em;
+            text-transform: none;
+        }
+
+        .orders-entry-status-chip.is-pending {
+            background: rgba(59, 130, 246, 0.18);
+            color: #1d4ed8;
+        }
+
+        .orders-entry-status-chip.is-preparing {
+            background: rgba(96, 165, 250, 0.18);
+            color: #1d4ed8;
+        }
+
+        .orders-entry-status-chip.is-completed {
+            background: rgba(16, 185, 129, 0.18);
+            color: #047857;
+        }
+
+        .orders-entry-status-chip.is-cancelled {
+            background: rgba(248, 113, 113, 0.18);
+            color: #b91c1c;
         }
 
         .orders-entry-items {
@@ -285,6 +331,48 @@
             font-size: .9rem;
             white-space: pre-wrap;
             color: #1f2937;
+        }
+
+        .orders-entry-actions {
+            margin-top: .75rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .order-action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: .4rem 1.05rem;
+            font-weight: 600;
+            font-size: .9rem;
+            letter-spacing: .02em;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+
+        .order-action-btn.complete {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(14, 165, 233, 0.25);
+        }
+
+        .order-action-btn.cancel {
+            background: linear-gradient(135deg, #fb7185, #f97316);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(251, 113, 133, 0.25);
+        }
+
+        .order-action-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.15);
+        }
+
+        .order-action-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
 
         @@media (min-width: 768px) {
@@ -385,6 +473,16 @@
             var isHubReady = false;
             var hasOrders = false;
             var currentShop = null;
+            var orderStatusTextMap = {
+                Pending: '待處理',
+                Preparing: '準備中',
+                Completed: '已結單',
+                Cancelled: '已棄單'
+            };
+            var finalOrderStatuses = {
+                Completed: true,
+                Cancelled: true
+            };
 
             function isInterfaceVisible() {
                 return !$body.hasClass(blankClass);
@@ -424,6 +522,152 @@
                 return 'NT$ ' + (Number(value) || 0).toLocaleString('zh-TW');
             }
 
+            function resolveTimestamp(value) {
+                if (!value) {
+                    return new Date();
+                }
+
+                var date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    return new Date();
+                }
+
+                return date;
+            }
+
+            function getOrderStatusText(status) {
+                var key = $.trim(status || '');
+                return orderStatusTextMap[key] || key || '未知狀態';
+            }
+
+            function getOrderStatusClass(status) {
+                switch (status) {
+                    case 'Pending':
+                        return 'is-pending';
+                    case 'Preparing':
+                        return 'is-preparing';
+                    case 'Completed':
+                        return 'is-completed';
+                    case 'Cancelled':
+                        return 'is-cancelled';
+                    default:
+                        return '';
+                }
+            }
+
+            function shortenGuid(value) {
+                var text = (value || '').toString();
+                if (text.length <= 8) {
+                    return text;
+                }
+
+                return text.slice(0, 4) + '…' + text.slice(-4);
+            }
+
+            function getOrderEntryLabel($entry, orderId) {
+                if ($entry && $entry.length) {
+                    var label = $entry.attr('data-order-label');
+                    if (label) {
+                        return label;
+                    }
+
+                    var tableNumber = $entry.attr('data-table-number');
+                    if (tableNumber) {
+                        return '桌號 ' + tableNumber;
+                    }
+                }
+
+                if (!orderId) {
+                    return '訂單';
+                }
+
+                return '訂單 #' + shortenGuid(orderId);
+            }
+
+            function setEntryActionsDisabled($entry, disabled) {
+                if (!$entry || !$entry.length) {
+                    return;
+                }
+
+                var isDisabled = !!disabled;
+                $entry.toggleClass('order-entry-disabled', isDisabled);
+                $entry.find('.order-action-btn').prop('disabled', isDisabled);
+            }
+
+            function updateEntryStatus(orderId, status, options) {
+                options = options || {};
+
+                var $entry = orderId ? $orders.find('.orders-entry[data-order-id="' + orderId + '"]') : $();
+                var statusText = getOrderStatusText(status);
+                var statusClass = getOrderStatusClass(status);
+
+                if ($entry.length) {
+                    var $chip = $entry.find('.orders-entry-status-chip');
+                    if ($chip.length) {
+                        $chip
+                            .text(statusText)
+                            .removeClass('is-pending is-preparing is-completed is-cancelled');
+
+                        if (statusClass) {
+                            $chip.addClass(statusClass);
+                        }
+                    }
+
+                    $entry.attr('data-status', status || '');
+
+                    if (finalOrderStatuses[status]) {
+                        setEntryActionsDisabled($entry, true);
+                    } else if (!options.keepDisabled) {
+                        setEntryActionsDisabled($entry, false);
+                    }
+                }
+
+                if (options.notify === false) {
+                    return;
+                }
+
+                var label = getOrderEntryLabel($entry, orderId);
+                var ts = options.timestamp instanceof Date ? formatTimestamp(options.timestamp) : null;
+                var message = label + ' 狀態已更新為「' + statusText + '」。';
+                if (ts) {
+                    message += '（' + ts + '）';
+                }
+
+                appendStatus(message);
+            }
+
+            function requestOrderStatusChange(orderId, status, $entry) {
+                if (!orderId) {
+                    appendStatus('缺少訂單識別碼，無法更新狀態。');
+                    return;
+                }
+
+                if (!currentShop || !currentShop.rawId) {
+                    appendStatus('尚未選擇店家，無法更新訂單狀態。');
+                    return;
+                }
+
+                if (!hub || !hub.server || typeof hub.server.updateOrderStatus !== 'function') {
+                    appendStatus('連線尚未就緒，請稍候。');
+                    return;
+                }
+
+                setEntryActionsDisabled($entry, true);
+
+                hub.server.updateOrderStatus(currentShop.rawId, orderId, status)
+                    .done(function (result) {
+                        if (!result || result.ok === false) {
+                            var message = (result && result.error) ? result.error : '更新訂單狀態失敗。';
+                            appendStatus(message);
+                            setEntryActionsDisabled($entry, false);
+                        }
+                    })
+                    .fail(function () {
+                        appendStatus('更新訂單狀態時發生錯誤，請稍後再試。');
+                        setEntryActionsDisabled($entry, false);
+                    });
+            }
+
             function resetOrders() {
                 hasOrders = false;
                 $orders.empty().append($('<div class="orders-empty"/>').text('尚未接收資料。'));
@@ -455,8 +699,17 @@
                     return;
                 }
 
+                if (payload && payload.type === 'statusChanged') {
+                    var orderInfo = payload.order || {};
+                    var orderId = payload.orderId || orderInfo.id;
+                    var statusValue = payload.status || orderInfo.status;
+                    var ts = resolveTimestamp(payload.ts || (orderInfo && orderInfo.updatedAt));
+                    updateEntryStatus(orderId, statusValue, { timestamp: ts });
+                    return;
+                }
+
                 ensureOrdersContainer();
-                var now = new Date();
+                var now = resolveTimestamp(payload && payload.ts);
                 var $entry = $('<div class="orders-entry"/>');
                 $entry.append($('<div class="orders-entry-time"/>').text(formatTimestamp(now)));
 
@@ -478,10 +731,25 @@
 
                 if (payload.type === 'created' && payload.dto) {
                     var dto = payload.dto || {};
+                    var order = payload.order || {};
+                    var orderId = order.id || null;
                     var header = '收到新訂單';
+                    var entryLabel = null;
                     if (dto.tableNumber) {
                         header += '（桌號 ' + dto.tableNumber + '）';
+                        $entry.attr('data-table-number', dto.tableNumber);
+                        entryLabel = '桌號 ' + dto.tableNumber;
                     }
+                    if (orderId) {
+                        $entry.attr('data-order-id', orderId);
+                        if (!entryLabel) {
+                            entryLabel = '訂單 #' + shortenGuid(orderId);
+                        }
+                    }
+                    if (!entryLabel) {
+                        entryLabel = header;
+                    }
+                    $entry.attr('data-order-label', entryLabel);
                     $entry.append($('<div class="orders-entry-title"/>').text(header));
                     if (dto.shopName) {
                         $entry.append($('<div class="orders-entry-meta"/>').text('餐廳：' + dto.shopName));
@@ -503,6 +771,37 @@
                     if (dto.notes) {
                         $entry.append($('<div class="orders-entry-note"/>').text('備註：' + dto.notes));
                     }
+
+                    var statusValue = order.status || 'Pending';
+                    var statusClass = getOrderStatusClass(statusValue);
+                    var $statusLine = $('<div class="orders-entry-statusline"/>');
+                    $statusLine.append($('<span/>').text('狀態：'));
+                    var $chip = $('<span class="orders-entry-status-chip"/>').text(getOrderStatusText(statusValue));
+                    if (statusClass) {
+                        $chip.addClass(statusClass);
+                    }
+                    $statusLine.append($chip);
+                    $entry.append($statusLine);
+
+                    if (orderId) {
+                        var actions = [
+                            { status: 'Completed', label: '結單', className: 'complete' },
+                            { status: 'Cancelled', label: '棄單', className: 'cancel' }
+                        ];
+                        var $actions = $('<div class="orders-entry-actions"/>');
+                        actions.forEach(function (action) {
+                            var $btn = $('<button type="button" class="order-action-btn"/>')
+                                .addClass(action.className)
+                                .text(action.label)
+                                .on('click', function () {
+                                    requestOrderStatusChange(orderId, action.status, $entry);
+                                });
+                            $actions.append($btn);
+                        });
+                        $entry.append($actions);
+                    }
+
+                    updateEntryStatus(orderId, statusValue, { notify: false, keepDisabled: !!finalOrderStatuses[statusValue] });
                 } else {
                     var details = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
                     $entry.append($('<div class="orders-entry-title"/>').text('收到通知'));
