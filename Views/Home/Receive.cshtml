@@ -226,11 +226,53 @@
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
         }
 
+        .orders-filters {
+            display: flex;
+            gap: .65rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .orders-filter-btn {
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            background: rgba(59, 130, 246, 0.08);
+            color: #1d4ed8;
+            padding: .45rem .9rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .orders-filter-btn:hover,
+        .orders-filter-btn:focus {
+            background: rgba(59, 130, 246, 0.16);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+            outline: none;
+        }
+
+        .orders-filter-btn.is-active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 10px 18px -12px rgba(37, 99, 235, 0.8);
+        }
+
+        .orders-entry-hidden {
+            display: none !important;
+        }
+
         .orders-empty {
             text-align: center;
             color: #94a3b8;
             font-size: .95rem;
             padding: 1.75rem 0;
+        }
+
+        .orders-empty.orders-empty-filter {
+            padding: 1.25rem 0;
+            color: #64748b;
+            font-size: .9rem;
         }
 
         .orders-entry {
@@ -452,6 +494,11 @@
                 </div>
 
                 <div class="panel-orders">
+                    <div class="orders-filters" role="tablist" aria-label="訂單狀態篩選">
+                        <button type="button" class="orders-filter-btn is-active" data-filter="pending" aria-pressed="true">待處理</button>
+                        <button type="button" class="orders-filter-btn" data-filter="completed" aria-pressed="false">結單</button>
+                        <button type="button" class="orders-filter-btn" data-filter="cancelled" aria-pressed="false">棄單</button>
+                    </div>
                     <div class="orders" id="orderUpdates">
                         <div class="orders-empty">尚未接收資料。</div>
                     </div>
@@ -487,6 +534,94 @@
                 Completed: true,
                 Cancelled: true
             };
+            var statusFilterGroups = {
+                pending: {
+                    label: '待處理',
+                    statuses: { Pending: true, Preparing: true }
+                },
+                completed: {
+                    label: '結單',
+                    statuses: { Completed: true }
+                },
+                cancelled: {
+                    label: '棄單',
+                    statuses: { Cancelled: true }
+                }
+            };
+            var currentStatusFilterKey = 'pending';
+            var $filterButtons = $();
+            var $filterEmptyNotice = null;
+
+            function hideFilterEmptyNotice() {
+                if ($filterEmptyNotice && $filterEmptyNotice.length) {
+                    $filterEmptyNotice.remove();
+                }
+                $filterEmptyNotice = null;
+            }
+
+            function updateFilterEmptyNotice(totalOrderEntries, visibleOrderEntries) {
+                if (totalOrderEntries === 0 || visibleOrderEntries > 0) {
+                    hideFilterEmptyNotice();
+                    return;
+                }
+
+                if (!$filterEmptyNotice) {
+                    $filterEmptyNotice = $('<div class="orders-empty orders-empty-filter"/>').text('目前沒有符合條件的訂單。');
+                }
+
+                if (!$filterEmptyNotice.parent().length) {
+                    $orders.append($filterEmptyNotice);
+                }
+            }
+
+            function applyStatusFilter() {
+                var group = statusFilterGroups[currentStatusFilterKey] || null;
+                var totalOrderEntries = 0;
+                var visibleOrderEntries = 0;
+
+                $orders.children('.orders-entry').each(function () {
+                    var $entry = $(this);
+                    var orderId = $entry.attr('data-order-id');
+                    if (!orderId) {
+                        $entry.removeClass('orders-entry-hidden');
+                        return;
+                    }
+
+                    totalOrderEntries++;
+                    var statusValue = $entry.attr('data-status') || '';
+                    var isVisible = !group || group.statuses[statusValue];
+                    $entry.toggleClass('orders-entry-hidden', !isVisible);
+
+                    if (isVisible) {
+                        visibleOrderEntries++;
+                    }
+                });
+
+                updateFilterEmptyNotice(totalOrderEntries, visibleOrderEntries);
+            }
+
+            function setStatusFilter(key) {
+                if (!statusFilterGroups[key]) {
+                    return;
+                }
+
+                currentStatusFilterKey = key;
+
+                if ($filterButtons && $filterButtons.length) {
+                    $filterButtons.removeClass('is-active').attr('aria-pressed', 'false');
+                    $filterButtons.filter('[data-filter="' + key + '"]').addClass('is-active').attr('aria-pressed', 'true');
+                }
+
+                applyStatusFilter();
+            }
+
+            $filterButtons = $('.orders-filter-btn');
+            $filterButtons.on('click', function () {
+                var key = $(this).data('filter');
+                setStatusFilter(key);
+            });
+
+            setStatusFilter(currentStatusFilterKey);
 
             function isInterfaceVisible() {
                 return !$body.hasClass(blankClass);
@@ -638,17 +773,19 @@
                 }
 
                 if (options.notify === false || suppressNotice) {
+                    applyStatusFilter();
                     return;
                 }
 
                 var label = getOrderEntryLabel($entry, orderId);
                 var ts = options.timestamp instanceof Date ? formatTimestamp(options.timestamp) : null;
-                var message = label + ' 狀態已更新為「' + statusText + '」。';
+                var message = '已將 ' + label + ' 調整為「' + statusText + '」狀態。';
                 if (ts) {
                     message += '（' + ts + '）';
                 }
 
                 appendStatus(message);
+                applyStatusFilter();
             }
 
             function requestOrderStatusChange(orderId, status, $entry) {
@@ -696,6 +833,7 @@
             function resetOrders() {
                 hasOrders = false;
                 $orders.empty().append($('<div class="orders-empty"/>').text('尚未接收資料。'));
+                hideFilterEmptyNotice();
             }
 
             function ensureOrdersContainer() {
@@ -703,6 +841,8 @@
                     $orders.empty();
                     hasOrders = true;
                 }
+
+                hideFilterEmptyNotice();
             }
 
             function appendStatus(message) {
@@ -717,6 +857,7 @@
                 $entry.append($('<div class="orders-entry-title orders-entry-status"/>').text(message));
                 $orders.append($entry);
                 $orders.scrollTop($orders[0].scrollHeight);
+                applyStatusFilter();
             }
 
             function appendOrderNotification(payload) {
@@ -881,6 +1022,8 @@
                     $orders.append($entry);
                     $orders.scrollTop($orders[0].scrollHeight);
                 }
+
+                applyStatusFilter();
             }
 
             function normalizeShopId(value) {
