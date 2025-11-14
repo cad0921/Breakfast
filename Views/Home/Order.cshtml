@@ -1019,10 +1019,10 @@
     }
 
     function cartKeyMatches(item, meal){
-      if(item.id && meal.id){
-        return item.id === meal.id;
+      if(item.mealId && meal.id){
+        return item.mealId === meal.id;
       }
-      return !item.id && !meal.id && item.name === meal.name && item.price === Number(meal.money || 0);
+      return !item.mealId && !meal.id && item.name === meal.name && item.price === Number(meal.money || 0);
     }
 
     function getCartQtyForMeal(meal){
@@ -1087,7 +1087,7 @@
         existing.qty += 1;
       } else {
         cartItems.push({
-          id: meal.id || null,
+          mealId: meal.id || null,
           name: meal.name,
           price: price,
           qty: 1,
@@ -1336,6 +1336,40 @@
 
     hub.client.orderChanged = function(payload){
       console.log('orderChanged', payload);
+
+      if(!payload){
+        isSubmitting = false;
+        $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+        setTableStatus('訂單處理結果不明，請重新嘗試。', 'error');
+        return;
+      }
+
+      if(payload.type === 'error'){
+        isSubmitting = false;
+        $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+        var message = payload.error || '送出訂單時發生錯誤，請稍後再試。';
+        setTableStatus(message, 'error');
+        return;
+      }
+
+      if(payload.type === 'created'){
+        var totalQty = 0;
+        if(payload.dto && Array.isArray(payload.dto.items)){
+          totalQty = payload.dto.items.reduce(function(sum, item){
+            var qty = item && item.qty ? Number(item.qty) : 0;
+            return sum + (isFinite(qty) ? qty : 0);
+          }, 0);
+        }
+
+        setTableStatus('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
+        clearCart({ skipStatus: true });
+        updateSendButtonState();
+        closeOrderConfirmModal();
+        return;
+      }
+
+      isSubmitting = false;
+      $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
     };
 
     function applyInitialTable(){
@@ -1404,6 +1438,15 @@
         isSubmitting = true;
         $confirmSubmit.prop('disabled', true).text('送出中…');
 
+        var missingMealId = cartItems.some(function(item){ return !item.mealId; });
+        if(missingMealId){
+          isSubmitting = false;
+          $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+          setTableStatus('餐點資料缺少，請重新選擇餐點。', 'error');
+          closeOrderConfirmModal();
+          return;
+        }
+
         var dto = {
           shopId: currentTable.shopId,
           shopName: currentTable.shopName,
@@ -1412,16 +1455,12 @@
           tableZone: currentTable.zone,
           notes: null,
           items: cartItems.map(function(item){
-            return { name: item.name, qty: item.qty, price: item.price };
+            return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price };
           })
         };
 
         hub.server.createOrder(dto);
-        var totalQty = cartItems.reduce(function(sum, item){ return sum + item.qty; }, 0);
-        setTableStatus('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
-        clearCart({ skipStatus: true });
-        updateSendButtonState();
-        closeOrderConfirmModal();
+        setTableStatus('訂單送出中，請稍候…', '');
       });
     }).fail(function(){
       setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');

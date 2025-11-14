@@ -22,6 +22,8 @@ namespace BreakFastShop.Models
 
     public class OrderItemDto
     {
+        public Guid? MealId { get; set; }
+
         public string Name { get; set; }
 
         public int Qty { get; set; }

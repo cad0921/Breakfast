@@ -13,8 +13,10 @@ namespace BreakFastShop.Hubs
     {
         private static string BuildShopGroupName(Guid shopId) => $"shop:{shopId:D}";
 
-        private static IReadOnlyList<OrderItemDto> NormalizeItems(IEnumerable<OrderItemDto> items)
+        private static IReadOnlyList<OrderItemDto> NormalizeItems(IEnumerable<OrderItemDto> items, out bool hasInvalid)
         {
+            hasInvalid = false;
+
             if (items == null)
             {
                 return Array.Empty<OrderItemDto>();
@@ -26,17 +28,26 @@ namespace BreakFastShop.Hubs
             {
                 if (item == null)
                 {
+                    hasInvalid = true;
+                    continue;
+                }
+
+                if (!item.MealId.HasValue || item.MealId.Value == Guid.Empty)
+                {
+                    hasInvalid = true;
                     continue;
                 }
 
                 var name = item.Name?.Trim();
-                if (string.IsNullOrWhiteSpace(name) || item.Qty <= 0)
+                if (string.IsNullOrWhiteSpace(name) || item.Qty <= 0 || item.Price < 0)
                 {
+                    hasInvalid = true;
                     continue;
                 }
 
                 list.Add(new OrderItemDto
                 {
+                    MealId = item.MealId,
                     Name = name,
                     Qty = item.Qty,
                     Price = item.Price
@@ -67,7 +78,13 @@ namespace BreakFastShop.Hubs
                 return;
             }
 
-            var normalizedItems = NormalizeItems(dto.Items);
+            var normalizedItems = NormalizeItems(dto.Items, out var hasInvalidItems);
+            if (hasInvalidItems)
+            {
+                Clients.Caller.orderChanged(new { type = "error", error = "餐點資料無效，請重新選擇。" });
+                return;
+            }
+
             if (normalizedItems.Count == 0)
             {
                 Clients.Caller.orderChanged(new { type = "error", error = "請先選擇至少一項餐點。" });
@@ -83,7 +100,7 @@ namespace BreakFastShop.Hubs
                                            VALUES(@Id,@ShopId,@OrderType,@TableId,NULL,@Notes,@Status,@CreatedAt,@UpdatedAt);";
 
             const string insertItemSql = @"INSERT INTO OrderItems(Id,OrderId,MealId,MealName,Quantity,UnitPrice,Notes,CreateDate)
-                                          VALUES(@Id,@OrderId,NULL,@MealName,@Quantity,@UnitPrice,NULL,@CreateDate);";
+                                          VALUES(@Id,@OrderId,@MealId,@MealName,@Quantity,@UnitPrice,NULL,@CreateDate);";
 
             try
             {
@@ -112,6 +129,7 @@ namespace BreakFastShop.Hubs
                             {
                                 itemCommand.Parameters.AddWithValue("@Id", Guid.NewGuid());
                                 itemCommand.Parameters.AddWithValue("@OrderId", orderId);
+                                itemCommand.Parameters.AddWithValue("@MealId", item.MealId.Value);
                                 itemCommand.Parameters.AddWithValue("@MealName", item.Name);
                                 itemCommand.Parameters.AddWithValue("@Quantity", item.Qty);
                                 itemCommand.Parameters.AddWithValue("@UnitPrice", item.Price);
@@ -145,6 +163,7 @@ namespace BreakFastShop.Hubs
                 updatedAt = now,
                 items = normalizedItems.Select(i => new
                 {
+                    mealId = i.MealId,
                     name = i.Name,
                     qty = i.Qty,
                     price = i.Price
