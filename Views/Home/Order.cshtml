@@ -97,6 +97,43 @@
             margin-bottom: 1rem;
         }
 
+        .order-header__controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+        }
+
+        .order-mode-switch {
+            display: inline-flex;
+            padding: .3rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.18);
+            gap: .35rem;
+        }
+
+        .order-mode-btn {
+            border: none;
+            border-radius: 999px;
+            padding: .35rem 1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            background: transparent;
+            cursor: pointer;
+            transition: background .2s ease, color .2s ease;
+        }
+
+        .order-mode-btn.is-active {
+            background: rgba(255, 255, 255, 0.32);
+            color: #fff;
+        }
+
+        .order-mode-btn:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, 0.65);
+            outline-offset: 2px;
+        }
+
         #pageTitle {
             margin: 0;
             font-size: 1.5rem;
@@ -147,12 +184,105 @@
             color: #fee2e2;
         }
 
+        .panel .table-summary {
+            background: #f8fafc;
+            border-color: rgba(148, 163, 184, 0.35);
+            color: var(--text);
+        }
+
+        .panel .table-summary-status {
+            color: var(--text);
+        }
+
+        .panel .table-summary-detail {
+            color: var(--muted);
+        }
+
         .order-main {
             flex: 1;
             padding: 1.5rem 1.25rem 6.5rem;
             display: flex;
             flex-direction: column;
             gap: 1.75rem;
+        }
+
+        .order-context {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .order-context-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .order-mode-panels {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .order-mode-panel {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .order-mode-panel.is-active {
+            display: flex;
+        }
+
+        .order-form {
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .order-form-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem;
+        }
+
+        .order-form-input {
+            flex: 1;
+            min-width: 0;
+            padding: .65rem .9rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            font-size: 1rem;
+            color: var(--text);
+            background: #fff;
+        }
+
+        .order-form-input:focus {
+            outline: none;
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+        }
+
+        .order-form-submit {
+            border: none;
+            border-radius: 14px;
+            padding: .65rem 1.3rem;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .order-form-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+        }
+
+        .order-form-label {
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--muted);
         }
 
         .section-header {
@@ -459,6 +589,22 @@
         .cart-clear:not(:disabled):hover {
             color: #be123c;
             border-color: rgba(190, 18, 60, 0.45);
+        }
+
+        .order-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .order-layout-main {
+            flex: 1;
+        }
+
+        .cart-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .order-footer {
@@ -952,6 +1098,19 @@
             }
         }
 
+        @@media (min-width: 992px) {
+            .order-layout {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+
+            .cart-panel {
+                width: min(320px, 100%);
+                position: sticky;
+                top: 120px;
+            }
+        }
+
         @@media (min-width: 1024px) {
             .order-shell {
                 max-width: 840px;
@@ -967,16 +1126,78 @@
             <header class="order-header">
                 <div class="order-header__title">
                     <h1 id="pageTitle">下單頁</h1>
+                    <span class="order-header__subtitle">選擇餐點並送出訂單</span>
+                </div>
+                <div class="order-header__controls">
+                    <div class="order-mode-switch" role="tablist" aria-label="用餐方式">
+                        <button type="button" class="order-mode-btn is-active" data-order-mode="dineIn" aria-pressed="true">內用</button>
+                        <button type="button" class="order-mode-btn" data-order-mode="takeout" aria-pressed="false">外帶</button>
+                    </div>
                 </div>
             </header>
             <main class="order-main" role="main">
-                <section class="meal-panel panel" aria-labelledby="mealSectionTitle">
+                <section class="order-context panel" aria-labelledby="orderModeTitle">
                     <div class="section-header">
-                        <h2 id="mealSectionTitle">餐點列表</h2>
-                        <span class="section-note">挑選想吃的料理</span>
+                        <h2 id="orderModeTitle">訂餐設定</h2>
+                        <span class="section-note">選擇用餐方式與連線店家</span>
                     </div>
-                    <div class="meal-categories" id="mealCategories" aria-live="polite"></div>
-                    <div class="meal-list" id="mealList" aria-live="polite"></div>
+                    <div class="order-context-body">
+                        <div class="order-mode-panels">
+                            <div class="order-mode-panel is-active" data-order-mode-panel="dineIn">
+                                <form id="tableLookupForm" class="order-form" aria-label="桌號查詢">
+                                    <label for="tableNumberInput" class="order-form-label">桌號</label>
+                                    <div class="order-form-controls">
+                                        <input type="number" id="tableNumberInput" min="1" class="order-form-input" placeholder="輸入桌號">
+                                        <button type="submit" class="order-form-submit">查詢桌號</button>
+                                    </div>
+                                </form>
+                                <div class="table-summary" id="tableSummary" aria-live="polite">
+                                    <div class="table-summary-status" id="tableStatus"></div>
+                                    <div class="table-summary-detail is-hidden" id="tableDetail"></div>
+                                </div>
+                            </div>
+                            <div class="order-mode-panel" data-order-mode-panel="takeout">
+                                <form id="takeoutShopForm" class="order-form" aria-label="店家查詢">
+                                    <label for="takeoutShopInput" class="order-form-label">店家代碼</label>
+                                    <div class="order-form-controls">
+                                        <input type="text" id="takeoutShopInput" class="order-form-input" placeholder="輸入店家代碼">
+                                        <button type="submit" class="order-form-submit" id="takeoutShopSubmit">載入餐點</button>
+                                    </div>
+                                </form>
+                                <div class="table-summary" id="takeoutSummary" aria-live="polite">
+                                    <div class="table-summary-status" id="takeoutStatus"></div>
+                                    <div class="table-summary-detail is-hidden" id="takeoutDetail"></div>
+                                </div>
+                                <label for="takeoutCodeInput" class="order-form-label">外帶代碼（選填）</label>
+                                <input type="text" id="takeoutCodeInput" class="order-form-input" placeholder="例如：A01">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="order-layout">
+                    <div class="order-layout-main">
+                        <section class="meal-panel panel" aria-labelledby="mealSectionTitle">
+                            <div class="section-header">
+                                <h2 id="mealSectionTitle">餐點列表</h2>
+                                <span class="section-note">挑選想吃的料理</span>
+                            </div>
+                            <div class="meal-categories" id="mealCategories" aria-live="polite"></div>
+                            <div class="meal-list" id="mealList" aria-live="polite"></div>
+                        </section>
+                    </div>
+                    <aside class="cart-panel panel" aria-labelledby="cartTitle">
+                        <div class="section-header">
+                            <h2 id="cartTitle">購物車</h2>
+                            <span class="section-note">檢視已加入的餐點</span>
+                        </div>
+                        <div class="cart-summary" id="cartSummary">尚未選擇餐點</div>
+                        <div class="cart-list" id="cartList"></div>
+                        <div class="cart-empty" id="cartEmpty">請先選擇餐點。</div>
+                        <div class="cart-footer">
+                            <div class="cart-total" id="cartTotal">NT$ 0</div>
+                            <button type="button" class="cart-clear" id="clearCart" disabled>清空</button>
+                        </div>
+                    </aside>
                 </section>
             </main>
             <footer class="order-footer">
@@ -1050,6 +1271,10 @@
     var hub = $.connection.ordersHub;
     var lookupUrl = '@Url.Action("TableInfo","Home")';
     var mealLookupUrl = '@Url.Action("ShopMeals","Home")';
+    var shopInfoUrl = '@Url.Action("ShopInfo","Home")';
+    var ORDER_MODE_DINE_IN = 'dineIn';
+    var ORDER_MODE_TAKEOUT = 'takeout';
+    var currentMode = ORDER_MODE_DINE_IN;
     var currentTable = null;
     var initialTable = @Html.Raw(Json.Encode(tablePayload));
     var initialMeals = @Html.Raw(Json.Encode(mealsPayload));
@@ -1059,7 +1284,16 @@
     var allCategories = [];
     var activeCategoryId = null;
     var cartItems = [];
+    var currentTakeoutShop = null;
+    var currentMealsShopId = null;
+    var pendingSubmitMode = null;
 
+    var $orderModeButtons = $('[data-order-mode]');
+    var $orderModePanels = $('[data-order-mode-panel]');
+    var $tableForm = $('#tableLookupForm');
+    var $tableInput = $('#tableNumberInput');
+    var $takeoutForm = $('#takeoutShopForm');
+    var $takeoutInput = $('#takeoutShopInput');
     var $cartList = $('#cartList');
     var $cartTotal = $('#cartTotal');
     var $cartEmpty = $('#cartEmpty');
@@ -1070,6 +1304,10 @@
     var $tableSummary = $('#tableSummary');
     var $tableStatus = $('#tableStatus');
     var $tableDetail = $('#tableDetail');
+    var $takeoutSummary = $('#takeoutSummary');
+    var $takeoutStatus = $('#takeoutStatus');
+    var $takeoutDetail = $('#takeoutDetail');
+    var $takeoutCodeInput = $('#takeoutCodeInput');
     var $pageTitle = $('#pageTitle');
     var $orderConfirmModal = $('#orderConfirmModal');
     var $orderConfirmClose = $('#orderConfirmClose');
@@ -1092,7 +1330,8 @@
     var defaultMealOptionsExtraText = '不加價';
     var pendingMealForOptions = null;
     var pendingMealOptionGroups = [];
-    var defaultTableStatus = '請掃描桌號 QR Code 開始點餐。';
+    var defaultTableStatus = '請輸入桌號以開始點餐。';
+    var defaultTakeoutStatus = '請輸入店家代碼以顯示餐點。';
     var defaultPageTitle = '下單頁';
     var isSubmitting = false;
     var confirmSubmitDefaultText = $confirmSubmit.text();
@@ -1129,6 +1368,115 @@
       } else {
         $pageTitle.text(defaultPageTitle);
         document.title = defaultPageTitle;
+      }
+    }
+
+    function setTakeoutStatus(message, type){
+      var text = message || defaultTakeoutStatus;
+      var statusClass = type === 'success' ? 'is-success' : (type === 'error' ? 'is-error' : null);
+      $takeoutSummary.removeClass('is-success is-error');
+      if(statusClass){
+        $takeoutSummary.addClass(statusClass);
+      }
+      if(text){
+        $takeoutStatus.text(text).removeClass('is-hidden');
+      } else {
+        $takeoutStatus.text('').addClass('is-hidden');
+      }
+    }
+
+    function setTakeoutDetail(text){
+      if(text){
+        $takeoutDetail.text(text).removeClass('is-hidden');
+      } else {
+        $takeoutDetail.text('').addClass('is-hidden');
+      }
+    }
+
+    function updateTakeoutTitle(shop){
+      if(shop && (shop.name || shop.rawId)){
+        var titleText = (shop.name || shop.rawId) + ' 外帶訂單';
+        $pageTitle.text(titleText);
+        document.title = titleText;
+      } else {
+        $pageTitle.text(defaultPageTitle);
+        document.title = defaultPageTitle;
+      }
+    }
+
+    function setOrderMode(mode){
+      var target = mode === ORDER_MODE_TAKEOUT ? ORDER_MODE_TAKEOUT : ORDER_MODE_DINE_IN;
+      currentMode = target;
+
+      if($orderModeButtons.length){
+        $orderModeButtons.removeClass('is-active').attr('aria-pressed', 'false');
+        $orderModeButtons.filter('[data-order-mode="' + target + '"]').addClass('is-active').attr('aria-pressed', 'true');
+      }
+
+      if($orderModePanels.length){
+        $orderModePanels.removeClass('is-active').attr('aria-hidden', 'true');
+        $orderModePanels.filter('[data-order-mode-panel="' + target + '"]').addClass('is-active').attr('aria-hidden', 'false');
+      }
+
+      if(target === ORDER_MODE_DINE_IN){
+        updatePageTitle(currentTable);
+        if(currentTable && currentTable.shopId){
+          setTableStatus('已連線至桌號 ' + currentTable.number + (currentTable.zone ? ('（' + currentTable.zone + '）') : '') + '。', 'success');
+          setTableDetail('餐廳：' + (currentTable.shopName || currentTable.shopId));
+          if(String(currentMealsShopId || '') !== String(currentTable.shopId || '')){
+            fetchMealsForShop(currentTable.shopId, { onError: setTableStatus, onSuccess: function(){ setTableStatus('已載入餐點，請選擇。', 'success'); } });
+          }
+        } else {
+          setTableStatus(defaultTableStatus, '');
+          setTableDetail('');
+          setCategories([]);
+          setMeals([]);
+          clearCart({ skipStatus: true });
+        }
+
+        setTakeoutStatus(defaultTakeoutStatus, '');
+        setTakeoutDetail('');
+      } else {
+        if(currentTakeoutShop && currentTakeoutShop.id){
+          updateTakeoutTitle(currentTakeoutShop);
+          var name = currentTakeoutShop.name || currentTakeoutShop.rawId;
+          setTakeoutStatus('已連線至店家。', 'success');
+          setTakeoutDetail('餐廳：' + name);
+          if(String(currentMealsShopId || '') !== String(currentTakeoutShop.id || '')){
+            fetchMealsForShop(currentTakeoutShop.id, {
+              onError: function(msg){ setTakeoutStatus(msg, 'error'); },
+              onSuccess: function(){ setTakeoutStatus('已載入餐點，請選擇。', 'success'); }
+            });
+          }
+        } else {
+          updateTakeoutTitle(null);
+          setTakeoutStatus(defaultTakeoutStatus, '');
+          setTakeoutDetail('');
+          setCategories([]);
+          setMeals([]);
+          clearCart({ skipStatus: true });
+        }
+
+        setTableStatus(defaultTableStatus, '');
+        setTableDetail('');
+      }
+
+      updateSendButtonState();
+    }
+
+    function notifyCartStatus(message, type){
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        setTakeoutStatus(message, type);
+      } else {
+        setTableStatus(message, type);
+      }
+    }
+
+    function setStatusForMode(mode, message, type){
+      if(mode === ORDER_MODE_TAKEOUT){
+        setTakeoutStatus(message, type);
+      } else {
+        setTableStatus(message, type);
       }
     }
 
@@ -1576,17 +1924,30 @@
       if(!$orderConfirmModal.length){ return; }
 
       var detailParts = [];
-      if(currentTable){
-        if(currentTable.shopName || currentTable.shopId){
-          detailParts.push('餐廳：' + (currentTable.shopName || currentTable.shopId));
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        if(currentTakeoutShop && (currentTakeoutShop.name || currentTakeoutShop.rawId)){
+          detailParts.push('餐廳：' + (currentTakeoutShop.name || currentTakeoutShop.rawId));
         }
-        if(currentTable.number !== undefined && currentTable.number !== null){
-          var zoneText = currentTable.zone ? ('（' + currentTable.zone + '）') : '';
-          detailParts.push('桌號：' + currentTable.number + zoneText);
+        var takeoutCode = $.trim($takeoutCodeInput.val() || '');
+        if(takeoutCode){
+          detailParts.push('外帶碼：' + takeoutCode);
         }
-      }
-      if(!detailParts.length){
-        detailParts.push('桌號資訊尚未提供');
+        if(!detailParts.length){
+          detailParts.push('外帶資訊尚未提供');
+        }
+      } else {
+        if(currentTable){
+          if(currentTable.shopName || currentTable.shopId){
+            detailParts.push('餐廳：' + (currentTable.shopName || currentTable.shopId));
+          }
+          if(currentTable.number !== undefined && currentTable.number !== null){
+            var zoneText = currentTable.zone ? ('（' + currentTable.zone + '）') : '';
+            detailParts.push('桌號：' + currentTable.number + zoneText);
+          }
+        }
+        if(!detailParts.length){
+          detailParts.push('桌號資訊尚未提供');
+        }
       }
       $orderConfirmTable.text(detailParts.join('　'));
 
@@ -1651,7 +2012,12 @@
     }
 
     function updateSendButtonState(){
-      var canSend = !!(currentTable && currentTable.shopId && cartItems.length);
+      var canSend = false;
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        canSend = !!(currentTakeoutShop && currentTakeoutShop.id && cartItems.length);
+      } else {
+        canSend = !!(currentTable && currentTable.shopId && cartItems.length);
+      }
       $sendButton.prop('disabled', !canSend);
     }
 
@@ -1713,7 +2079,7 @@
       if(index < 0 || index >= cartItems.length){ return; }
       cartItems.splice(index, 1);
       renderMeals();
-      setTableStatus('已從購物車移除餐點。', '');
+      notifyCartStatus('已從購物車移除餐點。', '');
     }
 
     function clearCart(options){
@@ -1727,7 +2093,7 @@
 
       renderMeals();
       if(!skipStatus){
-        setTableStatus('購物車已清空。', '');
+        notifyCartStatus('購物車已清空。', '');
       }
     }
 
@@ -1776,7 +2142,7 @@
       if(summary){
         statusMessage += '（' + summary + '）';
       }
-      setTableStatus(statusMessage, 'success');
+      notifyCartStatus(statusMessage, 'success');
     }
 
     function handleAddMealClick(meal){
@@ -1802,10 +2168,19 @@
 
     function renderCategories(){
       var $container = $('#mealCategories').empty();
-      var hasTable = !!(currentTable || initialTable);
-      if(!hasTable){
-        $container.append($('<div class="meal-categories-empty"/>').text('請先選擇桌號以顯示分類。'));
-        return;
+      var hasContext = false;
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        hasContext = !!(currentTakeoutShop && currentTakeoutShop.id);
+        if(!hasContext){
+          $container.append($('<div class="meal-categories-empty"/>').text('請先輸入店家代碼以顯示分類。'));
+          return;
+        }
+      } else {
+        hasContext = !!(currentTable || initialTable);
+        if(!hasContext){
+          $container.append($('<div class="meal-categories-empty"/>').text('請先選擇桌號以顯示分類。'));
+          return;
+        }
       }
 
       if(!allCategories.length){
@@ -1843,6 +2218,7 @@
       initialTable = null;
       initialMeals = [];
       initialCategories = [];
+      currentMealsShopId = null;
       setTableDetail('');
       if(!opts.skipMessage){
         setTableStatus(defaultTableStatus, '');
@@ -1851,6 +2227,23 @@
       clearCart({ skipStatus: true });
       setCategories([]);
       setMeals([]);
+      updateSendButtonState();
+    }
+
+    function clearTakeoutSelection(options){
+      var opts = options || {};
+      currentTakeoutShop = null;
+      if(!opts.keepMeals){
+        initialMeals = [];
+        initialCategories = [];
+        currentMealsShopId = null;
+        setCategories([]);
+        setMeals([]);
+        clearCart({ skipStatus: true });
+      }
+      setTakeoutStatus(defaultTakeoutStatus, '');
+      setTakeoutDetail('');
+      updateTakeoutTitle(null);
       updateSendButtonState();
     }
 
@@ -1875,13 +2268,15 @@
         .done(function(res){
           if(res && res.ok){
             currentTable = res;
+            initialTable = res;
             var zoneText = res.zone ? ('（' + res.zone + '）') : '';
             var detail = '餐廳：' + (res.shopName || res.shopId) + '　桌號：' + res.number + zoneText;
             setTableStatus('已連線至桌號 ' + res.number + zoneText + '。', 'success');
             setTableDetail(detail);
             updatePageTitle(currentTable);
+            clearTakeoutSelection({ keepMeals: true });
             clearCart({ skipStatus: true });
-            fetchMealsForShop(res.shopId);
+            setOrderMode(ORDER_MODE_DINE_IN);
           } else {
             var msg = res && res.error ? res.error : '查無對應桌號。';
             setTableStatus(msg, 'error');
@@ -1893,13 +2288,73 @@
         });
     }
 
+    function connectTakeoutShop(shopId){
+      var trimmed = $.trim(shopId || '');
+      if(!trimmed){
+        clearTakeoutSelection();
+        return;
+      }
+
+      setTakeoutStatus('查詢中…', '');
+
+      $.getJSON(shopInfoUrl, { id: trimmed })
+        .done(function(res){
+          if(res && res.ok && res.shop && res.shop.id){
+            currentTakeoutShop = {
+              id: res.shop.id,
+              rawId: res.shop.id,
+              name: res.shop.name || ''
+            };
+            setTakeoutStatus('已連線至店家。', 'success');
+            setTakeoutDetail('餐廳：' + (currentTakeoutShop.name || currentTakeoutShop.rawId));
+            updateTakeoutTitle(currentTakeoutShop);
+            clearTableSelection({ skipMessage: true });
+            clearCart({ skipStatus: true });
+            setOrderMode(ORDER_MODE_TAKEOUT);
+          } else {
+            var msg = res && res.error ? res.error : '沒有此店家';
+            clearTakeoutSelection();
+            setTakeoutStatus(msg, 'error');
+          }
+        })
+        .fail(function(xhr){
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢店家時發生錯誤。';
+          clearTakeoutSelection();
+          setTakeoutStatus(msg, 'error');
+        });
+    }
+
+    $orderModeButtons.on('click', function(){
+      var mode = $(this).data('order-mode');
+      setOrderMode(mode);
+    });
+
+    $tableForm.on('submit', function(event){
+      event.preventDefault();
+      lookupTable($tableInput.val());
+    });
+
+    $takeoutForm.on('submit', function(event){
+      event.preventDefault();
+      connectTakeoutShop($takeoutInput.val());
+    });
+
     function renderMeals(){
       renderCart();
       var $list = $('#mealList').empty();
-      var hasTable = !!(currentTable || initialTable);
-      if(!hasTable){
-        $list.append($('<div class="meal-empty"/>').text('請先選擇桌號以顯示餐點。'));
-        return;
+      var hasContext = false;
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        hasContext = !!(currentTakeoutShop && currentTakeoutShop.id);
+        if(!hasContext){
+          $list.append($('<div class="meal-empty"/>').text('請先輸入店家代碼以顯示餐點。'));
+          return;
+        }
+      } else {
+        hasContext = !!(currentTable || initialTable);
+        if(!hasContext){
+          $list.append($('<div class="meal-empty"/>').text('請先選擇桌號以顯示餐點。'));
+          return;
+        }
       }
 
       if(!allMeals.length){
@@ -1943,11 +2398,19 @@
       });
     }
 
-    function fetchMealsForShop(shopId){
+    function fetchMealsForShop(shopId, options){
+      options = options || {};
+      var onError = typeof options.onError === 'function' ? options.onError : function(msg){ setTableStatus(msg, 'error'); };
+      var onSuccess = typeof options.onSuccess === 'function' ? options.onSuccess : function(){};
+
       if(!shopId){
+        initialCategories = [];
+        initialMeals = [];
+        currentMealsShopId = null;
         setCategories([]);
         setMeals([]);
         clearCart({ skipStatus: true });
+        onError('尚未選擇店家。');
         return;
       }
 
@@ -1956,27 +2419,31 @@
           if(res && res.ok){
             initialCategories = res.categories || [];
             initialMeals = res.items || [];
+            currentMealsShopId = String(shopId);
             clearCart({ skipStatus: true });
             setCategories(initialCategories);
             setMeals(initialMeals);
+            onSuccess(res);
           } else {
             var msg = res && res.error ? res.error : '載入餐點失敗。';
             initialCategories = [];
             initialMeals = [];
+            currentMealsShopId = null;
             setCategories([]);
             setMeals([]);
             clearCart({ skipStatus: true });
-            setTableStatus(msg, 'error');
+            onError(msg);
           }
         })
         .fail(function(xhr){
           var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '載入餐點時發生錯誤。';
           initialCategories = [];
           initialMeals = [];
+          currentMealsShopId = null;
           setCategories([]);
           setMeals([]);
           clearCart({ skipStatus: true });
-          setTableStatus(msg, 'error');
+          onError(msg);
         });
     }
 
@@ -1987,9 +2454,14 @@
     function tryFillFromQuery(){
       if(initialTable){ return; }
       var params = new URLSearchParams(window.location.search);
-      var val = params.get('table') || params.get('tableNumber');
-      if(val){
-        lookupTable(val);
+      var tableVal = params.get('table') || params.get('tableNumber');
+      var shopVal = params.get('shop') || params.get('shopId');
+      if(tableVal){
+        lookupTable(tableVal);
+        return;
+      }
+      if(shopVal){
+        connectTakeoutShop(shopVal);
       }
     }
 
@@ -2031,10 +2503,13 @@
     hub.client.orderChanged = function(payload){
       console.log('orderChanged', payload);
 
+      var modeForStatus = pendingSubmitMode || currentMode;
+
       if(!payload){
         isSubmitting = false;
         $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
-        setTableStatus('訂單處理結果不明，請重新嘗試。', 'error');
+        setStatusForMode(modeForStatus, '訂單處理結果不明，請重新嘗試。', 'error');
+        pendingSubmitMode = null;
         return;
       }
 
@@ -2042,7 +2517,8 @@
         isSubmitting = false;
         $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
         var message = payload.error || '送出訂單時發生錯誤，請稍後再試。';
-        setTableStatus(message, 'error');
+        setStatusForMode(modeForStatus, message, 'error');
+        pendingSubmitMode = null;
         return;
       }
 
@@ -2055,15 +2531,17 @@
           }, 0);
         }
 
-        setTableStatus('已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
+        setStatusForMode(modeForStatus, '已送出訂單，共 ' + totalQty + ' 份餐點。', 'success');
         clearCart({ skipStatus: true });
         updateSendButtonState();
         closeOrderConfirmModal();
+        pendingSubmitMode = null;
         return;
       }
 
       isSubmitting = false;
       $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+      pendingSubmitMode = null;
     };
 
     function applyInitialTable(){
@@ -2071,17 +2549,27 @@
         currentTable = initialTable;
         var zoneText = initialTable.zone ? ('（' + initialTable.zone + '）') : '';
         var detail = '餐廳：' + (initialTable.shopName || initialTable.shopId) + '　桌號：' + initialTable.number + zoneText;
+        currentMealsShopId = String(initialTable.shopId || '');
+        setOrderMode(ORDER_MODE_DINE_IN);
         setTableStatus('已連線至桌號 ' + initialTable.number + zoneText + '。', 'success');
         setTableDetail(detail);
         updatePageTitle(initialTable);
+        setTakeoutStatus(defaultTakeoutStatus, '');
+        setTakeoutDetail('');
       } else if(initialError){
-        setTableStatus(initialError, 'error');
+        setOrderMode(ORDER_MODE_DINE_IN);
+        setStatusForMode(ORDER_MODE_DINE_IN, initialError, 'error');
         setTableDetail('');
         updatePageTitle(null);
+        setTakeoutStatus(defaultTakeoutStatus, '');
+        setTakeoutDetail('');
       } else {
+        setOrderMode(ORDER_MODE_DINE_IN);
         setTableStatus(defaultTableStatus, '');
         setTableDetail('');
         updatePageTitle(null);
+        setTakeoutStatus(defaultTakeoutStatus, '');
+        setTakeoutDetail('');
       }
     }
 
@@ -2092,20 +2580,26 @@
 
     $.connection.hub.start().done(function(){
       if(initialTable && initialTable.shopId){
-        fetchMealsForShop(initialTable.shopId);
+        currentMealsShopId = String(initialTable.shopId || '');
       } else {
         tryFillFromQuery();
       }
+
       $sendButton.on('click', function(){
-        if(!currentTable || !currentTable.shopId){
-          var msg = '請先查詢有效的桌號後再下單。';
-          setTableStatus(msg, 'error');
-          return;
+        if(currentMode === ORDER_MODE_TAKEOUT){
+          if(!currentTakeoutShop || !currentTakeoutShop.id){
+            setTakeoutStatus('請先輸入有效的店家代碼。', 'error');
+            return;
+          }
+        } else {
+          if(!currentTable || !currentTable.shopId){
+            setTableStatus('請先查詢有效的桌號後再下單。', 'error');
+            return;
+          }
         }
 
         if(!cartItems.length){
-          var emptyMsg = '請先將餐點加入購物車。';
-          setTableStatus(emptyMsg, 'error');
+          setStatusForMode(currentMode, '請先將餐點加入購物車。', 'error');
           return;
         }
 
@@ -2115,16 +2609,22 @@
       $confirmSubmit.on('click', function(){
         if(isSubmitting){ return; }
 
-        if(!currentTable || !currentTable.shopId){
-          var msg = '請先查詢有效的桌號後再下單。';
-          setTableStatus(msg, 'error');
-          closeOrderConfirmModal();
-          return;
+        if(currentMode === ORDER_MODE_TAKEOUT){
+          if(!currentTakeoutShop || !currentTakeoutShop.id){
+            setTakeoutStatus('請先輸入有效的店家代碼。', 'error');
+            closeOrderConfirmModal();
+            return;
+          }
+        } else {
+          if(!currentTable || !currentTable.shopId){
+            setTableStatus('請先查詢有效的桌號後再下單。', 'error');
+            closeOrderConfirmModal();
+            return;
+          }
         }
 
         if(!cartItems.length){
-          var emptyMsg = '請先將餐點加入購物車。';
-          setTableStatus(emptyMsg, 'error');
+          setStatusForMode(currentMode, '請先將餐點加入購物車。', 'error');
           closeOrderConfirmModal();
           return;
         }
@@ -2136,26 +2636,48 @@
         if(missingMealId){
           isSubmitting = false;
           $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
-          setTableStatus('餐點資料缺少，請重新選擇餐點。', 'error');
+          setStatusForMode(currentMode, '餐點資料缺少，請重新選擇餐點。', 'error');
           closeOrderConfirmModal();
           return;
         }
 
-        var dto = {
-          shopId: currentTable.shopId,
-          shopName: currentTable.shopName,
-          tableId: currentTable.tableId,
-          tableNumber: currentTable.number,
-          tableZone: currentTable.zone,
-          notes: null,
-          items: cartItems.map(function(item){
-            var note = (item.optionsNote || '').trim();
-            return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
-          })
-        };
+        var dto;
+        if(currentMode === ORDER_MODE_TAKEOUT){
+          var takeoutCode = $.trim($takeoutCodeInput.val() || '');
+          dto = {
+            shopId: currentTakeoutShop.id,
+            shopName: currentTakeoutShop.name,
+            tableId: null,
+            tableNumber: null,
+            tableZone: null,
+            takeoutCode: takeoutCode || null,
+            orderType: 'Takeout',
+            notes: null,
+            items: cartItems.map(function(item){
+              var note = (item.optionsNote || '').trim();
+              return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
+            })
+          };
+        } else {
+          dto = {
+            shopId: currentTable.shopId,
+            shopName: currentTable.shopName,
+            tableId: currentTable.tableId,
+            tableNumber: currentTable.number,
+            tableZone: currentTable.zone,
+            takeoutCode: null,
+            orderType: 'DineIn',
+            notes: null,
+            items: cartItems.map(function(item){
+              var note = (item.optionsNote || '').trim();
+              return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
+            })
+          };
+        }
 
+        pendingSubmitMode = currentMode;
         hub.server.createOrder(dto);
-        setTableStatus('訂單送出中，請稍候…', '');
+        setStatusForMode(currentMode, '訂單送出中，請稍候…', '');
       });
     }).fail(function(){
       setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');

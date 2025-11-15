@@ -117,6 +117,50 @@
             min-height: 0;
         }
 
+        .page-mode-switch {
+            display: inline-flex;
+            gap: .65rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-mode-btn {
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            background: #fff;
+            color: #475569;
+            border-radius: 999px;
+            padding: .5rem 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+            .page-mode-btn.is-active {
+                background: #2563eb;
+                border-color: #2563eb;
+                color: #fff;
+                box-shadow: 0 14px 28px rgba(37, 99, 235, 0.2);
+            }
+
+        .page-mode-panel {
+            display: none;
+        }
+
+            .page-mode-panel.is-active {
+                display: block;
+            }
+
+        .receive-order-panel {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .order-frame {
+            width: 100%;
+            height: 80vh;
+            border: none;
+            border-radius: 1.5rem;
+        }
+
         .shop-card {
             position: relative;
             padding: 1.1rem 1.35rem;
@@ -144,6 +188,57 @@
                 background: rgba(248, 113, 113, 0.14);
                 border-color: rgba(239, 68, 68, 0.4);
                 box-shadow: 0 15px 30px rgba(239, 68, 68, 0.18);
+            }
+
+        .shop-selector {
+            display: flex;
+            flex-direction: column;
+            gap: .65rem;
+            margin-top: 1.25rem;
+            width: min(320px, 100%);
+        }
+
+            .shop-selector label {
+                font-size: .9rem;
+                font-weight: 600;
+                color: rgba(15, 23, 42, 0.65);
+            }
+
+            .shop-selector-controls {
+                display: flex;
+                gap: .55rem;
+            }
+
+            .shop-selector input {
+                flex: 1;
+                padding: .6rem .75rem;
+                border: 1px solid rgba(148, 163, 184, 0.4);
+                border-radius: 12px;
+                font-size: 1rem;
+                color: var(--text);
+                background: #fff;
+            }
+
+            .shop-selector input:focus {
+                outline: none;
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+            }
+
+            .shop-selector button {
+                border: none;
+                border-radius: 12px;
+                padding: .6rem 1.1rem;
+                background: #2563eb;
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                transition: transform .15s ease, box-shadow .15s ease;
+            }
+
+            .shop-selector button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
             }
 
         .shop-card-label {
@@ -497,8 +592,20 @@
             <div class="@statusClass" id="status">@initialStatusText</div>
         </header>
 
+        <form class="shop-selector" id="shopSelector" novalidate autocomplete="off">
+            <label for="shopInput">切換店家</label>
+            <div class="shop-selector-controls">
+                <input type="text" id="shopInput" name="shopId" placeholder="輸入店家代碼" value="@(hasInitialShopId ? initialShopId : string.Empty)" />
+                <button type="submit" id="shopSubmit">載入</button>
+            </div>
+        </form>
+
         <main class="page" id="receiveShell" aria-hidden="@(hasInitialShopId ? "false" : "true")">
-            <section class="panel" id="mainPanel">
+            <div class="page-mode-switch" role="tablist" aria-label="功能切換">
+                <button type="button" class="page-mode-btn is-active" data-page-mode="receive" aria-pressed="true">訂單列表</button>
+                <button type="button" class="page-mode-btn" data-page-mode="order" aria-pressed="false">點餐畫面</button>
+            </div>
+            <section class="panel page-mode-panel is-active" id="mainPanel" data-page-mode-panel="receive" aria-hidden="false">
                 <div class="panel-body">
                     <div class="panel-orders">
                         <div class="orders-filters" role="tablist" aria-label="訂單狀態篩選">
@@ -512,12 +619,16 @@
                     </div>
                 </div>
             </section>
+            <section class="panel receive-order-panel page-mode-panel" data-page-mode-panel="order" aria-hidden="true">
+                <iframe class="order-frame" id="orderFrame" title="點餐畫面" src='@Url.Action("Order")' loading="lazy"></iframe>
+            </section>
         </main>
     </div>
     <script>
         (function () {
             var hub = $.connection.ordersHub;
             var shopInfoUrl = '@Url.Action("ShopInfo")';
+            var orderPageUrl = '@Url.Action("Order")';
             var initialShopId = '@Html.Raw(HttpUtility.JavaScriptStringEncode(initialShopId ?? string.Empty))';
             var hasInitialShop = initialShopId.length > 0;
             var blankClass = 'state-blank';
@@ -529,9 +640,18 @@
             var $shopCard = $('#shopCard');
             var $shopName = $('#shopDisplayName');
             var $shopIdentifier = $('#shopIdentifier');
+            var $shopSelector = $('#shopSelector');
+            var $shopInput = $('#shopInput');
+            var $pageModeButtons = $('[data-page-mode]');
+            var $pageModePanels = $('[data-page-mode-panel]');
+            var $orderFrame = $('#orderFrame');
             var isHubReady = false;
             var hasOrders = false;
             var currentShop = null;
+            var currentPageMode = 'receive';
+            var currentOrderFrameSrc = null;
+            var PAGE_MODE_RECEIVE = 'receive';
+            var PAGE_MODE_ORDER = 'order';
             var orderStatusTextMap = {
                 Pending: '待處理',
                 Preparing: '準備中',
@@ -630,6 +750,92 @@
             });
 
             setStatusFilter(currentStatusFilterKey);
+
+            function buildOrderFrameSrc(shopId) {
+                var base = orderPageUrl;
+                var trimmed = $.trim(shopId || '');
+                if (!trimmed) {
+                    return base;
+                }
+
+                var separator = base.indexOf('?') === -1 ? '?' : '&';
+                return base + separator + 'shop=' + encodeURIComponent(trimmed);
+            }
+
+            function refreshOrderFrame(options) {
+                options = options || {};
+                if (!$orderFrame.length) {
+                    return;
+                }
+
+                var targetShopId;
+                if (options.hasOwnProperty('shopId')) {
+                    targetShopId = options.shopId;
+                } else if (currentShop && currentShop.rawId) {
+                    targetShopId = currentShop.rawId;
+                } else {
+                    targetShopId = null;
+                }
+
+                if (targetShopId) {
+                    targetShopId = $.trim(targetShopId);
+                }
+
+                var targetSrc = buildOrderFrameSrc(targetShopId);
+                if (options.force === true || currentOrderFrameSrc !== targetSrc) {
+                    currentOrderFrameSrc = targetSrc;
+                    $orderFrame.attr('src', targetSrc);
+                }
+            }
+
+            function setPageMode(mode, options) {
+                options = options || {};
+                var targetMode = mode === PAGE_MODE_ORDER ? PAGE_MODE_ORDER : PAGE_MODE_RECEIVE;
+                if (currentPageMode === targetMode && options.force !== true && options.forceRefresh !== true) {
+                    return;
+                }
+
+                currentPageMode = targetMode;
+
+                if ($pageModeButtons && $pageModeButtons.length) {
+                    $pageModeButtons.removeClass('is-active').attr('aria-pressed', 'false');
+                    $pageModeButtons.filter('[data-page-mode="' + targetMode + '"]').addClass('is-active').attr('aria-pressed', 'true');
+                }
+
+                if ($pageModePanels && $pageModePanels.length) {
+                    $pageModePanels.each(function () {
+                        var $panel = $(this);
+                        var panelMode = $panel.data('page-mode-panel');
+                        var isActive = panelMode === targetMode;
+                        $panel.toggleClass('is-active', isActive).attr('aria-hidden', isActive ? 'false' : 'true');
+                    });
+                }
+
+                if (targetMode === PAGE_MODE_ORDER) {
+                    refreshOrderFrame({ force: options.forceRefresh === true });
+                }
+            }
+
+            if ($pageModeButtons && $pageModeButtons.length) {
+                $pageModeButtons.on('click', function () {
+                    var mode = $(this).data('page-mode');
+                    setPageMode(mode);
+                });
+            }
+
+            if ($shopSelector && $shopSelector.length) {
+                $shopSelector.on('submit', function (event) {
+                    event.preventDefault();
+                    var value = $shopInput.length ? $shopInput.val() : '';
+                    subscribeToShop(value);
+                });
+            }
+
+            if (!$orderFrame.length) {
+                currentOrderFrameSrc = null;
+            }
+
+            setPageMode(currentPageMode, { force: true, forceRefresh: true });
 
             function isInterfaceVisible() {
                 return !$body.hasClass(blankClass);
@@ -1065,6 +1271,16 @@
                     $shopIdentifier.text(placeholderId);
                 }
 
+                if ($shopInput && $shopInput.length) {
+                    if (rawId) {
+                        $shopInput.val(rawId);
+                    } else if (placeholderId) {
+                        $shopInput.val(placeholderId);
+                    } else if (!options.keepInputValue) {
+                        $shopInput.val('');
+                    }
+                }
+
                 if (rawId || options.keepVisible) {
                     showInterface();
                 } else {
@@ -1086,6 +1302,7 @@
                     hideInterface();
                     resetOrders();
                     setStatus('');
+                    refreshOrderFrame({ shopId: null, force: true });
                     return;
                 }
 
@@ -1100,6 +1317,7 @@
                             setStatus(message, 'error');
                             updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: shopId });
                             resetOrders();
+                            refreshOrderFrame({ shopId: null, force: true });
                             return;
                         }
 
@@ -1111,6 +1329,7 @@
                         if (currentShop && currentShop.id === targetId) {
                             setStatus('目前顯示店家：' + displayName, 'success');
                             updateShopCard(targetName, targetRawId, { keepVisible: true });
+                            refreshOrderFrame({ shopId: targetRawId });
                             return;
                         }
 
@@ -1121,6 +1340,7 @@
                                         currentShop = null;
                                         setStatus('沒有此店家', 'error');
                                         updateShopCard('沒有此店家', null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                                        refreshOrderFrame({ shopId: null, force: true });
                                         resetOrders();
                                         return;
                                     }
@@ -1129,11 +1349,13 @@
                                     setStatus('目前顯示店家：' + displayName, 'success');
                                     updateShopCard(targetName, targetRawId, { keepVisible: true });
                                     resetOrders();
+                                    refreshOrderFrame({ shopId: targetRawId, force: true });
                                 })
                                 .fail(function () {
                                     currentShop = null;
                                     setStatus('加入店家通道失敗。', 'error');
                                     updateShopCard('加入店家通道失敗', null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                                    refreshOrderFrame({ shopId: null, force: true });
                                 });
                         };
 
@@ -1153,6 +1375,7 @@
                         currentShop = null;
                         setStatus(message, 'error');
                         updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                        refreshOrderFrame({ shopId: null, force: true });
                     });
             }
 
@@ -1168,13 +1391,22 @@
                 if (queryInitial) {
                     initialShopId = queryInitial;
                     hasInitialShop = true;
+                    if ($shopInput && $shopInput.length) {
+                        $shopInput.val(initialShopId);
+                    }
                 }
+            }
+
+            if (hasInitialShop && $shopInput && $shopInput.length) {
+                $shopInput.val(initialShopId);
             }
 
             if (!hasInitialShop) {
                 hideInterface();
                 setStatus('');
             }
+
+            refreshOrderFrame({ shopId: hasInitialShop ? initialShopId : null, force: true });
 
             hub.client.orderChanged = function (payload) {
                 appendOrderNotification(payload);

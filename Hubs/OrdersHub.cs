@@ -77,10 +77,27 @@ namespace BreakFastShop.Hubs
                 return;
             }
 
-            if (dto.TableId == Guid.Empty)
+            var orderTypeRaw = dto.OrderType?.Trim();
+            var orderType = string.IsNullOrWhiteSpace(orderTypeRaw)
+                ? "DineIn"
+                : (orderTypeRaw.Equals("Takeout", StringComparison.OrdinalIgnoreCase) ? "Takeout" : "DineIn");
+
+            var hasTable = dto.TableId.HasValue && dto.TableId.Value != Guid.Empty;
+            var takeoutCode = string.IsNullOrWhiteSpace(dto.TakeoutCode) ? null : dto.TakeoutCode.Trim();
+            var normalizedTableZone = string.IsNullOrWhiteSpace(dto.TableZone) ? null : dto.TableZone.Trim();
+
+            if (orderType == "DineIn")
             {
-                Clients.Caller.orderChanged(new { type = "error", error = "桌號資料無效。" });
-                return;
+                if (!hasTable)
+                {
+                    Clients.Caller.orderChanged(new { type = "error", error = "桌號資料無效。" });
+                    return;
+                }
+            }
+            else
+            {
+                // Takeout orders should not include a table identifier.
+                hasTable = false;
             }
 
             var normalizedItems = NormalizeItems(dto.Items, out var hasInvalidItems);
@@ -102,7 +119,7 @@ namespace BreakFastShop.Hubs
             var trimmedNotes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim();
 
             const string insertOrderSql = @"INSERT INTO Orders(Id,ShopId,OrderType,TableId,TakeoutCode,Notes,Status,CreatedAt,UpdatedAt)
-                                           VALUES(@Id,@ShopId,@OrderType,@TableId,NULL,@Notes,@Status,@CreatedAt,@UpdatedAt);";
+                                           VALUES(@Id,@ShopId,@OrderType,@TableId,@TakeoutCode,@Notes,@Status,@CreatedAt,@UpdatedAt);";
 
             const string insertItemSql = @"INSERT INTO OrderItems(Id,OrderId,MealId,MealName,Quantity,UnitPrice,Notes,CreateDate)
                                           VALUES(@Id,@OrderId,@MealId,@MealName,@Quantity,@UnitPrice,@Notes,@CreateDate);";
@@ -118,8 +135,16 @@ namespace BreakFastShop.Hubs
                         {
                             orderCommand.Parameters.AddWithValue("@Id", orderId);
                             orderCommand.Parameters.AddWithValue("@ShopId", dto.ShopId);
-                            orderCommand.Parameters.AddWithValue("@OrderType", "DineIn");
-                            orderCommand.Parameters.AddWithValue("@TableId", dto.TableId);
+                            orderCommand.Parameters.AddWithValue("@OrderType", orderType);
+                            if (hasTable)
+                            {
+                                orderCommand.Parameters.AddWithValue("@TableId", dto.TableId.Value);
+                            }
+                            else
+                            {
+                                orderCommand.Parameters.AddWithValue("@TableId", DBNull.Value);
+                            }
+                            orderCommand.Parameters.AddWithValue("@TakeoutCode", (object)takeoutCode ?? DBNull.Value);
                             orderCommand.Parameters.AddWithValue("@Notes", (object)trimmedNotes ?? DBNull.Value);
                             orderCommand.Parameters.AddWithValue("@Status", "Pending");
                             orderCommand.Parameters.AddWithValue("@CreatedAt", now);
@@ -159,12 +184,13 @@ namespace BreakFastShop.Hubs
             {
                 id = orderId,
                 shopId = dto.ShopId,
-                tableId = dto.TableId,
+                tableId = hasTable ? dto.TableId : null,
                 tableNumber = dto.TableNumber,
-                tableZone = dto.TableZone,
+                tableZone = normalizedTableZone,
+                takeoutCode = takeoutCode,
                 notes = trimmedNotes,
                 status = "Pending",
-                orderType = "DineIn",
+                orderType = orderType,
                 createdAt = now,
                 updatedAt = now,
                 items = normalizedItems.Select(i => new
@@ -181,9 +207,11 @@ namespace BreakFastShop.Hubs
             {
                 shopId = dto.ShopId,
                 shopName = string.IsNullOrWhiteSpace(dto.ShopName) ? null : dto.ShopName.Trim(),
-                tableId = dto.TableId,
+                tableId = hasTable ? dto.TableId : null,
                 tableNumber = dto.TableNumber,
-                tableZone = dto.TableZone,
+                tableZone = normalizedTableZone,
+                takeoutCode = takeoutCode,
+                orderType = orderType,
                 notes = trimmedNotes,
                 items = orderPayload.items
             };
