@@ -211,7 +211,7 @@ namespace BreakFastShop.Controllers
         public async Task<ActionResult> Meals(Guid? categoryId)
         {
             var shopId = RequireShopId();
-            var sql = "SELECT Id,Name,Money,IsActive,CategoryId,Element FROM Meals WHERE ShopId=@sid";
+            var sql = "SELECT Id,Name,Money,IsActive,CategoryId,Element,OptionsJson FROM Meals WHERE ShopId=@sid";
             if (categoryId.HasValue)
             {
                 sql += " AND CategoryId=@cid";
@@ -240,7 +240,8 @@ namespace BreakFastShop.Controllers
                         Money = reader.GetDecimal(2),
                         IsActive = reader.GetBoolean(3),
                         CategoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
-                        Element = reader.IsDBNull(5) ? null : reader.GetString(5)
+                        Element = reader.IsDBNull(5) ? null : reader.GetString(5),
+                        OptionsJson = reader.IsDBNull(6) ? null : reader.GetString(6)
                     });
                 }
 
@@ -249,7 +250,7 @@ namespace BreakFastShop.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> UpsertMeal(Guid? id, string name, decimal money, Guid? categoryId, string element, bool isActive = true)
+        public async Task<ActionResult> UpsertMeal(Guid? id, string name, decimal money, Guid? categoryId, string element, string optionsJson, bool isActive = true)
         {
             var shopId = RequireShopId();
 
@@ -270,8 +271,8 @@ namespace BreakFastShop.Controllers
 
             const string sql = @"IF(@Id IS NULL OR @Id='00000000-0000-0000-0000-000000000000')
                                 BEGIN
-                                    INSERT INTO Meals(Id,ShopId,Name,Money,IsActive,CreateDate,UpdateDate,CategoryId,Element)
-                                    VALUES(NEWID(),@ShopId,@Name,@Money,@IsActive,GETDATE(),GETDATE(),@CategoryId,@Element);
+                                    INSERT INTO Meals(Id,ShopId,Name,Money,IsActive,CreateDate,UpdateDate,CategoryId,Element,OptionsJson)
+                                    VALUES(NEWID(),@ShopId,@Name,@Money,@IsActive,GETDATE(),GETDATE(),@CategoryId,@Element,@OptionsJson);
                                 END
                                 ELSE
                                 BEGIN
@@ -281,6 +282,7 @@ namespace BreakFastShop.Controllers
                                         IsActive=@IsActive,
                                         CategoryId=@CategoryId,
                                         Element=@Element,
+                                        OptionsJson=@OptionsJson,
                                         UpdateDate=GETDATE()
                                     WHERE Id=@Id AND ShopId=@ShopId;
                                 END";
@@ -290,6 +292,7 @@ namespace BreakFastShop.Controllers
             {
                 var trimmedName = name.Trim();
                 var trimmedElement = string.IsNullOrWhiteSpace(element) ? null : element.Trim();
+                var trimmedOptionsJson = string.IsNullOrWhiteSpace(optionsJson) ? null : optionsJson.Trim();
 
                 command.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
                 command.Parameters.AddWithValue("@ShopId", shopId);
@@ -297,6 +300,7 @@ namespace BreakFastShop.Controllers
                 command.Parameters.AddWithValue("@Money", money);
                 command.Parameters.AddWithValue("@CategoryId", (object)categoryId ?? DBNull.Value);
                 command.Parameters.AddWithValue("@Element", (object)trimmedElement ?? DBNull.Value);
+                command.Parameters.AddWithValue("@OptionsJson", (object)trimmedOptionsJson ?? DBNull.Value);
                 command.Parameters.AddWithValue("@IsActive", isActive);
 
                 await connection.OpenAsync();

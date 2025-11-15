@@ -46,7 +46,7 @@ namespace BreakFastShop.Controllers
                                  WHERE ShopId=@ShopId AND IsActive=1
                                  ORDER BY SortOrder,Name";
 
-            const string mealsSql = @"SELECT m.Id,m.Name,m.Money,m.Element,m.CategoryId,c.Name
+            const string mealsSql = @"SELECT m.Id,m.Name,m.Money,m.Element,m.CategoryId,c.Name,m.OptionsJson
                                 FROM Meals m
                                 LEFT JOIN MealCategory c ON c.Id = m.CategoryId AND c.IsActive=1
                                 WHERE m.ShopId=@ShopId AND m.IsActive=1
@@ -112,7 +112,8 @@ namespace BreakFastShop.Controllers
                                         Money = reader.GetDecimal(2),
                                         Element = reader.IsDBNull(3) ? null : reader.GetString(3),
                                         CategoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
-                                        CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5)
+                                        CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                        OptionsJson = reader.IsDBNull(6) ? null : reader.GetString(6)
                                     });
                                 }
                             }
@@ -280,7 +281,7 @@ namespace BreakFastShop.Controllers
                                  WHERE ShopId=@ShopId AND IsActive=1
                                  ORDER BY SortOrder,Name";
 
-            const string sql = @"SELECT m.Id,m.Name,m.Money,m.Element,m.CategoryId,c.Name
+            const string sql = @"SELECT m.Id,m.Name,m.Money,m.Element,m.CategoryId,c.Name,m.OptionsJson
                                  FROM Meals m
                                  LEFT JOIN MealCategory c ON c.Id = m.CategoryId AND c.IsActive=1
                                  WHERE m.ShopId=@ShopId AND m.IsActive=1
@@ -326,7 +327,8 @@ namespace BreakFastShop.Controllers
                                 money = reader.GetDecimal(2),
                                 element = reader.IsDBNull(3) ? null : reader.GetString(3),
                                 categoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
-                                categoryName = reader.IsDBNull(5) ? null : reader.GetString(5)
+                                categoryName = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                optionsJson = reader.IsDBNull(6) ? null : reader.GetString(6)
                             });
                         }
                     }
