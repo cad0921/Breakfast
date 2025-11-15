@@ -785,12 +785,6 @@
 
                 var label = getOrderEntryLabel($entry, orderId);
                 var ts = options.timestamp instanceof Date ? formatTimestamp(options.timestamp) : null;
-                var message = '已將 ' + label + ' 調整為「' + statusText + '」狀態。';
-                if (ts) {
-                    message += '（' + ts + '）';
-                }
-
-                appendStatus(message);
                 applyStatusFilter();
             }
 
@@ -1133,7 +1127,6 @@
                                     setStatus('目前顯示店家：' + displayName, 'success');
                                     updateShopCard(targetName, targetRawId, { keepVisible: true });
                                     resetOrders();
-                                    appendStatus('已訂閱店家 ' + displayName + ' 的訂單。');
                                 })
                                 .fail(function () {
                                     currentShop = null;
