@@ -28,16 +28,28 @@
 
   function normalizeItem(data) {
     var name = '';
-    if (data && data.name != null) {
-      name = String(data.name);
+    if (data) {
+      if (data.name != null) {
+        name = String(data.name);
+      } else if (data.Name != null) {
+        name = String(data.Name);
+      } else if (data.title != null) {
+        name = String(data.title);
+      } else if (data.Title != null) {
+        name = String(data.Title);
+      }
     }
 
+    var priceSource = data ? (data.price != null ? data.price :
+      (data.Price != null ? data.Price :
+      (data.money != null ? data.money : data.Money))) : null;
+
     var price = 0;
-    if (data && data.price != null) {
-      if (typeof data.price === 'number') {
-        price = isFinite(data.price) ? data.price : 0;
+    if (priceSource != null) {
+      if (typeof priceSource === 'number') {
+        price = isFinite(priceSource) ? priceSource : 0;
       } else {
-        var parsed = parseFloat(data.price);
+        var parsed = parseFloat(priceSource);
         price = isFinite(parsed) ? parsed : 0;
       }
     }
@@ -46,14 +58,41 @@
   }
 
   function normalizeGroup(data) {
-    var name = data && data.name != null ? String(data.name) : '';
-    var required = !!(data && (data.required || data.isRequired));
-    var allowMultiple = !!(data && (data.allowMultiple || data.multi || data.multiple || data.allowMulti));
+    var name = '';
+    if (data) {
+      if (data.name != null) {
+        name = String(data.name);
+      } else if (data.Name != null) {
+        name = String(data.Name);
+      } else if (data.title != null) {
+        name = String(data.title);
+      } else if (data.Title != null) {
+        name = String(data.Title);
+      }
+    }
 
-    var rawMax = data ? (data.maxSelect != null ? data.maxSelect :
-      (data.maxSelection != null ? data.maxSelection :
-      (data.max != null ? data.max :
-      (data.limit != null ? data.limit : data.maximum)))) : null;
+    var required = false;
+    if (data) {
+      required = !!(data.required || data.Required || data.isRequired || data.IsRequired);
+    }
+
+    var allowMultiple = false;
+    if (data) {
+      allowMultiple = !!(data.allowMultiple || data.AllowMultiple || data.multi || data.Multi || data.multiple || data.Multiple || data.allowMulti || data.AllowMulti);
+    }
+
+    var rawMax = null;
+    if (data) {
+      rawMax = data.maxSelect != null ? data.maxSelect :
+        (data.MaxSelect != null ? data.MaxSelect :
+        (data.maxSelection != null ? data.maxSelection :
+        (data.MaxSelection != null ? data.MaxSelection :
+        (data.max != null ? data.max :
+        (data.Max != null ? data.Max :
+        (data.limit != null ? data.limit :
+        (data.Limit != null ? data.Limit :
+        (data.maximum != null ? data.maximum : data.Maximum))))))));
+    }
 
     var maxSelect = 1;
     if (rawMax != null) {
@@ -75,8 +114,16 @@
     if (data) {
       if (Array.isArray(data.items)) {
         rawItems = data.items;
+      } else if (Array.isArray(data.Items)) {
+        rawItems = data.Items;
       } else if (Array.isArray(data.options)) {
         rawItems = data.options;
+      } else if (Array.isArray(data.Options)) {
+        rawItems = data.Options;
+      } else if (Array.isArray(data.choices)) {
+        rawItems = data.choices;
+      } else if (Array.isArray(data.Choices)) {
+        rawItems = data.Choices;
       }
     }
 
@@ -254,6 +301,35 @@
       return $group;
     }
 
+    function resolveGroups(parsed) {
+      if (!parsed) {
+        return { groups: [], recognized: false };
+      }
+
+      var candidates = [
+        parsed.groups,
+        parsed.Groups,
+        parsed.optionGroups,
+        parsed.OptionGroups,
+        parsed.options,
+        parsed.Options,
+        parsed.items,
+        parsed.Items
+      ];
+
+      for (var i = 0; i < candidates.length; i += 1) {
+        if (Array.isArray(candidates[i])) {
+          return { groups: candidates[i], recognized: true };
+        }
+      }
+
+      if (Array.isArray(parsed)) {
+        return { groups: parsed, recognized: true };
+      }
+
+      return { groups: [], recognized: false };
+    }
+
     function loadFromJson(json) {
       clearError();
       var raw = json;
@@ -264,9 +340,9 @@
       if (raw) {
         try {
           var parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-          if (parsed && Array.isArray(parsed.groups)) {
-            groups = parsed.groups;
-          } else {
+          var resolved = resolveGroups(parsed);
+          groups = resolved.groups;
+          if (!resolved.recognized && raw) {
             showError(texts.invalidJson);
           }
         } catch (err) {
