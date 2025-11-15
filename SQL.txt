@@ -54,6 +54,7 @@ CREATE TABLE [dbo].[Meals](
 	[UpdateDate] [datetime2](0) NOT NULL,
 	[Element] [nvarchar](200) NULL,
 	[CategoryId] [uniqueidentifier] NULL,
+    [OptionsJson] [nvarchar](MAX) NULL,
  CONSTRAINT [PK_Meals] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -289,3 +290,4 @@ ALTER TABLE [dbo].[Table]  WITH CHECK ADD  CONSTRAINT [CK_Table_Number] CHECK  (
 GO
 ALTER TABLE [dbo].[Table] CHECK CONSTRAINT [CK_Table_Number]
 GO
+
