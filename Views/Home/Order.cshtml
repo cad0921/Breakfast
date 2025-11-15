@@ -1285,7 +1285,7 @@
       selections.forEach(function(group){
         if(!group || !group.items || !group.items.length){ return; }
         var itemParts = group.items.map(function(option){
-          return option.name + '@' + (Number(option.price) || 0);
+          return option.name + String.fromCharCode(64) + (Number(option.price) || 0);
         }).join('|');
         parts.push(group.name + ':' + itemParts);
       });
