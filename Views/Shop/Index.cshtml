@@ -71,6 +71,22 @@
   .card-body{padding:16px}
   .form-control, .btn, select{ border-radius:10px; border-color:var(--border); background:#fff; color:var(--text); }
   .form-control:focus{ border-color: var(--accent); box-shadow:0 0 0 3px rgba(34,211,238,.18)}
+  .meal-options-editor{ background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .meal-options-editor__error{ margin:0; }
+  .meal-options-editor__empty{ margin:0; padding:12px; border:1px dashed var(--border); border-radius:10px; text-align:center; }
+  .meal-options-editor__group{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:12px; box-shadow:inset 0 0 0 1px rgba(34,211,238,.08); }
+  .meal-options-editor__group-header{ display:flex; gap:10px; align-items:center; }
+  .meal-options-editor__group-name{ flex:1; }
+  .meal-options-editor__group-settings{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .meal-options-editor__max-select{ display:flex; align-items:center; gap:6px; }
+  .meal-options-editor__max-select.is-hidden{ display:none; }
+  .meal-options-editor__items{ display:flex; flex-direction:column; gap:8px; }
+  .meal-options-editor__item{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .meal-options-editor__item-name{ flex:1 1 220px; }
+  .meal-options-editor__item-price{ width:140px; }
+  .meal-options-editor__items-empty{ font-size:13px; }
+  .meal-options-editor__actions{ margin-top:4px; }
+  .meal-options-editor__add-option, .meal-options-editor__remove-item, .meal-options-editor__group-header .btn{ white-space:nowrap; }
   .btn-primary{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); border:0; color:#fff }
   .btn-default{ background:#fff; border:1px solid var(--border); color:var(--text) }
   .btn-danger{ background: var(--danger); border:0; color:#fff }
@@ -259,7 +275,12 @@
                                 <div class="form-group"><label>名稱</label><input class="form-control" id="mMealName" required /></div>
                                 <div class="form-group"><label>價格</label><input class="form-control" id="mMealMoney" type="number" value="80" /></div>
                                 <div class="form-group"><label>成分描述（可空）</label><textarea class="form-control" id="mMealElement" rows="2"></textarea></div>
-                                <div class="form-group"><label>選項設定 JSON（可空）</label><textarea class="form-control font-monospace" id="mMealOptions" rows="4" placeholder='{"groups":[]}'></textarea><small class="text-muted">請輸入符合 JSON 格式的餐點選項資訊。</small></div>
+                                <div class="form-group">
+                                    <label>選項設定（可空）</label>
+                                    <textarea class="form-control font-monospace d-none" id="mMealOptions" rows="4" placeholder='{"groups":[]}'></textarea>
+                                    <div id="mealOptionsEditor"></div>
+                                    <small class="text-muted">透過下方介面新增選項群組，系統會自動轉換成 JSON 儲存。</small>
+                                </div>
                                 <div class="checkbox"><label><input type="checkbox" id="mMealActive" checked /> 啟用</label></div>
                             </form>
                         </div>
@@ -346,6 +367,7 @@
     </div>
 
     <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/meal-options-editor.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
     <script>
 (function(){
@@ -366,6 +388,11 @@
     OrderItems: '@Url.Action("OrderItems","Shop")',
     UpdateOrderStatus: '@Url.Action("UpdateOrderStatus","Shop")'
   };
+
+  var mealOptionsEditor = MealOptionsEditor.create({
+    hiddenInput: '#mMealOptions',
+    container: '#mealOptionsEditor'
+  });
 
   function getJSON(u){ return $.getJSON(u); }
   function post(u,d,$btn){ if($btn){ lockBtn($btn,true);} return $.ajax({ url:u, method:'POST', data:d }).always(function(){ if($btn){ lockBtn($btn,false);} }); }
@@ -405,9 +432,9 @@
   function loadMeals(){ var cid=$('#mealCat').val()||''; var url=U.Meals+(cid?('?categoryId='+cid):''); return getJSON(url).then(function(list){ var $t=$('#mealsT tbody').empty(); if(!list.length){ $t.append('<tr><td colspan="7" class="text-center text-muted">尚無資料</td></tr>'); } list.forEach(function(m){ var tr=$('<tr/>'); tr.append($('<td/>').text(m.Id)); tr.append($('<td/>').text(m.Name)); tr.append($('<td/>').text(m.Element||'')); var opt=(m.OptionsJson||'').trim(); var $optTd=$('<td/>').addClass('text-break font-monospace small'); if(opt){ var preview=opt.length>120? opt.substring(0,120)+'…' : opt; $optTd.text(preview).attr('title', opt); } else { $optTd.text('—').addClass('text-muted'); } tr.append($optTd); tr.append($('<td/>').text(m.Money)); tr.append($('<td/>').html(badgeYN(m.IsActive))); var $td=$('<td/>'); var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openMealModal(m); }); var $del=$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除餐點？')) return; post(U.DeleteMeal,{ id:m.Id }).done(function(){ toast('已刪除'); loadMeals(); }); }); $td.append($edit).append(' ').append($del); tr.append($td); $t.append(tr); }); }); }
   $('#btnReloadMeals').on('click', function(){ loadMealCats().then(loadMeals); });
 
-  function openMealModal(m){ ensureCategoryOptions().then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealCat').val(m? (m.CategoryId||''):''); $('#mMealName').val(m? m.Name:''); $('#mMealMoney').val(m? m.Money:80); $('#mMealElement').val(m? (m.Element||''):''); $('#mMealOptions').val(m? (m.OptionsJson||''):''); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
+  function openMealModal(m){ ensureCategoryOptions().then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealCat').val(m? (m.CategoryId||''):''); $('#mMealName').val(m? m.Name:''); $('#mMealMoney').val(m? m.Money:80); $('#mMealElement').val(m? (m.Element||''):''); var rawOpt = m && m.OptionsJson ? m.OptionsJson : ''; mealOptionsEditor.loadFromJson(rawOpt); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
   $('#btnNewMeal').on('click', function(){ openMealModal(null); });
-  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var d={ id:id, name:$('#mMealName').val(), money:$('#mMealMoney').val(), element:$('#mMealElement').val(), optionsJson:$('#mMealOptions').val(), categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); toast('餐點已儲存'); loadMeals(); }); });
+  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var optionsJson = mealOptionsEditor.toJson(); if(optionsJson===null){ return; } var d={ id:id, name:$('#mMealName').val(), money:$('#mMealMoney').val(), element:$('#mMealElement').val(), optionsJson:optionsJson, categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); toast('餐點已儲存'); loadMeals(); }); });
 
   function loadCombos(){ return getJSON(U.Combos).then(function(list){ var $t=$('#combosT tbody').empty(); if(!list.length){ $t.append('<tr><td colspan="6" class="text-center text-muted">尚無資料</td></tr>'); } list.forEach(function(c){ var tr=$('<tr/>'); tr.append($('<td/>').text(c.Id)); tr.append($('<td/>').text(c.Title)); tr.append($('<td/>').text(c.ComboMeal||'')); tr.append($('<td/>').text(c.Money)); tr.append($('<td/>').html(badgeYN(c.IsActive))); var $td=$('<td/>'); var $edit=$('<button class="btn btn-xs btn-default">編輯</button>').on('click', function(){ openComboModal(c); }); var $del=$('<button class="btn btn-xs btn-danger">刪除</button>').on('click', function(){ if(!confirm('確定刪除套餐？')) return; post(U.DeleteCombo,{ id:c.Id }).done(function(){ toast('已刪除'); loadCombos(); }); }); $td.append($edit).append(' ').append($del); tr.append($td); $t.append(tr); }); }); }
   function openComboModal(c){ $('#comboModalTitle').text(c? '編輯套餐':'新增套餐'); $('#comboId').val(c? c.Id:''); $('#mComboTitle').val(c? c.Title:''); $('#mComboContent').val(c? (c.ComboMeal||''):''); $('#mComboMoney').val(c? c.Money:0); $('#mComboActive').prop('checked', c? !!c.IsActive : true); new bootstrap.Modal(document.getElementById('comboModal')).show(); }
