@@ -4,9 +4,11 @@
     Layout = null;
     var initialShopId = Model?.InitialShopId?.Trim();
     var hasInitialShopId = !string.IsNullOrWhiteSpace(initialShopId);
+    var connectDefaultStatusText = "請輸入店家代碼以開始接收訂單。";
     var initialStatusText = hasInitialShopId
         ? "正在讀取店家資訊，請稍候。"
         : string.Empty;
+    var connectStatusText = hasInitialShopId ? initialStatusText : connectDefaultStatusText;
     var bodyStateClass = hasInitialShopId ? "state-active" : "state-blank";
     var statusClass = "status info" + (string.IsNullOrWhiteSpace(initialStatusText) ? " is-hidden" : string.Empty);
 }
@@ -31,8 +33,11 @@
             margin: 0;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            gap: clamp(1.5rem, 3vw, 2.5rem);
+            padding: clamp(1.5rem, 3vw, 3rem) clamp(1.5rem, 4vw, 3rem);
             background: linear-gradient(135deg, #edf2ff, #f8f9fa 42%, #fff);
             font-family: "Noto Sans TC", "Segoe UI", system-ui, -apple-system, sans-serif;
             color: #1f2937;
@@ -41,8 +46,7 @@
 
         body.state-blank {
             background: #ffffff;
-            align-items: stretch;
-            justify-content: stretch;
+            justify-content: center;
         }
 
         body.state-blank .page {
@@ -52,6 +56,154 @@
         .page {
             width: min(1100px, 100%);
             padding: clamp(1.75rem, 3vw, 3rem);
+        }
+
+        #shopConnectShell {
+            width: min(720px, 100%);
+        }
+
+        body.state-blank #shopConnectShell {
+            max-width: 540px;
+        }
+
+        .subscribe-card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 1.5rem;
+            padding: clamp(1.75rem, 3vw, 2.75rem);
+            box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            backdrop-filter: blur(6px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+            width: 100%;
+        }
+
+        .subscribe-header {
+            display: flex;
+            flex-direction: column;
+            gap: .65rem;
+        }
+
+        .subscribe-tag {
+            align-self: flex-start;
+            background: linear-gradient(120deg, #2563eb, #1d4ed8);
+            color: #fff;
+            padding: .3rem .75rem;
+            border-radius: 999px;
+            font-size: .8rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .subscribe-title {
+            margin: 0;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .subscribe-text {
+            margin: 0;
+            font-size: .95rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .subscribe-form {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .subscribe-form label {
+            font-size: .82rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .subscribe-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .65rem;
+            align-items: center;
+        }
+
+        .subscribe-input {
+            flex: 1;
+            min-width: 180px;
+            padding: .65rem .85rem;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 1rem;
+            color: #0f172a;
+            background: #ffffff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .subscribe-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+        }
+
+        .subscribe-action {
+            border: none;
+            border-radius: 999px;
+            padding: .55rem 1.35rem;
+            font-weight: 700;
+            font-size: .95rem;
+            letter-spacing: .02em;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.28);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .subscribe-action:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 38px rgba(37, 99, 235, 0.3);
+        }
+
+        .subscribe-action:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .subscribe-clear {
+            border-radius: 999px;
+            padding: .55rem 1.15rem;
+            font-weight: 600;
+            font-size: .9rem;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: rgba(148, 163, 184, 0.12);
+            color: #334155;
+            cursor: pointer;
+            transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+
+        .subscribe-clear:hover:not(:disabled) {
+            background: rgba(148, 163, 184, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.15);
+        }
+
+        .subscribe-clear:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .subscribe-status {
+            margin-top: .35rem;
         }
 
         .panel {
@@ -422,10 +574,6 @@
         }
 
         @@media (min-width: 768px) {
-            body.state-blank {
-                align-items: flex-start;
-            }
-
             .page {
                 margin: 0 auto;
             }
@@ -455,6 +603,16 @@
         @@media (max-width: 640px) {
             body {
                 align-items: stretch;
+                padding: 1.25rem;
+                gap: 1.25rem;
+            }
+
+            #shopConnectShell {
+                width: 100%;
+            }
+
+            .subscribe-card {
+                padding: 1.5rem;
             }
 
             .page {
@@ -477,6 +635,24 @@
     </style>
 </head>
 <body class="@bodyStateClass">
+    <section id="shopConnectShell">
+        <div class="subscribe-card" role="region" aria-labelledby="shopConnectTitle">
+            <div class="subscribe-header">
+                <div class="subscribe-tag">訂閱</div>
+                <h1 class="subscribe-title" id="shopConnectTitle">接收店家訂單</h1>
+                <p class="subscribe-text">輸入店家代碼後即可訂閱訂單通知，也可以掃描 QR Code 連結直接帶入參數。</p>
+            </div>
+            <form class="subscribe-form" id="shopConnectForm" aria-label="訂閱店家">
+                <label for="shopConnectInput">店家代碼</label>
+                <div class="subscribe-controls">
+                    <input type="text" id="shopConnectInput" class="subscribe-input" value="@(hasInitialShopId ? initialShopId : string.Empty)" placeholder="例如：店家 QR Code 中的識別碼" autocomplete="off" spellcheck="false" inputmode="search" />
+                    <button type="submit" class="subscribe-action" id="shopConnectSubmit">開始接收</button>
+                    <button type="button" class="subscribe-clear" id="shopConnectClear">清除</button>
+                </div>
+            </form>
+            <div class="status info subscribe-status" id="shopConnectStatus">@connectStatusText</div>
+        </div>
+    </section>
     <main class="page" id="receiveShell" aria-hidden="@(hasInitialShopId ? "false" : "true")">
         <section class="panel" id="mainPanel">
             <div class="panel-body">
@@ -551,6 +727,14 @@
             var currentStatusFilterKey = 'pending';
             var $filterButtons = $();
             var $filterEmptyNotice = null;
+            var connectDefaultStatus = '@Html.Raw(HttpUtility.JavaScriptStringEncode(connectDefaultStatusText))';
+            var $connectForm = $('#shopConnectForm');
+            var $connectInput = $('#shopConnectInput');
+            var $connectSubmit = $('#shopConnectSubmit');
+            var $connectClear = $('#shopConnectClear');
+            var $connectStatus = $('#shopConnectStatus');
+            var connectSubmitDefaultText = $connectSubmit.length ? $connectSubmit.text() : '';
+            var connectBusy = false;
 
             function hideFilterEmptyNotice() {
                 if ($filterEmptyNotice && $filterEmptyNotice.length) {
@@ -572,6 +756,48 @@
                 if (!$filterEmptyNotice.parent().length) {
                     $orders.append($filterEmptyNotice);
                 }
+            }
+
+            function setConnectStatus(message, type) {
+                if (!$connectStatus.length) {
+                    return;
+                }
+
+                var text = $.trim(message || '');
+                var statusType = type || 'info';
+
+                $connectStatus.removeClass('is-hidden info success error');
+
+                if (!text) {
+                    $connectStatus.addClass('is-hidden').text('');
+                    return;
+                }
+
+                $connectStatus.addClass(statusType).text(text);
+            }
+
+            function updateConnectControls() {
+                if (!$connectSubmit.length) {
+                    return;
+                }
+
+                var hasValue = $connectInput.length && $.trim($connectInput.val()) !== '';
+                $connectSubmit.prop('disabled', !hasValue || connectBusy);
+
+                if ($connectClear.length) {
+                    $connectClear.prop('disabled', connectBusy);
+                }
+            }
+
+            function finishConnectRequest() {
+                if (connectBusy) {
+                    connectBusy = false;
+                    if ($connectSubmit.length) {
+                        $connectSubmit.text(connectSubmitDefaultText);
+                    }
+                }
+
+                updateConnectControls();
             }
 
             function applyStatusFilter() {
@@ -622,6 +848,60 @@
             });
 
             setStatusFilter(currentStatusFilterKey);
+
+            updateConnectControls();
+
+            if ($connectInput.length) {
+                $connectInput.on('input', function () {
+                    if (!$.trim($(this).val())) {
+                        setConnectStatus(connectDefaultStatus, 'info');
+                    }
+                    updateConnectControls();
+                });
+            }
+
+            if ($connectClear.length) {
+                $connectClear.on('click', function () {
+                    if (connectBusy) {
+                        return;
+                    }
+
+                    if ($connectInput.length) {
+                        $connectInput.val('');
+                    }
+
+                    subscribeToShop('', { source: 'clear' });
+                    if ($connectInput.length) {
+                        $connectInput.trigger('focus');
+                    }
+                });
+            }
+
+            if ($connectForm.length) {
+                $connectForm.on('submit', function (event) {
+                    event.preventDefault();
+
+                    if (connectBusy) {
+                        return;
+                    }
+
+                    var value = $connectInput.length ? $.trim($connectInput.val()) : '';
+                    if (!value) {
+                        setConnectStatus('請先輸入店家代碼。', 'error');
+                        updateConnectControls();
+                        if ($connectInput.length) {
+                            $connectInput.trigger('focus');
+                        }
+                        return;
+                    }
+
+                    subscribeToShop(value, { source: 'form' });
+                });
+            }
+
+            if (!hasInitialShop && $connectInput.length) {
+                $connectInput.trigger('focus');
+            }
 
             function isInterfaceVisible() {
                 return !$body.hasClass(blankClass);
@@ -1061,34 +1341,65 @@
                 }
             }
 
-            function subscribeToShop(shopId) {
+            function subscribeToShop(shopId, options) {
+                options = options || {};
+                var source = options.source || null;
+                var fromForm = source === 'form';
+                var fromClear = source === 'clear';
+                var trimmed = $.trim(shopId || '');
+
+                if (fromForm && $connectSubmit.length && !connectBusy) {
+                    connectBusy = true;
+                    $connectSubmit.text('連線中…');
+                }
+
+                updateConnectControls();
+
                 if (!isHubReady) {
-                    if (shopId) {
-                        setStatus('SignalR 尚未連線完成，請稍候。', 'error');
+                    if (trimmed) {
+                        var notReadyMsg = 'SignalR 尚未連線完成，請稍候。';
+                        setStatus(notReadyMsg, 'error');
+                        setConnectStatus(notReadyMsg, 'error');
                     }
+                    finishConnectRequest();
                     return;
                 }
 
-                shopId = $.trim(shopId || '');
-                if (!shopId) {
+                if (!trimmed) {
                     currentShop = null;
                     hideInterface();
                     resetOrders();
                     setStatus('');
+                    updateShopCard('尚未訂閱店家', null, { keepVisible: false, placeholderName: '尚未訂閱店家' });
+                    var idleMessage = fromClear ? '已清除訂閱，請輸入店家代碼以開始。' : connectDefaultStatus;
+                    setConnectStatus(idleMessage, 'info');
+                    initialShopId = '';
+                    hasInitialShop = false;
+                    finishConnectRequest();
                     return;
                 }
 
-                updateShopCard('店家資訊載入中...', shopId, { state: 'loading', keepVisible: true });
+                if ($connectInput.length && source !== 'form') {
+                    $connectInput.val(trimmed);
+                }
+
+                initialShopId = trimmed;
+                hasInitialShop = true;
+                setConnectStatus('正在讀取店家資訊，請稍候。', 'info');
+                updateShopCard('店家資訊載入中...', trimmed, { state: 'loading', keepVisible: true });
                 setStatus('正在讀取店家資訊，請稍候。', 'info');
 
-                $.getJSON(shopInfoUrl, { id: shopId })
+                $.getJSON(shopInfoUrl, { id: trimmed })
                     .done(function (res) {
                         if (!res || !res.ok || !res.shop || !res.shop.id) {
                             var message = res && res.error ? res.error : '沒有此店家';
                             currentShop = null;
                             setStatus(message, 'error');
-                            updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                            updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: trimmed });
+                            setConnectStatus(message, 'error');
                             resetOrders();
+                            hasInitialShop = false;
+                            finishConnectRequest();
                             return;
                         }
 
@@ -1100,6 +1411,8 @@
                         if (currentShop && currentShop.id === targetId) {
                             setStatus('目前顯示店家：' + displayName, 'success');
                             updateShopCard(targetName, targetRawId, { keepVisible: true });
+                            setConnectStatus('目前顯示店家：' + displayName, 'success');
+                            finishConnectRequest();
                             return;
                         }
 
@@ -1108,9 +1421,13 @@
                                 .done(function (success) {
                                     if (!success) {
                                         currentShop = null;
-                                        setStatus('沒有此店家', 'error');
-                                        updateShopCard('沒有此店家', null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                                        var message = '沒有此店家';
+                                        setStatus(message, 'error');
+                                        updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: trimmed });
+                                        setConnectStatus(message, 'error');
                                         resetOrders();
+                                        hasInitialShop = false;
+                                        finishConnectRequest();
                                         return;
                                     }
 
@@ -1119,11 +1436,20 @@
                                     updateShopCard(targetName, targetRawId, { keepVisible: true });
                                     resetOrders();
                                     appendStatus('已訂閱店家 ' + displayName + ' 的訂單。');
+                                    setConnectStatus('目前顯示店家：' + displayName, 'success');
+                                    if ($connectInput.length) {
+                                        $connectInput.val(targetRawId);
+                                    }
+                                    finishConnectRequest();
                                 })
                                 .fail(function () {
                                     currentShop = null;
-                                    setStatus('加入店家通道失敗。', 'error');
-                                    updateShopCard('加入店家通道失敗', null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                                    var message = '加入店家通道失敗。';
+                                    setStatus(message, 'error');
+                                    updateShopCard('加入店家通道失敗', null, { state: 'error', keepVisible: true, placeholderId: trimmed });
+                                    setConnectStatus(message, 'error');
+                                    hasInitialShop = false;
+                                    finishConnectRequest();
                                 });
                         };
 
@@ -1142,7 +1468,10 @@
                         var message = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '查詢店家時發生錯誤。';
                         currentShop = null;
                         setStatus(message, 'error');
-                        updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: shopId });
+                        updateShopCard(message, null, { state: 'error', keepVisible: true, placeholderId: trimmed });
+                        setConnectStatus(message, 'error');
+                        hasInitialShop = false;
+                        finishConnectRequest();
                     });
             }
 
@@ -1179,6 +1508,7 @@
                 })
                 .fail(function () {
                     setStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
+                    setConnectStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
                 });
         })();
     </script>
