@@ -29,5 +29,7 @@ namespace BreakFastShop.Models
         public int Qty { get; set; }
 
         public decimal Price { get; set; }
+
+        public string Notes { get; set; }
     }
 }

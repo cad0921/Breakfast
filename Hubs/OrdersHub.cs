@@ -47,12 +47,15 @@ namespace BreakFastShop.Hubs
                     continue;
                 }
 
+                var trimmedNotes = string.IsNullOrWhiteSpace(item.Notes) ? null : item.Notes.Trim();
+
                 list.Add(new OrderItemDto
                 {
                     MealId = item.MealId,
                     Name = name,
                     Qty = item.Qty,
-                    Price = item.Price
+                    Price = item.Price,
+                    Notes = trimmedNotes
                 });
             }
 
@@ -102,7 +105,7 @@ namespace BreakFastShop.Hubs
                                            VALUES(@Id,@ShopId,@OrderType,@TableId,NULL,@Notes,@Status,@CreatedAt,@UpdatedAt);";
 
             const string insertItemSql = @"INSERT INTO OrderItems(Id,OrderId,MealId,MealName,Quantity,UnitPrice,Notes,CreateDate)
-                                          VALUES(@Id,@OrderId,@MealId,@MealName,@Quantity,@UnitPrice,NULL,@CreateDate);";
+                                          VALUES(@Id,@OrderId,@MealId,@MealName,@Quantity,@UnitPrice,@Notes,@CreateDate);";
 
             try
             {
@@ -135,6 +138,7 @@ namespace BreakFastShop.Hubs
                                 itemCommand.Parameters.AddWithValue("@MealName", item.Name);
                                 itemCommand.Parameters.AddWithValue("@Quantity", item.Qty);
                                 itemCommand.Parameters.AddWithValue("@UnitPrice", item.Price);
+                                itemCommand.Parameters.AddWithValue("@Notes", (object)item.Notes ?? DBNull.Value);
                                 itemCommand.Parameters.AddWithValue("@CreateDate", now);
 
                                 await itemCommand.ExecuteNonQueryAsync();
@@ -168,7 +172,8 @@ namespace BreakFastShop.Hubs
                     mealId = i.MealId,
                     name = i.Name,
                     qty = i.Qty,
-                    price = i.Price
+                    price = i.Price,
+                    notes = i.Notes
                 }).ToList()
             };
 
