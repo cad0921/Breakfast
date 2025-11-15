@@ -515,6 +515,233 @@
             display: none !important;
         }
 
+        .meal-options-modal {
+            position: fixed;
+            inset: 0;
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease;
+            z-index: 35;
+        }
+
+        .meal-options-modal.is-active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .meal-options-modal__content {
+            background: #fff;
+            border-radius: 22px;
+            width: min(520px, 100%);
+            max-height: min(90vh, 640px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 26px 52px rgba(15, 23, 42, 0.28);
+            overflow: hidden;
+        }
+
+        .meal-options-modal__header {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .meal-options-modal__title {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .meal-options-modal__close {
+            border: none;
+            background: transparent;
+            font-size: 1.8rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .meal-options-modal__close:hover,
+        .meal-options-modal__close:focus {
+            color: var(--brand);
+        }
+
+        .meal-options-modal__body {
+            padding: 1.25rem 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .meal-options-modal__meal {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .meal-options-error {
+            padding: .75rem 1rem;
+            border-radius: .8rem;
+            background: rgba(220, 38, 38, 0.12);
+            color: var(--danger);
+            font-size: .9rem;
+        }
+
+        .meal-options-groups {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .meal-option-group {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            background: #f8fafc;
+        }
+
+        .meal-option-group__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: .75rem;
+            margin-bottom: .75rem;
+        }
+
+        .meal-option-group__name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .meal-option-group__meta {
+            font-size: .85rem;
+            color: var(--muted);
+        }
+
+        .meal-option-group__items {
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .meal-option-group__empty {
+            padding: .8rem;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+            text-align: center;
+            font-size: .9rem;
+        }
+
+        .meal-option-item {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            padding: .55rem .65rem;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .meal-option-item:hover,
+        .meal-option-item:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25);
+        }
+
+        .meal-option-item input {
+            margin-top: .35rem;
+        }
+
+        .meal-option-item__label {
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+        }
+
+        .meal-option-item__name {
+            font-weight: 600;
+        }
+
+        .meal-option-item__price {
+            font-size: .85rem;
+            color: var(--muted);
+        }
+
+        .meal-options-summary {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .meal-options-summary__row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: .95rem;
+        }
+
+        .meal-options-summary__total {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .meal-options-modal__footer {
+            padding: 1.1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: .75rem;
+        }
+
+        .meal-options-btn {
+            border-radius: 999px;
+            padding: .65rem 1.4rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .meal-options-btn--ghost {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .meal-options-btn--ghost:hover,
+        .meal-options-btn--ghost:focus {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .meal-options-btn--primary {
+            background: linear-gradient(120deg, #f43f5e, #fb7185);
+            color: #fff;
+            border: none;
+            box-shadow: 0 14px 30px rgba(244, 63, 94, 0.28);
+        }
+
+        .meal-options-btn--primary:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .meal-options-btn--primary:not(:disabled):hover,
+        .meal-options-btn--primary:not(:disabled):focus {
+            transform: translateY(-1px);
+        }
+
         .order-confirm-modal {
             position: fixed;
             inset: 0;
@@ -600,6 +827,17 @@
 
         .order-confirm-items td {
             border-bottom: 1px solid #eef2f8;
+        }
+
+        .order-confirm-name {
+            font-weight: 600;
+        }
+
+        .order-confirm-note {
+            margin-top: .3rem;
+            font-size: .85rem;
+            color: var(--muted);
+            line-height: 1.4;
         }
 
         .order-confirm-items th:last-child,
@@ -749,6 +987,37 @@
             </footer>
         </div>
     </div>
+    <div class="meal-options-modal" id="mealOptionsModal" role="dialog" aria-modal="true" aria-labelledby="mealOptionsTitle" aria-hidden="true">
+        <div class="meal-options-modal__content" tabindex="-1">
+            <div class="meal-options-modal__header">
+                <h3 class="meal-options-modal__title" id="mealOptionsTitle">客製化選項</h3>
+                <button type="button" class="meal-options-modal__close" id="mealOptionsClose" aria-label="關閉選項視窗">×</button>
+            </div>
+            <div class="meal-options-modal__body">
+                <div class="meal-options-modal__meal" id="mealOptionsName"></div>
+                <div class="meal-options-error is-hidden" id="mealOptionsError"></div>
+                <div class="meal-options-groups" id="mealOptionsGroups"></div>
+                <div class="meal-options-summary">
+                    <div class="meal-options-summary__row">
+                        <span>餐點價格</span>
+                        <strong id="mealOptionsSummaryBase"></strong>
+                    </div>
+                    <div class="meal-options-summary__row">
+                        <span>加價項目</span>
+                        <strong id="mealOptionsSummaryExtra"></strong>
+                    </div>
+                    <div class="meal-options-summary__row meal-options-summary__total">
+                        <span>小計</span>
+                        <strong id="mealOptionsSummaryTotal"></strong>
+                    </div>
+                </div>
+            </div>
+            <div class="meal-options-modal__footer">
+                <button type="button" class="meal-options-btn meal-options-btn--ghost" id="mealOptionsCancel">取消</button>
+                <button type="button" class="meal-options-btn meal-options-btn--primary" id="mealOptionsConfirm">加入購物車</button>
+            </div>
+        </div>
+    </div>
     <div class="order-confirm-modal" id="orderConfirmModal" role="dialog" aria-modal="true" aria-labelledby="orderConfirmTitle" aria-hidden="true">
         <div class="order-confirm-modal__content" tabindex="-1">
             <div class="order-confirm-modal__header">
@@ -809,6 +1078,20 @@
     var $orderConfirmItems = $('#orderConfirmItems');
     var $orderConfirmTotal = $('#orderConfirmTotal');
     var $confirmSubmit = $('#confirmSubmit');
+    var $mealOptionsModal = $('#mealOptionsModal');
+    var $mealOptionsContent = $mealOptionsModal.find('.meal-options-modal__content');
+    var $mealOptionsName = $('#mealOptionsName');
+    var $mealOptionsGroups = $('#mealOptionsGroups');
+    var $mealOptionsError = $('#mealOptionsError');
+    var $mealOptionsSummaryBase = $('#mealOptionsSummaryBase');
+    var $mealOptionsSummaryExtra = $('#mealOptionsSummaryExtra');
+    var $mealOptionsSummaryTotal = $('#mealOptionsSummaryTotal');
+    var $mealOptionsCancel = $('#mealOptionsCancel');
+    var $mealOptionsConfirm = $('#mealOptionsConfirm');
+    var $mealOptionsClose = $('#mealOptionsClose');
+    var defaultMealOptionsExtraText = '不加價';
+    var pendingMealForOptions = null;
+    var pendingMealOptionGroups = [];
     var defaultTableStatus = '請掃描桌號 QR Code 開始點餐。';
     var defaultPageTitle = '下單頁';
     var isSubmitting = false;
@@ -853,6 +1136,384 @@
       return 'NT$ ' + (Number(value) || 0).toLocaleString('zh-TW');
     }
 
+    function normalizeOptionItem(data){
+      if(!data){ return null; }
+      var name = '';
+      if(data.name != null){ name = String(data.name).trim(); }
+      else if(data.Name != null){ name = String(data.Name).trim(); }
+      else if(data.title != null){ name = String(data.title).trim(); }
+      else if(data.Title != null){ name = String(data.Title).trim(); }
+      if(!name){ return null; }
+
+      var priceSource = data.price != null ? data.price :
+        (data.Price != null ? data.Price :
+        (data.money != null ? data.money : data.Money));
+
+      var price = 0;
+      if(priceSource != null){
+        var parsed = parseFloat(priceSource);
+        price = isFinite(parsed) ? parsed : 0;
+      }
+
+      return { name: name, price: price };
+    }
+
+    function normalizeOptionGroup(data){
+      if(!data){ return null; }
+      var name = '';
+      if(data.name != null){ name = String(data.name).trim(); }
+      else if(data.Name != null){ name = String(data.Name).trim(); }
+      else if(data.title != null){ name = String(data.title).trim(); }
+      else if(data.Title != null){ name = String(data.Title).trim(); }
+      if(!name){ return null; }
+
+      var required = !!(data.required || data.Required || data.isRequired || data.IsRequired);
+      var allowMultiple = !!(data.allowMultiple || data.AllowMultiple || data.multi || data.Multi || data.multiple || data.Multiple || data.allowMulti || data.AllowMulti);
+
+      var rawMax = null;
+      if(data.maxSelect != null){ rawMax = data.maxSelect; }
+      else if(data.MaxSelect != null){ rawMax = data.MaxSelect; }
+      else if(data.maxSelection != null){ rawMax = data.maxSelection; }
+      else if(data.MaxSelection != null){ rawMax = data.MaxSelection; }
+      else if(data.max != null){ rawMax = data.max; }
+      else if(data.Max != null){ rawMax = data.Max; }
+      else if(data.limit != null){ rawMax = data.limit; }
+      else if(data.Limit != null){ rawMax = data.Limit; }
+      else if(data.maximum != null){ rawMax = data.maximum; }
+      else if(data.Maximum != null){ rawMax = data.Maximum; }
+
+      var itemsSource = [];
+      if(Array.isArray(data.items)){ itemsSource = data.items; }
+      else if(Array.isArray(data.Items)){ itemsSource = data.Items; }
+      else if(Array.isArray(data.options)){ itemsSource = data.options; }
+      else if(Array.isArray(data.Options)){ itemsSource = data.Options; }
+      else if(Array.isArray(data.choices)){ itemsSource = data.choices; }
+      else if(Array.isArray(data.Choices)){ itemsSource = data.Choices; }
+
+      var items = [];
+      itemsSource.forEach(function(itemData){
+        var normalized = normalizeOptionItem(itemData);
+        if(normalized){ items.push(normalized); }
+      });
+
+      if(!items.length){ return null; }
+
+      var maxSelect = 1;
+      if(allowMultiple){
+        var parsedMax = parseInt(rawMax, 10);
+        if(isFinite(parsedMax) && parsedMax > 0){
+          maxSelect = Math.min(parsedMax, items.length);
+        } else {
+          maxSelect = items.length;
+        }
+        if(maxSelect <= 0){
+          maxSelect = items.length;
+        }
+      }
+
+      return {
+        name: name,
+        required: required,
+        allowMultiple: allowMultiple,
+        maxSelect: allowMultiple ? maxSelect : 1,
+        items: items
+      };
+    }
+
+    function getMealOptionGroups(meal){
+      if(!meal){ return []; }
+      if(Array.isArray(meal._normalizedOptions)){ return meal._normalizedOptions; }
+      var raw = meal.optionsJson || meal.OptionsJson || meal.OptionsJSON || '';
+      if(typeof raw === 'string'){
+        raw = raw.trim();
+      }
+      if(!raw){
+        meal._normalizedOptions = [];
+        return meal._normalizedOptions;
+      }
+      var parsed = null;
+      if(typeof raw === 'string'){
+        try { parsed = JSON.parse(raw); }
+        catch(e){
+          meal._normalizedOptions = [];
+          return meal._normalizedOptions;
+        }
+      } else if(typeof raw === 'object'){
+        parsed = raw;
+      }
+      if(!parsed){
+        meal._normalizedOptions = [];
+        return meal._normalizedOptions;
+      }
+      var groupsSource = [];
+      if(Array.isArray(parsed.groups)){ groupsSource = parsed.groups; }
+      else if(Array.isArray(parsed.Groups)){ groupsSource = parsed.Groups; }
+      var normalized = [];
+      groupsSource.forEach(function(groupData){
+        var normalizedGroup = normalizeOptionGroup(groupData);
+        if(normalizedGroup){ normalized.push(normalizedGroup); }
+      });
+      meal._normalizedOptions = normalized;
+      return normalized;
+    }
+
+    function cloneOptionSelections(selections){
+      if(!Array.isArray(selections) || !selections.length){ return []; }
+      return selections.map(function(group){
+        return {
+          name: group.name,
+          items: (group.items || []).map(function(option){
+            return { name: option.name, price: Number(option.price) || 0 };
+          })
+        };
+      });
+    }
+
+    function calculateOptionsExtra(selections){
+      var extra = 0;
+      (selections || []).forEach(function(group){
+        (group.items || []).forEach(function(option){
+          extra += Number(option.price) || 0;
+        });
+      });
+      return extra;
+    }
+
+    function buildOptionsKey(selections){
+      if(!Array.isArray(selections) || !selections.length){ return ''; }
+      var parts = [];
+      selections.forEach(function(group){
+        if(!group || !group.items || !group.items.length){ return; }
+        var itemParts = group.items.map(function(option){
+          return option.name + '@' + (Number(option.price) || 0);
+        }).join('|');
+        parts.push(group.name + ':' + itemParts);
+      });
+      return parts.join(';');
+    }
+
+    function buildOptionsNote(selections){
+      if(!Array.isArray(selections) || !selections.length){ return ''; }
+      var parts = [];
+      selections.forEach(function(group){
+        if(!group || !group.items || !group.items.length){ return; }
+        var itemTexts = group.items.map(function(option){
+          var price = Number(option.price) || 0;
+          if(price > 0){
+            return option.name + '（+' + formatCurrency(price) + '）';
+          }
+          if(price < 0){
+            return option.name + '（' + formatCurrency(price) + '）';
+          }
+          return option.name;
+        });
+        parts.push(group.name + '：' + itemTexts.join('、'));
+      });
+      return parts.join('；');
+    }
+
+    function buildOptionsStatusSummary(selections){
+      if(!Array.isArray(selections) || !selections.length){ return ''; }
+      var parts = [];
+      selections.forEach(function(group){
+        if(!group || !group.items || !group.items.length){ return; }
+        var names = group.items.map(function(option){ return option.name; }).join('、');
+        parts.push(group.name + '：' + names);
+      });
+      return parts.join('；');
+    }
+
+    function clearMealOptionsError(){
+      $mealOptionsError.text('').addClass('is-hidden');
+    }
+
+    function showMealOptionsError(message){
+      $mealOptionsError.text(message || '').removeClass('is-hidden');
+    }
+
+    function resetMealOptionsModal(){
+      pendingMealForOptions = null;
+      pendingMealOptionGroups = [];
+      $mealOptionsName.text('');
+      $mealOptionsGroups.empty();
+      $mealOptionsSummaryBase.text(formatCurrency(0));
+      $mealOptionsSummaryExtra.text(defaultMealOptionsExtraText);
+      $mealOptionsSummaryTotal.text(formatCurrency(0));
+      clearMealOptionsError();
+    }
+
+    function updateMealOptionsSummary(){
+      var basePrice = pendingMealForOptions ? Number(pendingMealForOptions.money || 0) : 0;
+      var extra = 0;
+      $mealOptionsGroups.find('input:checked').each(function(){
+        var groupIndex = parseInt($(this).attr('data-group-index'), 10);
+        var optionIndex = parseInt($(this).attr('data-option-index'), 10);
+        var group = pendingMealOptionGroups[groupIndex];
+        if(!group){ return; }
+        var option = group.items[optionIndex];
+        if(!option){ return; }
+        extra += Number(option.price) || 0;
+      });
+      $mealOptionsSummaryBase.text(formatCurrency(basePrice));
+      if(extra > 0){
+        $mealOptionsSummaryExtra.text('＋' + formatCurrency(extra));
+      } else if(extra < 0){
+        $mealOptionsSummaryExtra.text(formatCurrency(extra));
+      } else {
+        $mealOptionsSummaryExtra.text(defaultMealOptionsExtraText);
+      }
+      $mealOptionsSummaryTotal.text(formatCurrency(basePrice + extra));
+    }
+
+    function buildMealOptionGroups(groups){
+      $mealOptionsGroups.empty();
+      if(!groups.length){
+        $mealOptionsGroups.append(
+          $('<div class="meal-option-group__empty"/>').text('此餐點沒有額外選項。')
+        );
+        return;
+      }
+      groups.forEach(function(group, groupIndex){
+        var $group = $('<div class="meal-option-group"/>').attr('data-index', groupIndex);
+        var $header = $('<div class="meal-option-group__header"/>').appendTo($group);
+        $('<div class="meal-option-group__name"/>').text(group.name).appendTo($header);
+        var metaParts = [];
+        metaParts.push(group.required ? '必選' : '可不選');
+        metaParts.push(group.allowMultiple ? ('可選最多 ' + group.maxSelect + ' 項') : '限選 1 項');
+        $('<div class="meal-option-group__meta"/>').text(metaParts.join('｜')).appendTo($header);
+
+        var $items = $('<div class="meal-option-group__items"/>').appendTo($group);
+        var inputName = 'mealOptionGroup' + groupIndex;
+        var inputType = group.allowMultiple ? 'checkbox' : 'radio';
+
+        group.items.forEach(function(option, optionIndex){
+          var inputId = 'mealOption-' + groupIndex + '-' + optionIndex;
+          var $label = $('<label class="meal-option-item"/>').attr('for', inputId);
+          var $input = $('<input/>', {
+            type: inputType,
+            id: inputId,
+            name: inputName
+          }).attr('data-group-index', groupIndex).attr('data-option-index', optionIndex);
+          var $info = $('<div class="meal-option-item__label"/>');
+          $('<div class="meal-option-item__name"/>').text(option.name).appendTo($info);
+          var price = Number(option.price) || 0;
+          var priceText = price > 0 ? ('＋' + formatCurrency(price)) : (price < 0 ? formatCurrency(price) : '不加價');
+          $('<div class="meal-option-item__price"/>').text(priceText).appendTo($info);
+          $label.append($input).append($info);
+          $items.append($label);
+        });
+
+        $mealOptionsGroups.append($group);
+      });
+    }
+
+    function openMealOptionsModal(meal, groups){
+      resetMealOptionsModal();
+      pendingMealForOptions = meal;
+      pendingMealOptionGroups = groups;
+      $mealOptionsName.text(meal.name || '');
+      buildMealOptionGroups(groups);
+      clearMealOptionsError();
+      updateMealOptionsSummary();
+      $mealOptionsModal.addClass('is-active').attr('aria-hidden', 'false');
+      setTimeout(function(){
+        $mealOptionsContent.trigger('focus');
+      }, 0);
+    }
+
+    function closeMealOptionsModal(){
+      var wasActive = $mealOptionsModal.hasClass('is-active');
+      $mealOptionsModal.removeClass('is-active').attr('aria-hidden', 'true');
+      resetMealOptionsModal();
+      if(wasActive){
+        // Focus will return to main content automatically when meals rerender.
+      }
+    }
+
+    function gatherMealOptionSelections(){
+      if(!pendingMealOptionGroups.length){ return []; }
+      var selections = [];
+      var hasError = false;
+      pendingMealOptionGroups.forEach(function(group, groupIndex){
+        if(hasError){ return; }
+        var $group = $mealOptionsGroups.find('.meal-option-group[data-index="' + groupIndex + '"]');
+        var $checked = $group.find('input:checked');
+        if(group.required && !$checked.length){
+          showMealOptionsError('「' + group.name + '」為必選項目。');
+          $group.find('input').first().trigger('focus');
+          hasError = true;
+          return;
+        }
+        if(!$checked.length){
+          return;
+        }
+        var selectedItems = [];
+        $checked.each(function(){
+          var optionIndex = parseInt($(this).attr('data-option-index'), 10);
+          var option = group.items[optionIndex];
+          if(option){
+            selectedItems.push({ name: option.name, price: Number(option.price) || 0 });
+          }
+        });
+        if(selectedItems.length){
+          selections.push({ name: group.name, items: selectedItems });
+        }
+      });
+      if(hasError){ return null; }
+      return selections;
+    }
+
+    function collectItemNotes(item){
+      var notes = [];
+      if(item.categoryName){ notes.push(item.categoryName); }
+      if(item.element){ notes.push(item.element); }
+      if(item.optionsNote){ notes.push(item.optionsNote); }
+      return notes;
+    }
+
+    $mealOptionsCancel.on('click', function(){
+      closeMealOptionsModal();
+    });
+
+    $mealOptionsClose.on('click', function(){
+      closeMealOptionsModal();
+    });
+
+    $mealOptionsModal.on('click', function(event){
+      if(event.target === this){
+        closeMealOptionsModal();
+      }
+    });
+
+    $mealOptionsConfirm.on('click', function(){
+      if(!pendingMealForOptions){
+        closeMealOptionsModal();
+        return;
+      }
+      var selections = gatherMealOptionSelections();
+      if(selections === null){
+        return;
+      }
+      var meal = pendingMealForOptions;
+      closeMealOptionsModal();
+      addMealToCart(meal, selections);
+    });
+
+    $mealOptionsModal.on('change', '.meal-option-group input', function(){
+      clearMealOptionsError();
+      var groupIndex = parseInt($(this).attr('data-group-index'), 10);
+      var group = pendingMealOptionGroups[groupIndex];
+      if(group && group.allowMultiple){
+        var $group = $mealOptionsGroups.find('.meal-option-group[data-index="' + groupIndex + '"]');
+        var checkedCount = $group.find('input:checked').length;
+        if(group.maxSelect && checkedCount > group.maxSelect){
+          this.checked = false;
+          showMealOptionsError('「' + group.name + '」最多可選 ' + group.maxSelect + ' 項。');
+        }
+      }
+      updateMealOptionsSummary();
+    });
+
     function renderCart(){
       var totalAmount = 0;
       var totalQty = 0;
@@ -870,13 +1531,7 @@
         $('<div class="cart-item-name"/>').text(item.name).appendTo($header);
         $('<div class="cart-item-price"/>').text('單價 ' + formatCurrency(price)).appendTo($header);
 
-        var notes = [];
-        if(item.categoryName){
-          notes.push(item.categoryName);
-        }
-        if(item.element){
-          notes.push(item.element);
-        }
+        var notes = collectItemNotes(item);
         if(notes.length){
           $('<div class="cart-item-note"/>').text(notes.join('｜')).appendTo($header);
         }
@@ -962,7 +1617,12 @@
         totalQty += item.qty;
 
         var $row = $('<tr/>').attr('data-index', index);
-        $('<td/>').text(item.name).appendTo($row);
+        var $nameCell = $('<td/>').appendTo($row);
+        $('<div class="order-confirm-name"/>').text(item.name).appendTo($nameCell);
+        var confirmNotes = collectItemNotes(item);
+        if(confirmNotes.length){
+          $('<div class="order-confirm-note"/>').text(confirmNotes.join('｜')).appendTo($nameCell);
+        }
 
         var $qtyCell = $('<td/>').appendTo($row);
         var $qtyControl = $('<div class="order-confirm-qty" role="group"/>')
@@ -1018,23 +1678,22 @@
       }, 0);
     }
 
-    function cartKeyMatches(item, meal){
+    function cartItemMatchesMeal(item, meal){
       if(item.mealId && meal.id){
         return item.mealId === meal.id;
       }
-      return !item.mealId && !meal.id && item.name === meal.name && item.price === Number(meal.money || 0);
+      var basePrice = Number(meal.money || 0);
+      return !item.mealId && !meal.id && item.name === meal.name && item.basePrice === basePrice;
     }
 
     function getCartQtyForMeal(meal){
-      var foundQty = 0;
-      cartItems.some(function(item){
-        if(cartKeyMatches(item, meal)){
-          foundQty = item.qty;
-          return true;
+      var totalQty = 0;
+      cartItems.forEach(function(item){
+        if(cartItemMatchesMeal(item, meal)){
+          totalQty += item.qty;
         }
-        return false;
       });
-      return foundQty;
+      return totalQty;
     }
 
 
@@ -1072,11 +1731,15 @@
       }
     }
 
-    function addMealToCart(meal){
-      var price = Number(meal.money || 0);
+    function addMealToCart(meal, optionSelections){
+      var selectionsClone = cloneOptionSelections(optionSelections || []);
+      var basePrice = Number(meal.money || 0);
+      var optionsExtra = calculateOptionsExtra(selectionsClone);
+      var unitPrice = basePrice + optionsExtra;
+      var optionsKey = buildOptionsKey(selectionsClone);
       var existing = null;
       cartItems.some(function(item){
-        if(cartKeyMatches(item, meal)){
+        if(cartItemMatchesMeal(item, meal) && (item.optionsKey || '') === optionsKey){
           existing = item;
           return true;
         }
@@ -1085,19 +1748,44 @@
 
       if(existing){
         existing.qty += 1;
+        existing.price = unitPrice;
+        existing.basePrice = basePrice;
+        existing.optionsTotal = optionsExtra;
+        existing.selectedOptions = selectionsClone;
+        existing.optionsNote = buildOptionsNote(selectionsClone);
+        existing.optionsKey = optionsKey;
       } else {
         cartItems.push({
           mealId: meal.id || null,
           name: meal.name,
-          price: price,
+          price: unitPrice,
+          basePrice: basePrice,
           qty: 1,
           categoryName: meal.categoryName || '',
-          element: meal.element || ''
+          element: meal.element || '',
+          optionsKey: optionsKey,
+          optionsTotal: optionsExtra,
+          selectedOptions: selectionsClone,
+          optionsNote: buildOptionsNote(selectionsClone)
         });
       }
 
       renderMeals();
-      setTableStatus('已加入餐點：' + meal.name, 'success');
+      var statusMessage = '已加入餐點：' + meal.name;
+      var summary = buildOptionsStatusSummary(selectionsClone);
+      if(summary){
+        statusMessage += '（' + summary + '）';
+      }
+      setTableStatus(statusMessage, 'success');
+    }
+
+    function handleAddMealClick(meal){
+      var groups = getMealOptionGroups(meal) || [];
+      if(groups.length){
+        openMealOptionsModal(meal, groups);
+      } else {
+        addMealToCart(meal, []);
+      }
     }
 
     function isSameCategory(a, b){
@@ -1241,7 +1929,7 @@
         var $btn = $('<button type="button"/>')
           .text('加入購物車')
           .on('click', function(){
-            addMealToCart(m);
+            handleAddMealClick(m);
           });
         $card.append($btn);
 
@@ -1329,8 +2017,14 @@
     });
 
     $(document).on('keydown', function(event){
-      if(event.key === 'Escape' && $orderConfirmModal.hasClass('is-active')){
-        closeOrderConfirmModal();
+      if(event.key === 'Escape'){
+        if($mealOptionsModal.hasClass('is-active')){
+          closeMealOptionsModal();
+          return;
+        }
+        if($orderConfirmModal.hasClass('is-active')){
+          closeOrderConfirmModal();
+        }
       }
     });
 
@@ -1455,7 +2149,8 @@
           tableZone: currentTable.zone,
           notes: null,
           items: cartItems.map(function(item){
-            return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price };
+            var note = (item.optionsNote || '').trim();
+            return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
           })
         };
 
