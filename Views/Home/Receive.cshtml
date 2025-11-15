@@ -39,15 +39,15 @@
             transition: background 0.4s ease;
         }
 
-        body.state-blank {
-            background: #ffffff;
-            align-items: stretch;
-            justify-content: stretch;
-        }
+            body.state-blank {
+                background: #ffffff;
+                align-items: stretch;
+                justify-content: stretch;
+            }
 
-        body.state-blank .page {
-            display: none;
-        }
+                body.state-blank .page {
+                    display: none;
+                }
 
         .page {
             width: min(1100px, 100%);
@@ -129,20 +129,20 @@
             transition: background .3s ease, border-color .3s ease, transform .3s ease;
         }
 
-        .shop-card.is-empty {
-            background: linear-gradient(125deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.04));
-            border-color: rgba(148, 163, 184, 0.4);
-        }
+            .shop-card.is-empty {
+                background: linear-gradient(125deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.04));
+                border-color: rgba(148, 163, 184, 0.4);
+            }
 
-        .shop-card.is-loading {
-            background: linear-gradient(125deg, rgba(59, 130, 246, 0.18), rgba(59, 130, 246, 0.08));
-            border-color: rgba(37, 99, 235, 0.4);
-        }
+            .shop-card.is-loading {
+                background: linear-gradient(125deg, rgba(59, 130, 246, 0.18), rgba(59, 130, 246, 0.08));
+                border-color: rgba(37, 99, 235, 0.4);
+            }
 
-        .shop-card.is-error {
-            background: linear-gradient(125deg, rgba(248, 113, 113, 0.14), rgba(248, 113, 113, 0.04));
-            border-color: rgba(239, 68, 68, 0.4);
-        }
+            .shop-card.is-error {
+                background: linear-gradient(125deg, rgba(248, 113, 113, 0.14), rgba(248, 113, 113, 0.04));
+                border-color: rgba(239, 68, 68, 0.4);
+            }
 
         .shop-card-label {
             font-size: .85rem;
@@ -182,39 +182,39 @@
             transition: background .3s ease, color .3s ease, border-color .3s ease;
         }
 
-        .status::before {
-            content: '';
-            display: inline-block;
-            width: .65rem;
-            height: .65rem;
-            border-radius: 50%;
-            background: currentColor;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
-        }
+            .status::before {
+                content: '';
+                display: inline-block;
+                width: .65rem;
+                height: .65rem;
+                border-radius: 50%;
+                background: currentColor;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+            }
 
-        .status.success {
-            background: rgba(16, 185, 129, 0.12);
-            color: #047857;
-            border-color: rgba(16, 185, 129, 0.25);
-        }
+            .status.success {
+                background: rgba(16, 185, 129, 0.12);
+                color: #047857;
+                border-color: rgba(16, 185, 129, 0.25);
+            }
 
-        .status.success::before {
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.24);
-        }
+                .status.success::before {
+                    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.24);
+                }
 
-        .status.error {
-            background: rgba(248, 113, 113, 0.14);
-            color: #b91c1c;
-            border-color: rgba(248, 113, 113, 0.35);
-        }
+            .status.error {
+                background: rgba(248, 113, 113, 0.14);
+                color: #b91c1c;
+                border-color: rgba(248, 113, 113, 0.35);
+            }
 
-        .status.error::before {
-            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.24);
-        }
+                .status.error::before {
+                    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.24);
+                }
 
-        .status.is-hidden {
-            display: none;
-        }
+            .status.is-hidden {
+                display: none;
+            }
 
         .orders {
             border-radius: 1rem;
@@ -244,19 +244,19 @@
             transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
         }
 
-        .orders-filter-btn:hover,
-        .orders-filter-btn:focus {
-            background: rgba(59, 130, 246, 0.16);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
-            outline: none;
-        }
+            .orders-filter-btn:hover,
+            .orders-filter-btn:focus {
+                background: rgba(59, 130, 246, 0.16);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+                outline: none;
+            }
 
-        .orders-filter-btn.is-active {
-            background: #2563eb;
-            border-color: #2563eb;
-            color: #ffffff;
-            box-shadow: 0 10px 18px -12px rgba(37, 99, 235, 0.8);
-        }
+            .orders-filter-btn.is-active {
+                background: #2563eb;
+                border-color: #2563eb;
+                color: #ffffff;
+                box-shadow: 0 10px 18px -12px rgba(37, 99, 235, 0.8);
+            }
 
         .orders-entry-hidden {
             display: none !important;
@@ -269,24 +269,24 @@
             padding: 1.75rem 0;
         }
 
-        .orders-empty.orders-empty-filter {
-            padding: 1.25rem 0;
-            color: #64748b;
-            font-size: .9rem;
-        }
+            .orders-empty.orders-empty-filter {
+                padding: 1.25rem 0;
+                color: #64748b;
+                font-size: .9rem;
+            }
 
         .orders-entry {
             border-bottom: 1px solid rgba(148, 163, 184, 0.25);
             padding: .85rem 0;
         }
 
-        .orders-entry:last-child {
-            border-bottom: none;
-        }
+            .orders-entry:last-child {
+                border-bottom: none;
+            }
 
-        .orders-entry.order-entry-disabled {
-            opacity: .9;
-        }
+            .orders-entry.order-entry-disabled {
+                opacity: .9;
+            }
 
         .orders-entry-time {
             font-size: .8rem;
@@ -328,25 +328,25 @@
             text-transform: none;
         }
 
-        .orders-entry-status-chip.is-pending {
-            background: rgba(59, 130, 246, 0.18);
-            color: #1d4ed8;
-        }
+            .orders-entry-status-chip.is-pending {
+                background: rgba(59, 130, 246, 0.18);
+                color: #1d4ed8;
+            }
 
-        .orders-entry-status-chip.is-preparing {
-            background: rgba(96, 165, 250, 0.18);
-            color: #1d4ed8;
-        }
+            .orders-entry-status-chip.is-preparing {
+                background: rgba(96, 165, 250, 0.18);
+                color: #1d4ed8;
+            }
 
-        .orders-entry-status-chip.is-completed {
-            background: rgba(16, 185, 129, 0.18);
-            color: #047857;
-        }
+            .orders-entry-status-chip.is-completed {
+                background: rgba(16, 185, 129, 0.18);
+                color: #047857;
+            }
 
-        .orders-entry-status-chip.is-cancelled {
-            background: rgba(248, 113, 113, 0.18);
-            color: #b91c1c;
-        }
+            .orders-entry-status-chip.is-cancelled {
+                background: rgba(248, 113, 113, 0.18);
+                color: #b91c1c;
+            }
 
         .orders-entry-items {
             margin: .55rem 0 0;
@@ -354,9 +354,9 @@
             color: #475569;
         }
 
-        .orders-entry-items li {
-            margin: .25rem 0;
-        }
+            .orders-entry-items li {
+                margin: .25rem 0;
+            }
 
         .orders-entry-item-main {
             display: block;
@@ -408,29 +408,29 @@
             transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
         }
 
-        .order-action-btn.complete {
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            color: #fff;
-            box-shadow: 0 8px 18px rgba(14, 165, 233, 0.25);
-        }
+            .order-action-btn.complete {
+                background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+                color: #fff;
+                box-shadow: 0 8px 18px rgba(14, 165, 233, 0.25);
+            }
 
-        .order-action-btn.cancel {
-            background: linear-gradient(135deg, #fb7185, #f97316);
-            color: #fff;
-            box-shadow: 0 8px 18px rgba(251, 113, 133, 0.25);
-        }
+            .order-action-btn.cancel {
+                background: linear-gradient(135deg, #fb7185, #f97316);
+                color: #fff;
+                box-shadow: 0 8px 18px rgba(251, 113, 133, 0.25);
+            }
 
-        .order-action-btn:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.15);
-        }
+            .order-action-btn:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 22px rgba(15, 23, 42, 0.15);
+            }
 
-        .order-action-btn:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
+            .order-action-btn:disabled {
+                opacity: .55;
+                cursor: not-allowed;
+                box-shadow: none;
+                transform: none;
+            }
 
         @@media (min-width: 768px) {
             body.state-blank {
@@ -493,15 +493,10 @@
             <div class="panel-body">
                 <div class="panel-summary">
                     <div class="shop-card@(hasInitialShopId ? string.Empty : " is-empty")" id="shopCard">
-                        <div class="shop-card-label">目前訂閱店家</div>
                         <div class="shop-card-value" id="shopDisplayName">
                             @(hasInitialShopId ? "店家資訊載入中..." : string.Empty)
                         </div>
-                        <div class="shop-card-id" id="shopIdentifier">
-                            @(hasInitialShopId ? initialShopId : string.Empty)
-                        </div>
                     </div>
-                    <div id="status" class="@statusClass">@initialStatusText</div>
                 </div>
 
                 <div class="panel-orders">
