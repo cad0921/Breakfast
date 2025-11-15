@@ -12,7 +12,7 @@
         zone = Model.Table.Zone
     };
     var mealsPayload = Model?.Meals?
-        .Select(m => (object)new { id = m.Id, name = m.Name, money = m.Money, element = m.Element, categoryId = m.CategoryId, categoryName = m.CategoryName })
+        .Select(m => (object)new { id = m.Id, name = m.Name, money = m.Money, element = m.Element, categoryId = m.CategoryId, categoryName = m.CategoryName, optionsJson = m.OptionsJson })
         .ToList() ?? new List<object>();
     var categoriesPayload = Model?.Categories?
         .Select(c => (object)new { id = c.Id, name = c.Name })

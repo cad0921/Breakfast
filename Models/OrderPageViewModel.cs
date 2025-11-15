@@ -40,6 +40,8 @@ namespace BreakFastShop.Models
         public Guid? CategoryId { get; set; }
 
         public string CategoryName { get; set; }
+
+        public string OptionsJson { get; set; }
     }
 
     public class OrderMealCategoryInfo
