@@ -78,6 +78,22 @@
 
   .form-control, .btn, select{ border-radius:10px; border-color:var(--border); background:#fff; color:var(--text); }
   .form-control:focus{ border-color: var(--accent); box-shadow:0 0 0 3px rgba(14,165,233,.18)}
+  .meal-options-editor{ background:var(--bg-soft); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .meal-options-editor__error{ margin:0; }
+  .meal-options-editor__empty{ margin:0; padding:12px; border:1px dashed var(--border); border-radius:10px; text-align:center; }
+  .meal-options-editor__group{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:12px; box-shadow:inset 0 0 0 1px rgba(14,165,233,.08); }
+  .meal-options-editor__group-header{ display:flex; gap:10px; align-items:center; }
+  .meal-options-editor__group-name{ flex:1; }
+  .meal-options-editor__group-settings{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .meal-options-editor__max-select{ display:flex; align-items:center; gap:6px; }
+  .meal-options-editor__max-select.is-hidden{ display:none; }
+  .meal-options-editor__items{ display:flex; flex-direction:column; gap:8px; }
+  .meal-options-editor__item{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .meal-options-editor__item-name{ flex:1 1 220px; }
+  .meal-options-editor__item-price{ width:140px; }
+  .meal-options-editor__items-empty{ font-size:13px; }
+  .meal-options-editor__actions{ margin-top:4px; }
+  .meal-options-editor__add-option, .meal-options-editor__remove-item, .meal-options-editor__group-header .btn{ white-space:nowrap; }
   .btn-primary{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); border:0; color:#fff }
   .btn-default{ background:#fff; border:1px solid var(--border); color:var(--text) }
   .btn-danger{ background: var(--danger); border:0; color:#fff }
@@ -342,7 +358,12 @@
                                 <div class="form-group"><label>名稱</label><input class="form-control" id="mMealName" required /></div>
                                 <div class="form-group"><label>價格</label><input class="form-control" id="mMealMoney" type="number" value="80" /></div>
                                 <div class="form-group"><label>成分描述（可空）</label><textarea class="form-control" id="mMealElement" rows="2"></textarea></div>
-                                <div class="form-group"><label>選項設定 JSON（可空）</label><textarea class="form-control font-monospace" id="mMealOptions" rows="4" placeholder='{"groups":[]}'></textarea><small class="text-muted">請填入有效的 JSON 字串，例如各選項群組與價格加價設定。</small></div>
+                                <div class="form-group">
+                                    <label>選項設定（可空）</label>
+                                    <textarea class="form-control font-monospace d-none" id="mMealOptions" rows="4" placeholder='{"groups":[]}'></textarea>
+                                    <div id="mealOptionsEditor"></div>
+                                    <small class="text-muted">使用下方按鈕設定選項群組與項目，系統會自動轉換為 JSON 儲存。</small>
+                                </div>
                                 <div class="checkbox"><label><input type="checkbox" id="mMealActive" checked /> 啟用</label></div>
                             </form>
                         </div>
@@ -431,6 +452,7 @@
     </div>
 
     <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/meal-options-editor.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
     <script>
 (function(){
@@ -455,6 +477,11 @@
     DeleteCategory: '@Url.Action("DeleteCategory","Admin")',
     OrderItems: '@Url.Action("OrderItems","Admin")'
   };
+
+  var mealOptionsEditor = MealOptionsEditor.create({
+    hiddenInput: '#mMealOptions',
+    container: '#mealOptionsEditor'
+  });
 
   function getJSON(u){ return $.getJSON(u); }
   function post(u,d,$btn){ if($btn){ lockBtn($btn,true);} return $.ajax({ url:u, method:'POST', data:d }).always(function(){ if($btn){ lockBtn($btn,false);} }); }
@@ -560,7 +587,7 @@
   function ensureShopOptions($sel){ return getJSON(U.Shops).then(function(shops){ $sel.empty(); shops.forEach(function(s){ $sel.append($('<option/>').val(s.Id).text(s.Name)); }); return shops; }); }
   function openCatModal(c){ ensureShopOptions($('#mCatShop')).then(function(){ $('#catModalTitle').text(c? '編輯分類':'新增分類'); $('#catId').val(c? c.Id:''); $('#mCatShop').val(c? (c.ShopId||'') : ($('#catShop').val()||'')); $('#mCatName').val(c? c.Name:''); $('#mCatSort').val(c? c.SortOrder:0); $('#mCatActive').prop('checked', c? !!c.IsActive : true); new bootstrap.Modal(document.getElementById('catModal')).show(); }); }
   function ensureCategoryOptions(shopId){ return $.getJSON(U.Categories+'?shopId='+ (shopId||'')).then(function(list){ var $sel=$('#mMealCat').empty(); $sel.append($('<option/>').val('').text('(未分類)')); list.forEach(function(c){ $sel.append($('<option/>').val(c.Id).text(c.Name)); }); return list; }); }
-  function openMealModal(m){ ensureShopOptions($('#mMealShop')).then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealShop').val(m? (m.ShopId||'') : ($('#mealShop').val()||'')); return ensureCategoryOptions($('#mMealShop').val()); }).then(function(){ $('#mMealCat').val(m? (m.CategoryId||'') : ($('#mealCat').val()||'')); $('#mMealName').val(m? m.Name:''); $('#mMealElement').val(m? (m.Element||''):''); $('#mMealOptions').val(m? (m.OptionsJson||''):''); $('#mMealMoney').val(m? m.Money:80); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
+  function openMealModal(m){ ensureShopOptions($('#mMealShop')).then(function(){ $('#mealModalTitle').text(m? '編輯餐點':'新增餐點'); $('#mealId').val(m? m.Id:''); $('#mMealShop').val(m? (m.ShopId||'') : ($('#mealShop').val()||'')); return ensureCategoryOptions($('#mMealShop').val()); }).then(function(){ $('#mMealCat').val(m? (m.CategoryId||'') : ($('#mealCat').val()||'')); $('#mMealName').val(m? m.Name:''); $('#mMealElement').val(m? (m.Element||''):''); var rawOpt = m && m.OptionsJson ? m.OptionsJson : ''; mealOptionsEditor.loadFromJson(rawOpt); $('#mMealMoney').val(m? m.Money:80); $('#mMealActive').prop('checked', m? !!m.IsActive : true); new bootstrap.Modal(document.getElementById('mealModal')).show(); }); }
   function openTableModal(t){ ensureShopOptions($('#mTableShop')).then(function(){ $('#tableModalTitle').text(t? '編輯桌位':'新增桌位'); $('#tableId').val(t? t.Id:''); $('#mTableShop').val(t? (t.ShopId||'') : ($('#tableShop').val()||'')); $('#mTableNumber').val(t? t.Number:1); $('#mTableZone').val(t? (t.Zone||''):''); $('#mTableActive').prop('checked', t? !!t.IsActive : true); new bootstrap.Modal(document.getElementById('tableModal')).show(); }); }
   function openOrderModal(o){
     $('#orderModalId').text(o.Id);
@@ -612,7 +639,7 @@
   // Save from modal
   $('#saveShop').on('click', function(){ var $btn=$(this); var id=$('#shopId').val()||null; var d={ id:id, name:$('#mShopName').val(), phone:$('#mShopPhone').val(), addr:$('#mShopAddr').val(), account:$('#mShopAccount').val(), password:$('#mShopPassword').val(), isActive:$('#mShopActive').prop('checked') }; post(U.UpsertShop,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('shopModal')).hide(); loadShopsInto(); toast('店家已儲存'); }); });
   $('#saveCat').on('click', function(){ var $btn=$(this); var id=$('#catId').val()||null; var d={ shopId:$('#mCatShop').val(), id:id, name:$('#mCatName').val(), sortOrder:$('#mCatSort').val(), isActive:$('#mCatActive').prop('checked') }; post(U.UpsertCategory,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).hide(); loadCats(); toast('分類已儲存'); }); });
-  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var d={ shopId:$('#mMealShop').val(), id:id, name:$('#mMealName').val(), element:$('#mMealElement').val(), optionsJson:$('#mMealOptions').val(), money:$('#mMealMoney').val(), categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); loadMeals(); toast('餐點已儲存'); }); });
+  $('#saveMeal').on('click', function(){ var $btn=$(this); var id=$('#mealId').val()||null; var optionsJson = mealOptionsEditor.toJson(); if(optionsJson===null){ return; } var d={ shopId:$('#mMealShop').val(), id:id, name:$('#mMealName').val(), element:$('#mMealElement').val(), optionsJson:optionsJson, money:$('#mMealMoney').val(), categoryId:$('#mMealCat').val()||null, isActive:$('#mMealActive').prop('checked') }; post(U.UpsertMeal,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('mealModal')).hide(); loadMeals(); toast('餐點已儲存'); }); });
   $('#saveTable').on('click', function(){ var $btn=$(this); var id=$('#tableId').val()||null; var d={ shopId:$('#mTableShop').val(), id:id, number:$('#mTableNumber').val(), zone:$('#mTableZone').val(), isActive:$('#mTableActive').prop('checked') }; post(U.UpsertTable,d,$btn).done(function(){ bootstrap.Modal.getOrCreateInstance(document.getElementById('tableModal')).hide(); loadTables(); toast('桌位已儲存'); }); });
 
   // ===== Initial =====
