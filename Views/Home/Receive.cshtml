@@ -358,6 +358,17 @@
             margin: .25rem 0;
         }
 
+        .orders-entry-item-main {
+            display: block;
+        }
+
+        .orders-entry-item-note {
+            margin-top: .2rem;
+            font-size: .85rem;
+            color: #64748b;
+            white-space: pre-wrap;
+        }
+
         .orders-entry-meta,
         .orders-entry-note {
             margin-top: .35rem;
@@ -943,7 +954,16 @@
                             if (item.price !== undefined && item.price !== null) {
                                 line += '（' + formatCurrency(item.price) + '）';
                             }
-                            $('<li/>').text(line).appendTo($items);
+
+                            var $item = $('<li/>');
+                            $item.append($('<span class="orders-entry-item-main"/>').text(line));
+
+                            var itemNotes = $.trim(item.notes || '');
+                            if (itemNotes) {
+                                $item.append($('<div class="orders-entry-item-note"/>').text(itemNotes));
+                            }
+
+                            $item.appendTo($items);
 
                             if (totalAmount === null) {
                                 var itemTotal = getNumericValue(item.total);
