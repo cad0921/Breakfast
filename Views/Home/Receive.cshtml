@@ -1127,6 +1127,7 @@
         (function () {
             var hub = $.connection.ordersHub;
             var shopInfoUrl = '@Url.Action("ShopInfo")';
+            var todayOrdersUrl = '@Url.Action("TodayOrders")';
             var initialShopId = '@Html.Raw(HttpUtility.JavaScriptStringEncode(initialShopId ?? string.Empty))';
             var hasInitialShop = initialShopId.length > 0;
             var blankClass = 'state-blank';
@@ -2044,6 +2045,26 @@
                       });
               }
 
+              function loadTodayOrders(shopId) {
+                  if (!shopId) {
+                      return;
+                  }
+
+                  $.getJSON(todayOrdersUrl, { shopId: shopId })
+                      .done(function (res) {
+                          if (res && res.ok && Array.isArray(res.orders)) {
+                              res.orders.forEach(function (payload) {
+                                  appendOrderNotification(payload);
+                              });
+                          } else if (res && res.error) {
+                              appendStatus(res.error);
+                          }
+                      })
+                      .fail(function () {
+                          appendStatus('讀取今日訂單時發生錯誤。');
+                      });
+              }
+
               function refreshOrderFrame(options) {
                   options = options || {};
                   var targetRawId = $.trim(options.shopId || '');
@@ -2714,6 +2735,7 @@
                                     updateShopCard(targetName, targetRawId, { keepVisible: true });
                                     resetOrders();
                                     refreshOrderFrame({ shopId: targetRawId, force: true });
+                                    loadTodayOrders(targetRawId);
                                 })
                                 .fail(function () {
                                     currentShop = null;

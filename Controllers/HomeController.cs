@@ -396,5 +396,167 @@ namespace BreakFastShop.Controllers
                 return Json(new { ok = false, error = "查詢桌號時發生錯誤。" }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpGet]
+        public async Task<ActionResult> TodayOrders(Guid? shopId)
+        {
+            if (!shopId.HasValue || shopId.Value == Guid.Empty)
+            {
+                Response.StatusCode = 400;
+                return Json(new { ok = false, error = "店家識別碼無效。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var connStr = ConnStr;
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                Response.StatusCode = 500;
+                return Json(new { ok = false, error = "尚未設定資料庫連線字串。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var startOfDay = DateTime.UtcNow.Date;
+            var endOfDay = startOfDay.AddDays(1);
+
+            const string ordersSql = @"SELECT o.Id,o.OrderType,o.TableId,t.Number,t.Zone,o.TakeoutCode,o.Notes,o.Status,o.CreatedAt,o.UpdatedAt,s.Name
+                                 FROM Orders o
+                                 LEFT JOIN [Table] t ON t.Id = o.TableId
+                                 LEFT JOIN Shop s ON s.Id = o.ShopId
+                                 WHERE o.ShopId=@ShopId AND o.CreatedAt>=@StartOfDay AND o.CreatedAt<@EndOfDay
+                                 ORDER BY o.CreatedAt";
+
+            const string itemsSql = @"SELECT oi.OrderId,oi.MealId,oi.MealName,oi.Quantity,oi.UnitPrice,oi.Notes
+                                 FROM OrderItems oi
+                                 INNER JOIN Orders o ON o.Id = oi.OrderId
+                                 WHERE o.ShopId=@ShopId AND o.CreatedAt>=@StartOfDay AND o.CreatedAt<@EndOfDay";
+
+            try
+            {
+                using (var connection = new SqlConnection(connStr))
+                {
+                    await connection.OpenAsync();
+
+                    var orders = new List<dynamic>();
+                    var orderItemsMap = new Dictionary<Guid, List<object>>();
+
+                    using (var ordersCommand = new SqlCommand(ordersSql, connection))
+                    {
+                        ordersCommand.Parameters.AddWithValue("@ShopId", shopId.Value);
+                        ordersCommand.Parameters.AddWithValue("@StartOfDay", startOfDay);
+                        ordersCommand.Parameters.AddWithValue("@EndOfDay", endOfDay);
+
+                        using (var reader = await ordersCommand.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var orderId = reader.GetGuid(0);
+
+                                orders.Add(new
+                                {
+                                    Id = orderId,
+                                    OrderType = reader.IsDBNull(1) ? null : reader.GetString(1),
+                                    TableId = reader.IsDBNull(2) ? (Guid?)null : reader.GetGuid(2),
+                                    TableNumber = reader.IsDBNull(3) ? (int?)null : reader.GetInt32(3),
+                                    TableZone = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                    TakeoutCode = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                    Notes = reader.IsDBNull(6) ? null : reader.GetString(6),
+                                    Status = reader.IsDBNull(7) ? "Pending" : reader.GetString(7),
+                                    CreatedAt = reader.IsDBNull(8) ? (DateTime?)null : reader.GetDateTime(8),
+                                    UpdatedAt = reader.IsDBNull(9) ? (DateTime?)null : reader.GetDateTime(9),
+                                    ShopName = reader.IsDBNull(10) ? null : reader.GetString(10)
+                                });
+
+                                orderItemsMap[orderId] = new List<object>();
+                            }
+                        }
+                    }
+
+                    if (orders.Count > 0)
+                    {
+                        using (var itemsCommand = new SqlCommand(itemsSql, connection))
+                        {
+                            itemsCommand.Parameters.AddWithValue("@ShopId", shopId.Value);
+                            itemsCommand.Parameters.AddWithValue("@StartOfDay", startOfDay);
+                            itemsCommand.Parameters.AddWithValue("@EndOfDay", endOfDay);
+
+                            using (var reader = await itemsCommand.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    var orderId = reader.GetGuid(0);
+                                    if (!orderItemsMap.TryGetValue(orderId, out var items))
+                                    {
+                                        continue;
+                                    }
+
+                                    items.Add(new
+                                    {
+                                        mealId = reader.IsDBNull(1) ? (Guid?)null : reader.GetGuid(1),
+                                        name = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                        qty = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
+                                        price = reader.IsDBNull(4) ? 0 : reader.GetDecimal(4),
+                                        notes = reader.IsDBNull(5) ? null : reader.GetString(5)
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    var payloads = new List<object>();
+
+                    foreach (var order in orders)
+                    {
+                        var orderId = (Guid)order.Id;
+                        var items = orderItemsMap.TryGetValue(orderId, out var list) ? list : new List<object>();
+                        var orderType = string.IsNullOrWhiteSpace(order.OrderType) ? "DineIn" : order.OrderType;
+                        var status = string.IsNullOrWhiteSpace(order.Status) ? "Pending" : order.Status;
+                        var createdAt = (DateTime?)(order.CreatedAt ?? DateTime.UtcNow);
+                        var updatedAt = (DateTime?)(order.UpdatedAt ?? createdAt);
+
+                        var orderPayload = new
+                        {
+                            id = orderId,
+                            shopId = shopId.Value,
+                            tableId = (Guid?)order.TableId,
+                            tableNumber = (int?)order.TableNumber,
+                            tableZone = (string)order.TableZone,
+                            takeoutCode = (string)order.TakeoutCode,
+                            notes = (string)order.Notes,
+                            status,
+                            orderType,
+                            createdAt,
+                            updatedAt,
+                            items
+                        };
+
+                        var dto = new
+                        {
+                            shopId = shopId.Value,
+                            shopName = (string)order.ShopName,
+                            tableId = (Guid?)order.TableId,
+                            tableNumber = (int?)order.TableNumber,
+                            tableZone = (string)order.TableZone,
+                            takeoutCode = (string)order.TakeoutCode,
+                            orderType,
+                            notes = (string)order.Notes,
+                            items
+                        };
+
+                        payloads.Add(new
+                        {
+                            type = "created",
+                            order = orderPayload,
+                            dto,
+                            ts = createdAt
+                        });
+                    }
+
+                    return Json(new { ok = true, orders = payloads }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch
+            {
+                Response.StatusCode = 500;
+                return Json(new { ok = false, error = "讀取今日訂單時發生錯誤。" }, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }
