@@ -1027,75 +1027,71 @@
         </form>
 
         <main class="page" id="receiveShell" aria-hidden="@(hasInitialShopId ? "false" : "true")">
-            <section class="panel" id="mainPanel" aria-hidden="false">
-                <div class="panel-body">
-                    <div class="panel-orders">
-                        <div class="orders-filters" role="tablist" aria-label="訂單狀態篩選">
-                            <button type="button" class="orders-filter-btn is-active" data-filter="pending" aria-pressed="true">待處理</button>
-                            <button type="button" class="orders-filter-btn" data-filter="completed" aria-pressed="false">結單</button>
-                            <button type="button" class="orders-filter-btn" data-filter="cancelled" aria-pressed="false">棄單</button>
-                        </div>
-                        <div class="orders" id="orderUpdates">
-                            <div class="orders-empty">尚未接收資料。</div>
-                        </div>
+            <section class="panel panel-body" id="mainPanel" aria-hidden="false">
+                <div class="panel-orders">
+                    <div class="orders-filters" role="tablist" aria-label="訂單狀態篩選">
+                        <button type="button" class="orders-filter-btn is-active" data-filter="pending" aria-pressed="true">待處理</button>
+                        <button type="button" class="orders-filter-btn" data-filter="completed" aria-pressed="false">結單</button>
+                        <button type="button" class="orders-filter-btn" data-filter="cancelled" aria-pressed="false">棄單</button>
+                    </div>
+                    <div class="orders" id="orderUpdates">
+                        <div class="orders-empty">尚未接收資料。</div>
                     </div>
                 </div>
             </section>
 
-            <section class="panel order-panel" id="orderPanel" aria-hidden="true" style="display:none;">
-                <div class="panel-body">
-                    <div class="order-status" id="orderStatus" aria-live="polite">尚未選擇店家，請先於上方輸入店家代碼。</div>
+            <section class="panel panel-body order-panel" id="orderPanel" aria-hidden="true" style="display:none;">
+                <div class="order-status" id="orderStatus" aria-live="polite">尚未選擇店家，請先於上方輸入店家代碼。</div>
 
-                    <div class="order-grid">
-                        <div class="order-form-section">
-                            <h3 id="orderShopTitle">選擇店家以開始點餐</h3>
-                            <div class="order-field">
-                                <label>訂單類型</label>
-                                <div class="order-type-toggle" id="orderTypeToggle" role="group" aria-label="選擇訂單類型">
-                                    <button type="button" class="is-active" data-type="DineIn" aria-pressed="true">內用</button>
-                                    <button type="button" data-type="Takeout" aria-pressed="false">外帶</button>
-                                </div>
-                            </div>
-
-                            <div class="order-field" id="tableSelectorField">
-                                <label for="orderTableSelect">選擇桌號</label>
-                                <select id="orderTableSelect" disabled>
-                                    <option value="">請先選擇店家</option>
-                                </select>
-                            </div>
-
-                            <div class="order-field" id="takeoutCodeField" style="display:none;">
-                                <label for="takeoutCodeInput">外帶代號（選填）</label>
-                                <input type="text" id="takeoutCodeInput" maxlength="40" placeholder="例：A001" />
-                            </div>
-
-                            <div class="order-field">
-                                <label for="orderNotes">備註</label>
-                                <textarea id="orderNotes" placeholder="想說的話寫在這裡"></textarea>
+                <div class="order-grid">
+                    <div class="order-form-section">
+                        <h3 id="orderShopTitle">選擇店家以開始點餐</h3>
+                        <div class="order-field">
+                            <label>訂單類型</label>
+                            <div class="order-type-toggle" id="orderTypeToggle" role="group" aria-label="選擇訂單類型">
+                                <button type="button" class="is-active" data-type="DineIn" aria-pressed="true">內用</button>
+                                <button type="button" data-type="Takeout" aria-pressed="false">外帶</button>
                             </div>
                         </div>
 
-                        <div class="order-form-section">
-                            <h3>餐點選單</h3>
-                            <div class="order-menu" id="orderMenu">
-                                <div class="orders-empty">尚未載入餐點。</div>
-                            </div>
+                        <div class="order-field" id="tableSelectorField">
+                            <label for="orderTableSelect">選擇桌號</label>
+                            <select id="orderTableSelect" disabled>
+                                <option value="">請先選擇店家</option>
+                            </select>
+                        </div>
+
+                        <div class="order-field" id="takeoutCodeField" style="display:none;">
+                            <label for="takeoutCodeInput">外帶代號（選填）</label>
+                            <input type="text" id="takeoutCodeInput" maxlength="40" placeholder="例：A001" />
+                        </div>
+
+                        <div class="order-field">
+                            <label for="orderNotes">備註</label>
+                            <textarea id="orderNotes" placeholder="想說的話寫在這裡"></textarea>
                         </div>
                     </div>
 
-                    <div class="order-cart" aria-live="polite">
-                        <h3>購物車</h3>
-                        <div id="cartItems">
-                            <div class="cart-empty">尚未選擇餐點。</div>
+                    <div class="order-form-section">
+                        <h3>餐點選單</h3>
+                        <div class="order-menu" id="orderMenu">
+                            <div class="orders-empty">尚未載入餐點。</div>
                         </div>
-                        <div class="order-field">
-                            <label for="cartNotes">餐點備註（套用於整張訂單）</label>
-                            <textarea id="cartNotes" placeholder="例如：不要香菜、少冰"></textarea>
-                        </div>
-                        <div class="order-actions">
-                            <div class="order-total" id="orderTotal">合計：NT$ 0</div>
-                            <button class="order-submit" id="submitOrder" disabled>送出訂單</button>
-                        </div>
+                    </div>
+                </div>
+
+                <div class="order-cart" aria-live="polite">
+                    <h3>購物車</h3>
+                    <div id="cartItems">
+                        <div class="cart-empty">尚未選擇餐點。</div>
+                    </div>
+                    <div class="order-field">
+                        <label for="cartNotes">餐點備註（套用於整張訂單）</label>
+                        <textarea id="cartNotes" placeholder="例如：不要香菜、少冰"></textarea>
+                    </div>
+                    <div class="order-actions">
+                        <div class="order-total" id="orderTotal">合計：NT$ 0</div>
+                        <button class="order-submit" id="submitOrder" disabled>送出訂單</button>
                     </div>
                 </div>
             </section>
