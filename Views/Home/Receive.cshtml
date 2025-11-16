@@ -96,6 +96,13 @@
             min-height: 0;
         }
 
+        .panel--frameless {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
         .panel-body {
             flex: 1;
             display: flex;
@@ -1027,7 +1034,7 @@
         </form>
 
         <main class="page" id="receiveShell" aria-hidden="@(hasInitialShopId ? "false" : "true")">
-            <section class="panel panel-body" id="mainPanel" aria-hidden="false">
+            <section class="panel panel-body panel--frameless" id="mainPanel" aria-hidden="false">
                 <div class="panel-orders">
                     <div class="orders-filters" role="tablist" aria-label="訂單狀態篩選">
                         <button type="button" class="orders-filter-btn is-active" data-filter="pending" aria-pressed="true">待處理</button>
