@@ -217,7 +217,7 @@ namespace BreakFastShop.Hubs
             };
 
             var payload = new { type = "created", order = orderPayload, dto = dtoPayload, ts = nowOffset };
-            Clients.Group(BuildShopGroupName(dto.ShopId)).orderChanged(payload);
+            Clients.Group(BuildShopGroupName(dto.ShopId), Context.ConnectionId).orderChanged(payload);
             Clients.Caller.orderChanged(payload);
         }
 
