@@ -1,4 +1,5 @@
 @model BreakFastShop.Models.OrderPageViewModel
+@using System
 @using System.Linq
 @using System.Web.Helpers
 @{
@@ -18,6 +19,8 @@
         .Select(c => (object)new { id = c.Id, name = c.Name })
         .ToList() ?? new List<object>();
     var errorMessage = Model?.Error;
+    var viewMode = (Request["view"] ?? string.Empty).Trim();
+    var isReceiveEmbedded = viewMode.Equals("receive", StringComparison.OrdinalIgnoreCase);
 }
 <!doctype html>
 <html>
@@ -448,6 +451,22 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+        }
+
+        .order-review {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .order-review-actions {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .order-review-submit {
+            margin-top: .5rem;
         }
 
         .cart-summary {
@@ -1109,6 +1128,16 @@
                 position: sticky;
                 top: 120px;
             }
+
+            .order-layout.order-layout--review {
+                align-items: stretch;
+            }
+
+            .order-layout--review .order-review {
+                width: min(340px, 100%);
+                position: sticky;
+                top: 120px;
+            }
         }
 
         @@media (min-width: 1024px) {
@@ -1136,6 +1165,8 @@
                 </div>
             </header>
             <main class="order-main" role="main">
+@if(!isReceiveEmbedded)
+{
                 <section class="order-context panel" aria-labelledby="orderModeTitle">
                     <div class="section-header">
                         <h2 id="orderModeTitle">訂餐設定</h2>
@@ -1174,7 +1205,8 @@
                         </div>
                     </div>
                 </section>
-                <section class="order-layout">
+}
+                <section class="order-layout@(isReceiveEmbedded ? " order-layout--review" : string.Empty)">
                     <div class="order-layout-main">
                         <section class="meal-panel panel" aria-labelledby="mealSectionTitle">
                             <div class="section-header">
@@ -1185,6 +1217,8 @@
                             <div class="meal-list" id="mealList" aria-live="polite"></div>
                         </section>
                     </div>
+@if(!isReceiveEmbedded)
+{
                     <aside class="cart-panel panel" aria-labelledby="cartTitle">
                         <div class="section-header">
                             <h2 id="cartTitle">購物車</h2>
@@ -1198,14 +1232,44 @@
                             <button type="button" class="cart-clear" id="clearCart" disabled>清空</button>
                         </div>
                     </aside>
+}
+@if(isReceiveEmbedded)
+{
+                    <section class="order-review panel" aria-labelledby="orderReviewTitle">
+                        <div class="section-header">
+                            <h2 id="orderReviewTitle">訂單確認</h2>
+                            <span class="section-note">檢視與調整已選餐點</span>
+                        </div>
+                        <div class="order-confirm-info" id="orderReviewInfo"></div>
+                        <div class="order-confirm-items">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">餐點</th>
+                                        <th scope="col">數量</th>
+                                        <th scope="col">小計</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderReviewItems"></tbody>
+                            </table>
+                        </div>
+                        <div class="order-confirm-total" id="orderReviewTotal"></div>
+                        <div class="order-review-actions">
+                            <button type="button" class="order-submit-button order-review-submit" id="orderReviewSubmit" disabled>送出訂單</button>
+                        </div>
+                    </section>
+}
                 </section>
             </main>
+@if(!isReceiveEmbedded)
+{
             <footer class="order-footer">
                 <button id="send" class="order-submit-button" disabled>
                     <span class="order-submit-button__label">確認訂單</span>
                     <span class="order-submit-button__count is-hidden" id="sendCount">0</span>
                 </button>
             </footer>
+}
         </div>
     </div>
     <div class="meal-options-modal" id="mealOptionsModal" role="dialog" aria-modal="true" aria-labelledby="mealOptionsTitle" aria-hidden="true">
@@ -1309,6 +1373,7 @@
     var $takeoutDetail = $('#takeoutDetail');
     var $takeoutCodeInput = $('#takeoutCodeInput');
     var $pageTitle = $('#pageTitle');
+    var isReceiveEmbedded = @(isReceiveEmbedded.ToString().ToLowerInvariant());
     var $orderConfirmModal = $('#orderConfirmModal');
     var $orderConfirmClose = $('#orderConfirmClose');
     var $orderConfirmContent = $orderConfirmModal.find('.order-confirm-modal__content');
@@ -1316,6 +1381,10 @@
     var $orderConfirmItems = $('#orderConfirmItems');
     var $orderConfirmTotal = $('#orderConfirmTotal');
     var $confirmSubmit = $('#confirmSubmit');
+    var $orderReviewInfo = $('#orderReviewInfo');
+    var $orderReviewItems = $('#orderReviewItems');
+    var $orderReviewTotal = $('#orderReviewTotal');
+    var $orderReviewSubmit = $('#orderReviewSubmit');
     var $mealOptionsModal = $('#mealOptionsModal');
     var $mealOptionsContent = $mealOptionsModal.find('.meal-options-modal__content');
     var $mealOptionsName = $('#mealOptionsName');
@@ -1335,6 +1404,7 @@
     var defaultPageTitle = '下單頁';
     var isSubmitting = false;
     var confirmSubmitDefaultText = $confirmSubmit.text();
+    var orderReviewSubmitDefaultText = $orderReviewSubmit.length ? $orderReviewSubmit.text() : '';
 
     function setTableStatus(message, type){
       var text = message || defaultTableStatus;
@@ -1915,14 +1985,12 @@
 
       updateSendButtonState();
 
-      if($orderConfirmModal.hasClass('is-active')){
+      if($orderConfirmModal.hasClass('is-active') || isReceiveEmbedded){
         renderOrderConfirmContent();
       }
     }
 
     function renderOrderConfirmContent(){
-      if(!$orderConfirmModal.length){ return; }
-
       var detailParts = [];
       if(currentMode === ORDER_MODE_TAKEOUT){
         if(currentTakeoutShop && (currentTakeoutShop.name || currentTakeoutShop.rawId)){
@@ -1949,66 +2017,99 @@
           detailParts.push('桌號資訊尚未提供');
         }
       }
-      $orderConfirmTable.text(detailParts.join('　'));
-
-      $orderConfirmItems.empty();
-
-      if(!cartItems.length){
-        $orderConfirmItems.append(
-          $('<tr class="order-confirm-empty"/>').append(
-            $('<td/>').attr('colspan', 3).text('目前尚未選擇餐點。')
-          )
-        );
-        $orderConfirmTotal.text('總計：' + formatCurrency(0) + '（共 0 份）');
-        if(!isSubmitting){
-          $confirmSubmit.prop('disabled', true).text(confirmSubmitDefaultText);
-        } else {
-          $confirmSubmit.prop('disabled', true);
-        }
-        return;
+      var detailText = detailParts.join('　');
+      if($orderConfirmTable.length){
+        $orderConfirmTable.text(detailText);
+      }
+      if($orderReviewInfo.length){
+        $orderReviewInfo.text(detailText);
       }
 
-      var totalAmount = 0;
-      var totalQty = 0;
+      function renderSummary($items, $total, $submit){
+        if(!$items.length && !$total.length && !$submit.length){ return; }
 
-      cartItems.forEach(function(item, index){
-        var price = Number(item.price) || 0;
-        var subtotal = price * item.qty;
-        totalAmount += subtotal;
-        totalQty += item.qty;
+        $items.empty();
 
-        var $row = $('<tr/>').attr('data-index', index);
-        var $nameCell = $('<td/>').appendTo($row);
-        $('<div class="order-confirm-name"/>').text(item.name).appendTo($nameCell);
-        var confirmNotes = collectItemNotes(item);
-        if(confirmNotes.length){
-          $('<div class="order-confirm-note"/>').text(confirmNotes.join('｜')).appendTo($nameCell);
+        if(!cartItems.length){
+          if($items.length){
+            $items.append(
+              $('<tr class="order-confirm-empty"/>').append(
+                $('<td/>').attr('colspan', 3).text('目前尚未選擇餐點。')
+              )
+            );
+          }
+          if($total.length){
+            $total.text('總計：' + formatCurrency(0) + '（共 0 份）');
+          }
+          if($submit.length){
+            if(isSubmitting){
+              $submit.prop('disabled', true);
+            } else {
+              $submit.prop('disabled', true);
+              if($submit.is($confirmSubmit)){
+                $submit.text(confirmSubmitDefaultText);
+              } else if($submit.is($orderReviewSubmit)){
+                $submit.text(orderReviewSubmitDefaultText);
+              }
+            }
+          }
+          return;
         }
 
-        var $qtyCell = $('<td/>').appendTo($row);
-        var $qtyControl = $('<div class="order-confirm-qty" role="group"/>')
-          .attr('aria-label', '調整 ' + item.name + ' 數量')
-          .appendTo($qtyCell);
-        $('<button type="button" class="order-confirm-qty-btn" aria-label="減少一份" data-delta="-1">−</button>')
-          .appendTo($qtyControl);
-        $('<span class="order-confirm-qty-value"/>').text(item.qty).appendTo($qtyControl);
-        $('<button type="button" class="order-confirm-qty-btn" aria-label="增加一份" data-delta="1">＋</button>')
-          .appendTo($qtyControl);
+        var totalAmount = 0;
+        var totalQty = 0;
 
-        var $subtotalCell = $('<td/>').appendTo($row);
-        $('<span class="order-confirm-subtotal-value"/>').text(formatCurrency(subtotal)).appendTo($subtotalCell);
-        $('<button type="button" class="order-confirm-remove">移除</button>').appendTo($subtotalCell);
+        cartItems.forEach(function(item, index){
+          var price = Number(item.price) || 0;
+          var subtotal = price * item.qty;
+          totalAmount += subtotal;
+          totalQty += item.qty;
 
-        $orderConfirmItems.append($row);
-      });
+          var $row = $('<tr/>').attr('data-index', index);
+          var $nameCell = $('<td/>').appendTo($row);
+          $('<div class="order-confirm-name"/>').text(item.name).appendTo($nameCell);
+          var confirmNotes = collectItemNotes(item);
+          if(confirmNotes.length){
+            $('<div class="order-confirm-note"/>').text(confirmNotes.join('｜')).appendTo($nameCell);
+          }
 
-      $orderConfirmTotal.text('總計：' + formatCurrency(totalAmount) + '（共 ' + totalQty + ' 份）');
+          var $qtyCell = $('<td/>').appendTo($row);
+          var $qtyControl = $('<div class="order-confirm-qty" role="group"/>')
+            .attr('aria-label', '調整 ' + item.name + ' 數量')
+            .appendTo($qtyCell);
+          $('<button type="button" class="order-confirm-qty-btn" aria-label="減少一份" data-delta="-1">−</button>')
+            .appendTo($qtyControl);
+          $('<span class="order-confirm-qty-value"/>').text(item.qty).appendTo($qtyControl);
+          $('<button type="button" class="order-confirm-qty-btn" aria-label="增加一份" data-delta="1">＋</button>')
+            .appendTo($qtyControl);
 
-      if(isSubmitting){
-        $confirmSubmit.prop('disabled', true);
-      } else {
-        $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+          var $subtotalCell = $('<td/>').appendTo($row);
+          $('<span class="order-confirm-subtotal-value"/>').text(formatCurrency(subtotal)).appendTo($subtotalCell);
+          $('<button type="button" class="order-confirm-remove">移除</button>').appendTo($subtotalCell);
+
+          $items.append($row);
+        });
+
+        if($total.length){
+          $total.text('總計：' + formatCurrency(totalAmount) + '（共 ' + totalQty + ' 份）');
+        }
+
+        if($submit.length){
+          if(isSubmitting){
+            $submit.prop('disabled', true);
+          } else {
+            $submit.prop('disabled', false);
+            if($submit.is($confirmSubmit)){
+              $submit.text(confirmSubmitDefaultText);
+            } else if($submit.is($orderReviewSubmit)){
+              $submit.text(orderReviewSubmitDefaultText);
+            }
+          }
+        }
       }
+
+      renderSummary($orderConfirmItems, $orderConfirmTotal, $confirmSubmit);
+      renderSummary($orderReviewItems, $orderReviewTotal, $orderReviewSubmit);
     }
 
     function updateSendButtonState(){
@@ -2451,6 +2552,21 @@
       clearCart({ skipStatus: false });
     });
 
+    if($orderReviewItems.length){
+      $orderReviewItems.on('click', '.order-confirm-qty-btn', function(){
+        var delta = parseInt($(this).attr('data-delta'), 10);
+        var index = parseInt($(this).closest('tr').data('index'), 10);
+        if(!isFinite(delta) || !isFinite(index)){ return; }
+        changeCartItemQuantity(index, delta);
+      });
+
+      $orderReviewItems.on('click', '.order-confirm-remove', function(){
+        var index = parseInt($(this).closest('tr').data('index'), 10);
+        if(!isFinite(index)){ return; }
+        removeCartItem(index);
+      });
+    }
+
     function tryFillFromQuery(){
       if(initialTable){ return; }
       var params = new URLSearchParams(window.location.search);
@@ -2508,6 +2624,9 @@
       if(!payload){
         isSubmitting = false;
         $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+        if($orderReviewSubmit.length){
+          $orderReviewSubmit.prop('disabled', false).text(orderReviewSubmitDefaultText);
+        }
         setStatusForMode(modeForStatus, '訂單處理結果不明，請重新嘗試。', 'error');
         pendingSubmitMode = null;
         return;
@@ -2516,6 +2635,9 @@
       if(payload.type === 'error'){
         isSubmitting = false;
         $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+        if($orderReviewSubmit.length){
+          $orderReviewSubmit.prop('disabled', false).text(orderReviewSubmitDefaultText);
+        }
         var message = payload.error || '送出訂單時發生錯誤，請稍後再試。';
         setStatusForMode(modeForStatus, message, 'error');
         pendingSubmitMode = null;
@@ -2535,12 +2657,18 @@
         clearCart({ skipStatus: true });
         updateSendButtonState();
         closeOrderConfirmModal();
+        if($orderReviewSubmit.length){
+          $orderReviewSubmit.prop('disabled', false).text(orderReviewSubmitDefaultText);
+        }
         pendingSubmitMode = null;
         return;
       }
 
       isSubmitting = false;
       $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+      if($orderReviewSubmit.length){
+        $orderReviewSubmit.prop('disabled', false).text(orderReviewSubmitDefaultText);
+      }
       pendingSubmitMode = null;
     };
 
@@ -2578,6 +2706,114 @@
     setMeals(initialMeals);
     updateSendButtonState();
 
+    if(isReceiveEmbedded){
+      renderOrderConfirmContent();
+    }
+
+    function submitOrder(){
+      if(isSubmitting){ return; }
+
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        if(!currentTakeoutShop || !currentTakeoutShop.id){
+          setTakeoutStatus('請先輸入有效的店家代碼。', 'error');
+          if(!isReceiveEmbedded){
+            closeOrderConfirmModal();
+          }
+          return;
+        }
+      } else {
+        if(!currentTable || !currentTable.shopId){
+          setTableStatus('請先查詢有效的桌號後再下單。', 'error');
+          if(!isReceiveEmbedded){
+            closeOrderConfirmModal();
+          }
+          return;
+        }
+      }
+
+      if(!cartItems.length){
+        setStatusForMode(currentMode, '請先將餐點加入購物車。', 'error');
+        if(!isReceiveEmbedded){
+          closeOrderConfirmModal();
+        }
+        return;
+      }
+
+      isSubmitting = true;
+      $confirmSubmit.prop('disabled', true).text('送出中…');
+      if($orderReviewSubmit.length){
+        $orderReviewSubmit.prop('disabled', true).text('送出中…');
+      }
+
+      var missingMealId = cartItems.some(function(item){ return !item.mealId; });
+      if(missingMealId){
+        isSubmitting = false;
+        $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+        if($orderReviewSubmit.length){
+          $orderReviewSubmit.prop('disabled', false).text(orderReviewSubmitDefaultText);
+        }
+        setStatusForMode(currentMode, '餐點資料缺少，請重新選擇餐點。', 'error');
+        if(!isReceiveEmbedded){
+          closeOrderConfirmModal();
+        }
+        return;
+      }
+
+      var dto;
+      if(currentMode === ORDER_MODE_TAKEOUT){
+        var takeoutCode = $.trim($takeoutCodeInput.val() || '');
+        dto = {
+          shopId: currentTakeoutShop.id,
+          shopName: currentTakeoutShop.name,
+          tableId: null,
+          tableNumber: null,
+          tableZone: null,
+          takeoutCode: takeoutCode || null,
+          orderType: 'Takeout',
+          notes: null,
+          items: cartItems.map(function(item){
+            var note = (item.optionsNote || '').trim();
+            return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
+          })
+        };
+      } else {
+        dto = {
+          shopId: currentTable.shopId,
+          shopName: currentTable.shopName,
+          tableId: currentTable.tableId,
+          tableNumber: currentTable.number,
+          tableZone: currentTable.zone,
+          takeoutCode: null,
+          orderType: 'DineIn',
+          notes: null,
+          items: cartItems.map(function(item){
+            var note = (item.optionsNote || '').trim();
+            return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
+          })
+        };
+      }
+
+      pendingSubmitMode = currentMode;
+
+      hub.server.createOrder(dto)
+        .done(function(){
+          // 成功處理由 hub.client.orderChanged 接手
+        })
+        .fail(function(){
+          isSubmitting = false;
+          $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
+          if($orderReviewSubmit.length){
+            $orderReviewSubmit.prop('disabled', false).text(orderReviewSubmitDefaultText);
+          }
+          setStatusForMode(currentMode, '送出訂單時發生錯誤，請稍後再試。', 'error');
+          if(!isReceiveEmbedded){
+            closeOrderConfirmModal();
+          }
+        });
+
+      setStatusForMode(currentMode, '訂單送出中，請稍候…', '');
+    }
+
     $.connection.hub.start().done(function(){
       if(initialTable && initialTable.shopId){
         currentMealsShopId = String(initialTable.shopId || '');
@@ -2585,100 +2821,39 @@
         tryFillFromQuery();
       }
 
-      $sendButton.on('click', function(){
-        if(currentMode === ORDER_MODE_TAKEOUT){
-          if(!currentTakeoutShop || !currentTakeoutShop.id){
-            setTakeoutStatus('請先輸入有效的店家代碼。', 'error');
+      if(!isReceiveEmbedded && $sendButton.length){
+        $sendButton.on('click', function(){
+          if(currentMode === ORDER_MODE_TAKEOUT){
+            if(!currentTakeoutShop || !currentTakeoutShop.id){
+              setTakeoutStatus('請先輸入有效的店家代碼。', 'error');
+              return;
+            }
+          } else {
+            if(!currentTable || !currentTable.shopId){
+              setTableStatus('請先查詢有效的桌號後再下單。', 'error');
+              return;
+            }
+          }
+
+          if(!cartItems.length){
+            setStatusForMode(currentMode, '請先將餐點加入購物車。', 'error');
             return;
           }
-        } else {
-          if(!currentTable || !currentTable.shopId){
-            setTableStatus('請先查詢有效的桌號後再下單。', 'error');
-            return;
-          }
-        }
 
-        if(!cartItems.length){
-          setStatusForMode(currentMode, '請先將餐點加入購物車。', 'error');
-          return;
-        }
-
-        openOrderConfirmModal();
-      });
+          openOrderConfirmModal();
+        });
+      }
 
       $confirmSubmit.on('click', function(){
-        if(isSubmitting){ return; }
-
-        if(currentMode === ORDER_MODE_TAKEOUT){
-          if(!currentTakeoutShop || !currentTakeoutShop.id){
-            setTakeoutStatus('請先輸入有效的店家代碼。', 'error');
-            closeOrderConfirmModal();
-            return;
-          }
-        } else {
-          if(!currentTable || !currentTable.shopId){
-            setTableStatus('請先查詢有效的桌號後再下單。', 'error');
-            closeOrderConfirmModal();
-            return;
-          }
-        }
-
-        if(!cartItems.length){
-          setStatusForMode(currentMode, '請先將餐點加入購物車。', 'error');
-          closeOrderConfirmModal();
-          return;
-        }
-
-        isSubmitting = true;
-        $confirmSubmit.prop('disabled', true).text('送出中…');
-
-        var missingMealId = cartItems.some(function(item){ return !item.mealId; });
-        if(missingMealId){
-          isSubmitting = false;
-          $confirmSubmit.prop('disabled', false).text(confirmSubmitDefaultText);
-          setStatusForMode(currentMode, '餐點資料缺少，請重新選擇餐點。', 'error');
-          closeOrderConfirmModal();
-          return;
-        }
-
-        var dto;
-        if(currentMode === ORDER_MODE_TAKEOUT){
-          var takeoutCode = $.trim($takeoutCodeInput.val() || '');
-          dto = {
-            shopId: currentTakeoutShop.id,
-            shopName: currentTakeoutShop.name,
-            tableId: null,
-            tableNumber: null,
-            tableZone: null,
-            takeoutCode: takeoutCode || null,
-            orderType: 'Takeout',
-            notes: null,
-            items: cartItems.map(function(item){
-              var note = (item.optionsNote || '').trim();
-              return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
-            })
-          };
-        } else {
-          dto = {
-            shopId: currentTable.shopId,
-            shopName: currentTable.shopName,
-            tableId: currentTable.tableId,
-            tableNumber: currentTable.number,
-            tableZone: currentTable.zone,
-            takeoutCode: null,
-            orderType: 'DineIn',
-            notes: null,
-            items: cartItems.map(function(item){
-              var note = (item.optionsNote || '').trim();
-              return { mealId: item.mealId, name: item.name, qty: item.qty, price: item.price, notes: note || null };
-            })
-          };
-        }
-
-        pendingSubmitMode = currentMode;
-        hub.server.createOrder(dto);
-        setStatusForMode(currentMode, '訂單送出中，請稍候…', '');
+        submitOrder();
       });
+
+      if($orderReviewSubmit.length){
+        $orderReviewSubmit.on('click', function(){
+          renderOrderConfirmContent();
+          submitOrder();
+        });
+      }
     }).fail(function(){
       setTableStatus('SignalR 連線失敗，請重新整理頁面。', 'error');
     });

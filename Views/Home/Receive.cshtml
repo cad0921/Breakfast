@@ -620,7 +620,7 @@
                 </div>
             </section>
             <section class="panel receive-order-panel page-mode-panel" data-page-mode-panel="order" aria-hidden="true">
-                <iframe class="order-frame" id="orderFrame" title="點餐畫面" src='@Url.Action("Order")' loading="lazy"></iframe>
+                <iframe class="order-frame" id="orderFrame" title="點餐畫面" src='@Url.Action("Order", new { view = "receive" })' loading="lazy"></iframe>
             </section>
         </main>
     </div>
@@ -628,7 +628,7 @@
         (function () {
             var hub = $.connection.ordersHub;
             var shopInfoUrl = '@Url.Action("ShopInfo")';
-            var orderPageUrl = '@Url.Action("Order")';
+            var orderPageUrl = '@Url.Action("Order", new { view = "receive" })';
             var initialShopId = '@Html.Raw(HttpUtility.JavaScriptStringEncode(initialShopId ?? string.Empty))';
             var hasInitialShop = initialShopId.length > 0;
             var blankClass = 'state-blank';
