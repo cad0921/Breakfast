@@ -1157,55 +1157,9 @@
                     <h1 id="pageTitle">下單頁</h1>
                     <span class="order-header__subtitle">選擇餐點並送出訂單</span>
                 </div>
-                <div class="order-header__controls">
-                    <div class="order-mode-switch" role="tablist" aria-label="用餐方式">
-                        <button type="button" class="order-mode-btn is-active" data-order-mode="dineIn" aria-pressed="true">內用</button>
-                        <button type="button" class="order-mode-btn" data-order-mode="takeout" aria-pressed="false">外帶</button>
-                    </div>
-                </div>
+                <div class="order-header__controls"></div>
             </header>
             <main class="order-main" role="main">
-@if(!isReceiveEmbedded)
-{
-                <section class="order-context panel" aria-labelledby="orderModeTitle">
-                    <div class="section-header">
-                        <h2 id="orderModeTitle">訂餐設定</h2>
-                        <span class="section-note">選擇用餐方式與連線店家</span>
-                    </div>
-                    <div class="order-context-body">
-                        <div class="order-mode-panels">
-                            <div class="order-mode-panel is-active" data-order-mode-panel="dineIn">
-                                <form id="tableLookupForm" class="order-form" aria-label="桌號查詢">
-                                    <label for="tableNumberInput" class="order-form-label">桌號</label>
-                                    <div class="order-form-controls">
-                                        <input type="number" id="tableNumberInput" min="1" class="order-form-input" placeholder="輸入桌號">
-                                        <button type="submit" class="order-form-submit">查詢桌號</button>
-                                    </div>
-                                </form>
-                                <div class="table-summary" id="tableSummary" aria-live="polite">
-                                    <div class="table-summary-status" id="tableStatus"></div>
-                                    <div class="table-summary-detail is-hidden" id="tableDetail"></div>
-                                </div>
-                            </div>
-                            <div class="order-mode-panel" data-order-mode-panel="takeout">
-                                <form id="takeoutShopForm" class="order-form" aria-label="店家查詢">
-                                    <label for="takeoutShopInput" class="order-form-label">店家代碼</label>
-                                    <div class="order-form-controls">
-                                        <input type="text" id="takeoutShopInput" class="order-form-input" placeholder="輸入店家代碼">
-                                        <button type="submit" class="order-form-submit" id="takeoutShopSubmit">載入餐點</button>
-                                    </div>
-                                </form>
-                                <div class="table-summary" id="takeoutSummary" aria-live="polite">
-                                    <div class="table-summary-status" id="takeoutStatus"></div>
-                                    <div class="table-summary-detail is-hidden" id="takeoutDetail"></div>
-                                </div>
-                                <label for="takeoutCodeInput" class="order-form-label">外帶代碼（選填）</label>
-                                <input type="text" id="takeoutCodeInput" class="order-form-input" placeholder="例如：A01">
-                            </div>
-                        </div>
-                    </div>
-                </section>
-}
                 <section class="order-layout@(isReceiveEmbedded ? " order-layout--review" : string.Empty)">
                     <div class="order-layout-main">
                         <section class="meal-panel panel" aria-labelledby="mealSectionTitle">
@@ -1217,22 +1171,6 @@
                             <div class="meal-list" id="mealList" aria-live="polite"></div>
                         </section>
                     </div>
-@if(!isReceiveEmbedded)
-{
-                    <aside class="cart-panel panel" aria-labelledby="cartTitle">
-                        <div class="section-header">
-                            <h2 id="cartTitle">購物車</h2>
-                            <span class="section-note">檢視已加入的餐點</span>
-                        </div>
-                        <div class="cart-summary" id="cartSummary">尚未選擇餐點</div>
-                        <div class="cart-list" id="cartList"></div>
-                        <div class="cart-empty" id="cartEmpty">請先選擇餐點。</div>
-                        <div class="cart-footer">
-                            <div class="cart-total" id="cartTotal">NT$ 0</div>
-                            <button type="button" class="cart-clear" id="clearCart" disabled>清空</button>
-                        </div>
-                    </aside>
-}
 @if(isReceiveEmbedded)
 {
                     <section class="order-review panel" aria-labelledby="orderReviewTitle">

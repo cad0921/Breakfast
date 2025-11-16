@@ -117,50 +117,6 @@
             min-height: 0;
         }
 
-        .page-mode-switch {
-            display: inline-flex;
-            gap: .65rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .page-mode-btn {
-            border: 1px solid rgba(148, 163, 184, 0.4);
-            background: #fff;
-            color: #475569;
-            border-radius: 999px;
-            padding: .5rem 1.4rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
-        }
-
-            .page-mode-btn.is-active {
-                background: #2563eb;
-                border-color: #2563eb;
-                color: #fff;
-                box-shadow: 0 14px 28px rgba(37, 99, 235, 0.2);
-            }
-
-        .page-mode-panel {
-            display: none;
-        }
-
-            .page-mode-panel.is-active {
-                display: block;
-            }
-
-        .receive-order-panel {
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .order-frame {
-            width: 100%;
-            height: 80vh;
-            border: none;
-            border-radius: 1.5rem;
-        }
-
         .shop-card {
             position: relative;
             padding: 1.1rem 1.35rem;
@@ -601,11 +557,7 @@
         </form>
 
         <main class="page" id="receiveShell" aria-hidden="@(hasInitialShopId ? "false" : "true")">
-            <div class="page-mode-switch" role="tablist" aria-label="功能切換">
-                <button type="button" class="page-mode-btn is-active" data-page-mode="receive" aria-pressed="true">訂單列表</button>
-                <button type="button" class="page-mode-btn" data-page-mode="order" aria-pressed="false">點餐畫面</button>
-            </div>
-            <section class="panel page-mode-panel is-active" id="mainPanel" data-page-mode-panel="receive" aria-hidden="false">
+            <section class="panel" id="mainPanel" aria-hidden="false">
                 <div class="panel-body">
                     <div class="panel-orders">
                         <div class="orders-filters" role="tablist" aria-label="訂單狀態篩選">
@@ -619,16 +571,12 @@
                     </div>
                 </div>
             </section>
-            <section class="panel receive-order-panel page-mode-panel" data-page-mode-panel="order" aria-hidden="true">
-                <iframe class="order-frame" id="orderFrame" title="點餐畫面" src='@Url.Action("Order", new { view = "receive" })' loading="lazy"></iframe>
-            </section>
         </main>
     </div>
     <script>
         (function () {
             var hub = $.connection.ordersHub;
             var shopInfoUrl = '@Url.Action("ShopInfo")';
-            var orderPageUrl = '@Url.Action("Order", new { view = "receive" })';
             var initialShopId = '@Html.Raw(HttpUtility.JavaScriptStringEncode(initialShopId ?? string.Empty))';
             var hasInitialShop = initialShopId.length > 0;
             var blankClass = 'state-blank';
@@ -642,16 +590,9 @@
             var $shopIdentifier = $('#shopIdentifier');
             var $shopSelector = $('#shopSelector');
             var $shopInput = $('#shopInput');
-            var $pageModeButtons = $('[data-page-mode]');
-            var $pageModePanels = $('[data-page-mode-panel]');
-            var $orderFrame = $('#orderFrame');
             var isHubReady = false;
             var hasOrders = false;
             var currentShop = null;
-            var currentPageMode = 'receive';
-            var currentOrderFrameSrc = null;
-            var PAGE_MODE_RECEIVE = 'receive';
-            var PAGE_MODE_ORDER = 'order';
             var orderStatusTextMap = {
                 Pending: '待處理',
                 Preparing: '準備中',
@@ -751,78 +692,6 @@
 
             setStatusFilter(currentStatusFilterKey);
 
-            function buildOrderFrameSrc(shopId) {
-                var base = orderPageUrl;
-                var trimmed = $.trim(shopId || '');
-                if (!trimmed) {
-                    return base;
-                }
-
-                var separator = base.indexOf('?') === -1 ? '?' : '&';
-                return base + separator + 'shop=' + encodeURIComponent(trimmed);
-            }
-
-            function refreshOrderFrame(options) {
-                options = options || {};
-                if (!$orderFrame.length) {
-                    return;
-                }
-
-                var targetShopId;
-                if (options.hasOwnProperty('shopId')) {
-                    targetShopId = options.shopId;
-                } else if (currentShop && currentShop.rawId) {
-                    targetShopId = currentShop.rawId;
-                } else {
-                    targetShopId = null;
-                }
-
-                if (targetShopId) {
-                    targetShopId = $.trim(targetShopId);
-                }
-
-                var targetSrc = buildOrderFrameSrc(targetShopId);
-                if (options.force === true || currentOrderFrameSrc !== targetSrc) {
-                    currentOrderFrameSrc = targetSrc;
-                    $orderFrame.attr('src', targetSrc);
-                }
-            }
-
-            function setPageMode(mode, options) {
-                options = options || {};
-                var targetMode = mode === PAGE_MODE_ORDER ? PAGE_MODE_ORDER : PAGE_MODE_RECEIVE;
-                if (currentPageMode === targetMode && options.force !== true && options.forceRefresh !== true) {
-                    return;
-                }
-
-                currentPageMode = targetMode;
-
-                if ($pageModeButtons && $pageModeButtons.length) {
-                    $pageModeButtons.removeClass('is-active').attr('aria-pressed', 'false');
-                    $pageModeButtons.filter('[data-page-mode="' + targetMode + '"]').addClass('is-active').attr('aria-pressed', 'true');
-                }
-
-                if ($pageModePanels && $pageModePanels.length) {
-                    $pageModePanels.each(function () {
-                        var $panel = $(this);
-                        var panelMode = $panel.data('page-mode-panel');
-                        var isActive = panelMode === targetMode;
-                        $panel.toggleClass('is-active', isActive).attr('aria-hidden', isActive ? 'false' : 'true');
-                    });
-                }
-
-                if (targetMode === PAGE_MODE_ORDER) {
-                    refreshOrderFrame({ force: options.forceRefresh === true });
-                }
-            }
-
-            if ($pageModeButtons && $pageModeButtons.length) {
-                $pageModeButtons.on('click', function () {
-                    var mode = $(this).data('page-mode');
-                    setPageMode(mode);
-                });
-            }
-
             if ($shopSelector && $shopSelector.length) {
                 $shopSelector.on('submit', function (event) {
                     event.preventDefault();
@@ -830,12 +699,6 @@
                     subscribeToShop(value);
                 });
             }
-
-            if (!$orderFrame.length) {
-                currentOrderFrameSrc = null;
-            }
-
-            setPageMode(currentPageMode, { force: true, forceRefresh: true });
 
             function isInterfaceVisible() {
                 return !$body.hasClass(blankClass);
