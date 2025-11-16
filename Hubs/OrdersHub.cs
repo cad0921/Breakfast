@@ -15,6 +15,36 @@ namespace BreakFastShop.Hubs
 
         private static string BuildShopGroupName(Guid shopId) => $"shop:{shopId:D}";
 
+        private static async Task<string> GenerateTakeoutCodeAsync(SqlConnection connection, SqlTransaction transaction, Guid shopId, DateTime utcNow)
+        {
+            var startOfDay = utcNow.Date;
+            var endOfDay = startOfDay.AddDays(1);
+
+            const string nextCodeSql = @"SELECT MAX(TRY_CAST(TakeoutCode AS INT))
+                                       FROM Orders
+                                       WHERE ShopId=@ShopId AND OrderType='Takeout' AND CreatedAt>=@StartOfDay AND CreatedAt<@EndOfDay;";
+
+            using (var command = new SqlCommand(nextCodeSql, connection, transaction))
+            {
+                command.Parameters.AddWithValue("@ShopId", shopId);
+                command.Parameters.AddWithValue("@StartOfDay", startOfDay);
+                command.Parameters.AddWithValue("@EndOfDay", endOfDay);
+
+                var result = await command.ExecuteScalarAsync();
+                var nextNumber = 1;
+
+                if (result != null && result != DBNull.Value)
+                {
+                    if (int.TryParse(result.ToString(), out var lastNumber) && lastNumber > 0)
+                    {
+                        nextNumber = lastNumber + 1;
+                    }
+                }
+
+                return nextNumber.ToString("D4");
+            }
+        }
+
         private static IReadOnlyList<OrderItemDto> NormalizeItems(IEnumerable<OrderItemDto> items, out bool hasInvalid)
         {
             hasInvalid = false;
@@ -131,6 +161,11 @@ namespace BreakFastShop.Hubs
                     await connection.OpenAsync();
                     using (var transaction = connection.BeginTransaction())
                     {
+                        if (orderType == "Takeout" && string.IsNullOrWhiteSpace(takeoutCode))
+                        {
+                            takeoutCode = await GenerateTakeoutCodeAsync(connection, transaction, dto.ShopId, now);
+                        }
+
                         using (var orderCommand = new SqlCommand(insertOrderSql, connection, transaction))
                         {
                             orderCommand.Parameters.AddWithValue("@Id", orderId);
