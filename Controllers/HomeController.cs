@@ -342,5 +342,59 @@ namespace BreakFastShop.Controllers
                 return Json(new { ok = false, error = "查詢餐點時發生錯誤。" }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpGet]
+        public async Task<ActionResult> ShopTables(Guid? shopId)
+        {
+            if (!shopId.HasValue || shopId.Value == Guid.Empty)
+            {
+                Response.StatusCode = 400;
+                return Json(new { ok = false, error = "店家識別碼無效。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var connStr = ConnStr;
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                Response.StatusCode = 500;
+                return Json(new { ok = false, error = "尚未設定資料庫連線字串。" }, JsonRequestBehavior.AllowGet);
+            }
+
+            const string sql = @"SELECT Id,Number,Zone
+                                 FROM [Table]
+                                 WHERE ShopId=@ShopId AND IsActive=1
+                                 ORDER BY Number";
+
+            try
+            {
+                using (var connection = new SqlConnection(connStr))
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@ShopId", shopId.Value);
+
+                    await connection.OpenAsync();
+
+                    var list = new List<object>();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            list.Add(new
+                            {
+                                id = reader.GetGuid(0),
+                                number = reader.GetInt32(1),
+                                zone = reader.IsDBNull(2) ? null : reader.GetString(2)
+                            });
+                        }
+                    }
+
+                    return Json(new { ok = true, items = list }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch
+            {
+                Response.StatusCode = 500;
+                return Json(new { ok = false, error = "查詢桌號時發生錯誤。" }, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }

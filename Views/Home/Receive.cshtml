@@ -528,6 +528,262 @@
                 padding: .9rem 1rem;
             }
         }
+
+        .mode-switch {
+            display: inline-flex;
+            padding: .35rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.06);
+            gap: .35rem;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+            .mode-switch button {
+                border: none;
+                background: transparent;
+                padding: .55rem 1.15rem;
+                border-radius: 999px;
+                font-weight: 700;
+                letter-spacing: .02em;
+                color: #475569;
+                cursor: pointer;
+                transition: all .18s ease;
+            }
+
+            .mode-switch button.is-active {
+                background: linear-gradient(135deg, #2563eb, #4f46e5);
+                color: #fff;
+                box-shadow: 0 10px 26px rgba(37, 99, 235, 0.25);
+            }
+
+        .order-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .order-status {
+            border-radius: 12px;
+            padding: .75rem 1rem;
+            background: rgba(59, 130, 246, 0.08);
+            color: #1d4ed8;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.22);
+        }
+
+            .order-status.is-error {
+                background: rgba(248, 113, 113, 0.12);
+                color: #b91c1c;
+                border-color: rgba(248, 113, 113, 0.32);
+            }
+
+            .order-status.is-success {
+                background: rgba(34, 197, 94, 0.12);
+                color: #15803d;
+                border-color: rgba(34, 197, 94, 0.32);
+            }
+
+        .order-grid {
+            display: grid;
+            grid-template-columns: 1.3fr .85fr;
+            gap: 1.1rem;
+        }
+
+        .order-form-section {
+            background: rgba(248, 250, 252, 0.9);
+            border-radius: 1.35rem;
+            padding: 1.1rem 1.25rem;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+        }
+
+        .order-form-section h3 {
+            margin: 0 0 .6rem;
+            font-size: 1.05rem;
+            letter-spacing: .01em;
+            color: #0f172a;
+        }
+
+        .order-type-toggle {
+            display: inline-flex;
+            gap: .65rem;
+            padding: .35rem;
+            border-radius: 999px;
+            background: #e2e8f0;
+        }
+
+            .order-type-toggle button {
+                border: none;
+                background: transparent;
+                padding: .45rem 1.1rem;
+                border-radius: 999px;
+                font-weight: 700;
+                cursor: pointer;
+                color: #475569;
+            }
+
+            .order-type-toggle button.is-active {
+                background: #fff;
+                color: #1e293b;
+                box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+            }
+
+        .order-field {
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+            margin-top: .75rem;
+        }
+
+        .order-field label {
+            font-size: .95rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .order-field input,
+        .order-field select,
+        .order-field textarea {
+            padding: .65rem .75rem;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            font-size: 1rem;
+        }
+
+        .order-field textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .order-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: .85rem;
+        }
+
+        .order-menu-section {
+            display: flex;
+            flex-direction: column;
+            gap: .45rem;
+        }
+
+            .order-menu-section h4 {
+                margin: 0;
+                color: #0f172a;
+            }
+
+        .meal-card {
+            background: #fff;
+            border-radius: 1rem;
+            padding: .85rem .95rem;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+        }
+
+            .meal-card h4 {
+                margin: 0;
+                font-size: 1.05rem;
+            }
+
+            .meal-card .meal-meta {
+                font-size: .9rem;
+                color: #475569;
+            }
+
+            .meal-card button {
+                align-self: flex-start;
+                border: none;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: #fff;
+                padding: .45rem .85rem;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+        .order-cart {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 1.35rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+            box-shadow: 0 18px 30px rgba(15, 23, 42, 0.35);
+        }
+
+        .order-cart h3 {
+            margin: 0;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: .35rem;
+            padding: .6rem .65rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .cart-item-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+            .cart-item-controls button {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.08);
+                color: #fff;
+                cursor: pointer;
+                font-weight: 800;
+            }
+
+        .cart-empty {
+            color: #cbd5e1;
+        }
+
+        .order-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .65rem;
+            flex-wrap: wrap;
+        }
+
+        .order-submit {
+            border: none;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: #fff;
+            border-radius: 12px;
+            padding: .75rem 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 16px 30px rgba(99, 102, 241, 0.3);
+        }
+
+            .order-submit:disabled {
+                opacity: .65;
+                cursor: not-allowed;
+                box-shadow: none;
+            }
+
+        .order-total {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        @@media (max-width: 1024px) {
+            .order-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body class="@bodyStateClass">
@@ -547,6 +803,11 @@
             </div>
             <div class="@statusClass" id="status">@initialStatusText</div>
         </header>
+
+        <div class="mode-switch" role="tablist" aria-label="頁面模式" id="modeSwitch">
+            <button type="button" class="is-active" data-mode="receive" aria-pressed="true">接收訂單</button>
+            <button type="button" data-mode="order" aria-pressed="false">點餐</button>
+        </div>
 
         <form class="shop-selector" id="shopSelector" novalidate autocomplete="off">
             <label for="shopInput">切換店家</label>
@@ -571,6 +832,64 @@
                     </div>
                 </div>
             </section>
+
+            <section class="panel order-panel" id="orderPanel" aria-hidden="true" style="display:none;">
+                <div class="panel-body">
+                    <div class="order-status" id="orderStatus" aria-live="polite">尚未選擇店家，請先於上方輸入店家代碼。</div>
+
+                    <div class="order-grid">
+                        <div class="order-form-section">
+                            <h3 id="orderShopTitle">選擇店家以開始點餐</h3>
+                            <div class="order-field">
+                                <label>訂單類型</label>
+                                <div class="order-type-toggle" id="orderTypeToggle" role="group" aria-label="選擇訂單類型">
+                                    <button type="button" class="is-active" data-type="DineIn" aria-pressed="true">內用</button>
+                                    <button type="button" data-type="Takeout" aria-pressed="false">外帶</button>
+                                </div>
+                            </div>
+
+                            <div class="order-field" id="tableSelectorField">
+                                <label for="orderTableSelect">選擇桌號</label>
+                                <select id="orderTableSelect" disabled>
+                                    <option value="">請先選擇店家</option>
+                                </select>
+                            </div>
+
+                            <div class="order-field" id="takeoutCodeField" style="display:none;">
+                                <label for="takeoutCodeInput">外帶代號（選填）</label>
+                                <input type="text" id="takeoutCodeInput" maxlength="40" placeholder="例：A001" />
+                            </div>
+
+                            <div class="order-field">
+                                <label for="orderNotes">備註</label>
+                                <textarea id="orderNotes" placeholder="想說的話寫在這裡"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="order-form-section">
+                            <h3>餐點選單</h3>
+                            <div class="order-menu" id="orderMenu">
+                                <div class="orders-empty">尚未載入餐點。</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-cart" aria-live="polite">
+                        <h3>購物車</h3>
+                        <div id="cartItems">
+                            <div class="cart-empty">尚未選擇餐點。</div>
+                        </div>
+                        <div class="order-field">
+                            <label for="cartNotes">餐點備註（套用於整張訂單）</label>
+                            <textarea id="cartNotes" placeholder="例如：不要香菜、少冰"></textarea>
+                        </div>
+                        <div class="order-actions">
+                            <div class="order-total" id="orderTotal">合計：NT$ 0</div>
+                            <button class="order-submit" id="submitOrder" disabled>送出訂單</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
     <script>
@@ -590,9 +909,41 @@
             var $shopIdentifier = $('#shopIdentifier');
             var $shopSelector = $('#shopSelector');
             var $shopInput = $('#shopInput');
+            var $modeSwitch = $('#modeSwitch');
+            var $modeButtons = $modeSwitch.find('button');
+            var $receivePanel = $('#mainPanel');
+            var $orderPanel = $('#orderPanel');
+            var $orderStatus = $('#orderStatus');
+            var $orderMenu = $('#orderMenu');
+            var $orderShopTitle = $('#orderShopTitle');
+            var $orderTableSelect = $('#orderTableSelect');
+            var $tableSelectorField = $('#tableSelectorField');
+            var $takeoutCodeField = $('#takeoutCodeField');
+            var $takeoutCodeInput = $('#takeoutCodeInput');
+            var $orderTypeToggle = $('#orderTypeToggle');
+            var $orderNotes = $('#orderNotes');
+            var $cartNotes = $('#cartNotes');
+            var $cartItems = $('#cartItems');
+            var $orderTotal = $('#orderTotal');
+            var $submitOrder = $('#submitOrder');
             var isHubReady = false;
             var hasOrders = false;
             var currentShop = null;
+            var currentMode = 'receive';
+            var orderShopInfo = null;
+            var orderState = {
+                shopId: hasInitialShop ? initialShopId : null,
+                normalizedShopId: hasInitialShop ? initialShopId.toLowerCase() : null,
+                shopName: '',
+                tables: [],
+                categories: [],
+                meals: [],
+                cart: {},
+                orderType: 'DineIn',
+                selectedTable: null
+            };
+            var shopMealsUrl = '@Url.Action("ShopMeals")';
+            var shopTablesUrl = '@Url.Action("ShopTables")';
             var orderStatusTextMap = {
                 Pending: '待處理',
                 Preparing: '準備中',
@@ -684,21 +1035,541 @@
                 applyStatusFilter();
             }
 
-            $filterButtons = $('.orders-filter-btn');
-            $filterButtons.on('click', function () {
-                var key = $(this).data('filter');
-                setStatusFilter(key);
-            });
+              $filterButtons = $('.orders-filter-btn');
+              $filterButtons.on('click', function () {
+                  var key = $(this).data('filter');
+                  setStatusFilter(key);
+              });
 
-            setStatusFilter(currentStatusFilterKey);
+              setStatusFilter(currentStatusFilterKey);
 
-            if ($shopSelector && $shopSelector.length) {
-                $shopSelector.on('submit', function (event) {
-                    event.preventDefault();
-                    var value = $shopInput.length ? $shopInput.val() : '';
-                    subscribeToShop(value);
-                });
-            }
+              function setMode(mode) {
+                  var target = mode === 'order' ? 'order' : 'receive';
+                  currentMode = target;
+
+                  if ($modeButtons && $modeButtons.length) {
+                      $modeButtons.removeClass('is-active').attr('aria-pressed', 'false');
+                      $modeButtons.filter('[data-mode="' + target + '"]').addClass('is-active').attr('aria-pressed', 'true');
+                  }
+
+                  var isOrderMode = target === 'order';
+                  $orderPanel.toggle(isOrderMode).attr('aria-hidden', isOrderMode ? 'false' : 'true');
+                  $receivePanel.toggle(!isOrderMode).attr('aria-hidden', isOrderMode ? 'true' : 'false');
+              }
+
+              if ($modeButtons && $modeButtons.length) {
+                  $modeButtons.on('click', function () {
+                      var target = $(this).data('mode');
+                      setMode(target);
+                  });
+              }
+
+              function setOrderStatus(message, type) {
+                  type = type || 'info';
+                  var text = $.trim(message || '');
+
+                  if (!$orderStatus || !$orderStatus.length) {
+                      return;
+                  }
+
+                  $orderStatus.removeClass('is-error is-success');
+
+                  if (!text) {
+                      $orderStatus.text('');
+                      return;
+                  }
+
+                  $orderStatus.text(text);
+
+                  if (type === 'error') {
+                      $orderStatus.addClass('is-error');
+                  } else if (type === 'success') {
+                      $orderStatus.addClass('is-success');
+                  }
+              }
+
+              function resetOrderPanel(options) {
+                  options = options || {};
+                  orderState.cart = {};
+                  orderState.tables = [];
+                  orderState.meals = [];
+                  orderState.categories = [];
+                  orderState.selectedTable = null;
+
+                  if ($orderMenu && $orderMenu.length) {
+                      $orderMenu.empty().append($('<div class="orders-empty"/>').text('尚未載入餐點。'));
+                  }
+
+                  if ($orderTableSelect && $orderTableSelect.length) {
+                      $orderTableSelect.prop('disabled', true).empty();
+                      $orderTableSelect.append($('<option/>').text(options.tablePlaceholder || '請先選擇店家').val(''));
+                  }
+
+                  if ($orderShopTitle && $orderShopTitle.length) {
+                      $orderShopTitle.text(options.shopTitle || '選擇店家以開始點餐');
+                  }
+
+                  renderCart();
+                  updateSubmitState();
+
+                  if (!options.silent) {
+                      setOrderStatus('尚未選擇店家，請先於上方輸入店家代碼。');
+                  }
+              }
+
+              function updateSubmitState() {
+                  var hasItems = Object.keys(orderState.cart || {}).length > 0;
+                  var requiresTable = orderState.orderType !== 'Takeout';
+                  var hasTable = !requiresTable || (orderState.selectedTable && orderState.selectedTable.id);
+                  var canSubmit = hasItems && hasTable;
+
+                  if ($submitOrder && $submitOrder.length) {
+                      $submitOrder.prop('disabled', !canSubmit);
+                  }
+              }
+
+              function renderCart() {
+                  if (!$cartItems || !$cartItems.length) {
+                      return;
+                  }
+
+                  $cartItems.empty();
+                  var total = 0;
+                  var entries = [];
+
+                  Object.keys(orderState.cart || {}).forEach(function (key) {
+                      var item = orderState.cart[key];
+                      if (!item || item.qty <= 0) {
+                          return;
+                      }
+
+                      entries.push(item);
+                  });
+
+                  if (!entries.length) {
+                      $cartItems.append($('<div class="cart-empty"/>').text('尚未選擇餐點。'));
+                      $orderTotal.text('合計：NT$ 0');
+                      updateSubmitState();
+                      return;
+                  }
+
+                  entries.forEach(function (item) {
+                      var lineTotal = (Number(item.price) || 0) * (Number(item.qty) || 0);
+                      total += lineTotal;
+
+                      var $row = $('<div class="cart-item"/>');
+                      var $info = $('<div/>');
+                      $info.append($('<div/>').text(item.name || '餐點'));
+                      $info.append($('<div class="meal-meta"/>').text('單價：' + formatCurrency(item.price)));
+                      $row.append($info);
+
+                      var $controls = $('<div class="cart-item-controls"/>');
+                      var $minus = $('<button type="button" aria-label="減少">-</button>');
+                      var $qty = $('<span/>').text('× ' + item.qty);
+                      var $plus = $('<button type="button" aria-label="增加">+</button>');
+
+                      $minus.on('click', function () {
+                          changeCartQuantity(item.id, -1);
+                      });
+
+                      $plus.on('click', function () {
+                          changeCartQuantity(item.id, 1);
+                      });
+
+                      $controls.append($minus, $qty, $plus);
+                      $row.append($controls);
+                      $cartItems.append($row);
+                  });
+
+                  $orderTotal.text('合計：' + formatCurrency(total));
+                  updateSubmitState();
+              }
+
+              function changeCartQuantity(id, delta) {
+                  if (!id || !delta) {
+                      return;
+                  }
+
+                  var key = id.toString();
+                  var item = orderState.cart[key];
+                  if (!item) {
+                      return;
+                  }
+
+                  var nextQty = (Number(item.qty) || 0) + delta;
+                  if (nextQty <= 0) {
+                      delete orderState.cart[key];
+                  } else {
+                      item.qty = nextQty;
+                  }
+
+                  renderCart();
+              }
+
+              function addItemToCart(meal) {
+                  if (!meal || !meal.id) {
+                      return;
+                  }
+
+                  var id = meal.id.toString();
+                  var price = Number(meal.money || meal.price || 0) || 0;
+                  var existing = orderState.cart[id] || { id: id, name: meal.name || '餐點', price: price, qty: 0 };
+                  existing.price = price;
+                  existing.name = meal.name || existing.name;
+                  existing.qty = (Number(existing.qty) || 0) + 1;
+                  orderState.cart[id] = existing;
+
+                  renderCart();
+              }
+
+              function updateOrderType(type) {
+                  var orderType = type === 'Takeout' ? 'Takeout' : 'DineIn';
+                  orderState.orderType = orderType;
+
+                  if ($orderTypeToggle && $orderTypeToggle.length) {
+                      $orderTypeToggle.find('button').removeClass('is-active').attr('aria-pressed', 'false');
+                      $orderTypeToggle.find('button[data-type="' + orderType + '"]').addClass('is-active').attr('aria-pressed', 'true');
+                  }
+
+                  if (orderType === 'Takeout') {
+                      $tableSelectorField.hide();
+                      $takeoutCodeField.show();
+                  } else {
+                      $tableSelectorField.show();
+                      $takeoutCodeField.hide();
+                  }
+
+                  updateSubmitState();
+              }
+
+              if ($orderTypeToggle && $orderTypeToggle.length) {
+                  $orderTypeToggle.find('button').on('click', function () {
+                      var type = $(this).data('type');
+                      updateOrderType(type);
+                  });
+              }
+
+              function renderMenu() {
+                  if (!$orderMenu || !$orderMenu.length) {
+                      return;
+                  }
+
+                  $orderMenu.empty();
+
+                  if (!orderState.meals || !orderState.meals.length) {
+                      $orderMenu.append($('<div class="orders-empty"/>').text('目前沒有可用餐點。'));
+                      return;
+                  }
+
+                  var categoryMap = {};
+                  (orderState.categories || []).forEach(function (cat) {
+                      var key = (cat.id || 'uncategorized').toString();
+                      categoryMap[key] = cat.name || '其他';
+                  });
+
+                  var grouped = {};
+                  orderState.meals.forEach(function (meal) {
+                      var key = meal.categoryId ? meal.categoryId.toString() : 'uncategorized';
+                      if (!grouped[key]) {
+                          grouped[key] = [];
+                      }
+                      grouped[key].push(meal);
+                  });
+
+                  Object.keys(grouped).forEach(function (key) {
+                      var meals = grouped[key];
+                      if (!meals || !meals.length) {
+                          return;
+                      }
+
+                      var title = categoryMap[key] || '其他';
+                      var $section = $('<div class="order-menu-section"/>');
+                      $section.append($('<h4/>').text(title));
+
+                      meals.forEach(function (meal) {
+                          var $card = $('<div class="meal-card"/>');
+                          $card.append($('<h4/>').text(meal.name || '餐點'));
+                          $card.append($('<div class="meal-meta"/>').text(formatCurrency(meal.money)));
+                          if (meal.element) {
+                              $card.append($('<div class="meal-meta"/>').text(meal.element));
+                          }
+                          var $btn = $('<button type="button"/>').text('加入').on('click', function () {
+                              addItemToCart(meal);
+                          });
+                          $card.append($btn);
+                          $section.append($card);
+                      });
+
+                      $orderMenu.append($section);
+                  });
+              }
+
+              function updateTableOptions(tables) {
+                  if (!$orderTableSelect || !$orderTableSelect.length) {
+                      return;
+                  }
+
+                  $orderTableSelect.empty();
+                  orderState.selectedTable = null;
+
+                  if (!tables || !tables.length) {
+                      $orderTableSelect.append($('<option/>').val('').text('沒有可用桌號'));
+                      $orderTableSelect.prop('disabled', true);
+                      updateSubmitState();
+                      return;
+                  }
+
+                  $orderTableSelect.append($('<option/>').val('').text('請選擇桌號'));
+                  tables.forEach(function (table) {
+                      var label = '桌號 ' + table.number;
+                      if (table.zone) {
+                          label += '（' + table.zone + '）';
+                      }
+
+                      var $option = $('<option/>')
+                          .val(table.id)
+                          .text(label)
+                          .attr('data-number', table.number)
+                          .attr('data-zone', table.zone || '');
+
+                      $orderTableSelect.append($option);
+                  });
+
+                  $orderTableSelect.prop('disabled', false);
+                  updateSubmitState();
+              }
+
+              if ($orderTableSelect && $orderTableSelect.length) {
+                  $orderTableSelect.on('change', function () {
+                      var value = $(this).val();
+                      var selected = null;
+                      (orderState.tables || []).some(function (table) {
+                          if (table.id && table.id.toString() === value) {
+                              selected = table;
+                              return true;
+                          }
+                          return false;
+                      });
+
+                      orderState.selectedTable = selected;
+                      updateSubmitState();
+                  });
+              }
+
+              function loadTablesForShop(shopId) {
+                  if (!shopId) {
+                      updateTableOptions([]);
+                      return;
+                  }
+
+                  $orderTableSelect.prop('disabled', true).empty().append($('<option/>').text('桌號載入中...'));
+
+                  $.getJSON(shopTablesUrl, { shopId: shopId })
+                      .done(function (res) {
+                          if (res && res.ok) {
+                              orderState.tables = res.items || [];
+                              updateTableOptions(orderState.tables);
+                          } else {
+                              orderState.tables = [];
+                              updateTableOptions([]);
+                              setOrderStatus((res && res.error) ? res.error : '無法載入桌號。', 'error');
+                          }
+                      })
+                      .fail(function () {
+                          orderState.tables = [];
+                          updateTableOptions([]);
+                          setOrderStatus('讀取桌號時發生錯誤。', 'error');
+                      });
+              }
+
+              function loadMealsForShop(shopId) {
+                  if (!shopId) {
+                      orderState.meals = [];
+                      orderState.categories = [];
+                      renderMenu();
+                      return;
+                  }
+
+                  $orderMenu.empty().append($('<div class="orders-empty"/>').text('餐點載入中...'));
+
+                  $.getJSON(shopMealsUrl, { shopId: shopId })
+                      .done(function (res) {
+                          if (res && res.ok) {
+                              orderState.meals = res.items || [];
+                              orderState.categories = res.categories || [];
+                              renderMenu();
+                              setOrderStatus('餐點已載入完成。', 'success');
+                          } else {
+                              orderState.meals = [];
+                              orderState.categories = [];
+                              renderMenu();
+                              setOrderStatus((res && res.error) ? res.error : '讀取餐點時發生錯誤。', 'error');
+                          }
+                      })
+                      .fail(function () {
+                          orderState.meals = [];
+                          orderState.categories = [];
+                          renderMenu();
+                          setOrderStatus('讀取餐點時發生錯誤。', 'error');
+                      });
+              }
+
+              function refreshOrderFrame(options) {
+                  options = options || {};
+                  var targetRawId = $.trim(options.shopId || '');
+                  var shouldForce = !!options.force;
+
+                  if (!targetRawId) {
+                      orderState.shopId = null;
+                      orderState.normalizedShopId = null;
+                      orderShopInfo = null;
+                      resetOrderPanel({ silent: options.silent });
+                      return;
+                  }
+
+                  var normalized = normalizeShopId(targetRawId);
+                  if (!shouldForce && orderState.normalizedShopId === normalized) {
+                      return;
+                  }
+
+                  orderState.shopId = targetRawId;
+                  orderState.normalizedShopId = normalized;
+                  orderState.cart = {};
+                  renderCart();
+                  setOrderStatus('正在載入店家資訊…');
+                  $orderShopTitle.text('正在載入店家資訊…');
+
+                  loadTablesForShop(targetRawId);
+                  loadMealsForShop(targetRawId);
+
+                  $.getJSON(shopInfoUrl, { id: targetRawId })
+                      .done(function (res) {
+                          if (res && res.ok && res.shop) {
+                              orderShopInfo = res.shop;
+                              orderState.shopName = res.shop.name || '';
+                              var name = res.shop.name || targetRawId;
+                              $orderShopTitle.text('目前店家：' + name);
+                              setOrderStatus('店家資訊已載入。', 'success');
+                          } else {
+                              orderShopInfo = null;
+                              orderState.shopName = '';
+                              setOrderStatus(res && res.error ? res.error : '沒有此店家', 'error');
+                              resetOrderPanel({ silent: true, shopTitle: '沒有此店家', tablePlaceholder: '沒有可用桌號' });
+                          }
+                      })
+                      .fail(function () {
+                          orderShopInfo = null;
+                          orderState.shopName = '';
+                          setOrderStatus('讀取店家資訊時發生錯誤。', 'error');
+                          resetOrderPanel({ silent: true });
+                      });
+              }
+
+              function sendOrder() {
+                  if (!isHubReady) {
+                      setOrderStatus('SignalR 尚未連線完成，請稍候。', 'error');
+                      return;
+                  }
+
+                  if (!orderState.shopId) {
+                      setOrderStatus('請先選擇店家。', 'error');
+                      return;
+                  }
+
+                  var payloadItems = [];
+                  Object.keys(orderState.cart || {}).forEach(function (key) {
+                      var entry = orderState.cart[key];
+                      if (!entry || entry.qty <= 0) {
+                          return;
+                      }
+
+                      payloadItems.push({
+                          MealId: entry.id,
+                          Name: entry.name,
+                          Qty: entry.qty,
+                          Price: entry.price,
+                          Notes: null
+                      });
+                  });
+
+                  if (!payloadItems.length) {
+                      setOrderStatus('請先選擇至少一項餐點。', 'error');
+                      return;
+                  }
+
+                  var orderType = orderState.orderType === 'Takeout' ? 'Takeout' : 'DineIn';
+                  var takeoutCode = null;
+                  var selectedTable = orderState.selectedTable;
+
+                  if (orderType === 'DineIn') {
+                      if (!selectedTable || !selectedTable.id) {
+                          setOrderStatus('內用時請先選擇桌號。', 'error');
+                          return;
+                      }
+                  } else {
+                      takeoutCode = $.trim($takeoutCodeInput.val() || '');
+                      selectedTable = null;
+                  }
+
+                  var notesA = $.trim($orderNotes.val() || '');
+                  var notesB = $.trim($cartNotes.val() || '');
+                  var notes = null;
+                  if (notesA && notesB) {
+                      notes = notesA + '\n' + notesB;
+                  } else {
+                      notes = notesA || notesB || null;
+                  }
+
+                  var dto = {
+                      ShopId: orderState.shopId,
+                      ShopName: orderState.shopName || (currentShop && currentShop.name) || null,
+                      Items: payloadItems,
+                      Notes: notes,
+                      OrderType: orderType
+                  };
+
+                  if (orderType === 'DineIn' && selectedTable) {
+                      dto.TableId = selectedTable.id;
+                      dto.TableNumber = selectedTable.number;
+                      dto.TableZone = selectedTable.zone;
+                  } else if (orderType === 'Takeout' && takeoutCode) {
+                      dto.TakeoutCode = takeoutCode;
+                  }
+
+                  $submitOrder.prop('disabled', true).text('送出中...');
+
+                  hub.server.createOrder(dto)
+                      .done(function () {
+                          setOrderStatus('訂單已送出，請留意訂單通知。', 'success');
+                          orderState.cart = {};
+                          renderCart();
+                      })
+                      .fail(function () {
+                          setOrderStatus('送出訂單失敗，請稍後再試。', 'error');
+                      })
+                      .always(function () {
+                          $submitOrder.prop('disabled', false).text('送出訂單');
+                      });
+              }
+
+              if ($submitOrder && $submitOrder.length) {
+                  $submitOrder.on('click', function (event) {
+                      event.preventDefault();
+                      sendOrder();
+                  });
+              }
+
+              setMode('receive');
+              updateOrderType('DineIn');
+              renderCart();
+
+              if ($shopSelector && $shopSelector.length) {
+                  $shopSelector.on('submit', function (event) {
+                      event.preventDefault();
+                      var value = $shopInput.length ? $shopInput.val() : '';
+                      subscribeToShop(value);
+                  });
+              }
 
             function isInterfaceVisible() {
                 return !$body.hasClass(blankClass);
