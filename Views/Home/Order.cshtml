@@ -48,6 +48,7 @@
             --success: #059669;
             --danger: #dc2626;
             --shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+            --sticky-header-offset: 6.5rem;
         }
 
         * {
@@ -322,8 +323,8 @@
 
         .meal-categories {
             position: sticky;
-            top: 0;
-            z-index: 5;
+            top: var(--sticky-header-offset);
+            z-index: 15;
             margin: 0 -1.25rem;
             padding: .75rem 1.25rem .35rem;
             background: #fff;
@@ -1172,13 +1173,13 @@
             </header>
             <main class="order-main" role="main">
                 <section class="order-layout@(isReceiveEmbedded ? " order-layout--review" : string.Empty)">
+                    <div class="meal-categories" id="mealCategories" aria-live="polite"></div>
                     <div class="order-layout-main">
                         <section class="meal-panel panel" aria-labelledby="mealSectionTitle">
                             <div class="section-header">
                                 <h2 id="mealSectionTitle">餐點列表</h2>
                                 <span class="section-note">挑選想吃的料理</span>
                             </div>
-                            <div class="meal-categories" id="mealCategories" aria-live="polite"></div>
                             <div class="meal-list" id="mealList" aria-live="polite"></div>
                         </section>
                     </div>
