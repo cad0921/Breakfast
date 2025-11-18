@@ -5,6 +5,10 @@
     var shopPhone = ViewBag.ShopPhone as string ?? string.Empty;
     var shopAddr = ViewBag.ShopAddr as string ?? string.Empty;
     var initialToast = ViewBag.InitialToast as string ?? string.Empty;
+    var shopId = ViewBag.ShopId as string ?? string.Empty;
+    var receiveUrl = string.IsNullOrWhiteSpace(shopId)
+        ? Url.Action("Receive", "Home")
+        : Url.Action("Receive", "Home", new { id = shopId });
 }
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -60,8 +64,11 @@
   .topbar .meta{display:flex; flex-direction:column; gap:2px;}
   .topbar strong{font-size:18px; color:var(--text);}
   .topbar span{font-size:12px; color:var(--text-dim);}
+  .topbar-actions{display:flex; align-items:center; gap:12px;}
   .topbar .logout-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:999px; border:1px solid rgba(34,211,238,.4); background:#fff; color:var(--accent); font-weight:600; text-decoration:none; transition:.2s ease;}
   .topbar .logout-btn:hover{background:rgba(34,211,238,.08);}
+  .topbar .receive-btn{display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:999px; border:0; font-weight:600; text-decoration:none; color:#fff; background:linear-gradient(120deg, var(--accent), var(--accent-2)); box-shadow:0 10px 25px rgba(14,165,233,.25); transition:.2s ease;}
+  .topbar .receive-btn:hover{box-shadow:0 12px 28px rgba(14,165,233,.35); transform:translateY(-1px);}
   .page-title{display:flex; align-items:center; gap:10px; margin:0 0 18px 0}
   .page-title .pill{font-size:12px; color:var(--accent); background:rgba(34,211,238,.12);
                     border:1px solid rgba(34,211,238,.25); padding:2px 8px; border-radius:999px}
@@ -131,7 +138,10 @@
                         <span>聯絡：@(string.IsNullOrWhiteSpace(shopPhone) ? "-" : shopPhone) / @(string.IsNullOrWhiteSpace(shopAddr) ? "-" : shopAddr)</span>
                     }
                 </div>
-                <a class="logout-btn" href="@Url.Action("Logout", "Shop")">登出</a>
+                <div class="topbar-actions">
+                    <a class="receive-btn" href="@receiveUrl" target="_blank" rel="noopener">接收畫面</a>
+                    <a class="logout-btn" href="@Url.Action("Logout", "Shop")">登出</a>
+                </div>
             </div>
             <h2 class="page-title"><span id="pageTitle">分類</span><span class="pill">僅顯示本店資料</span></h2>
 
