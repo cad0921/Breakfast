@@ -20,14 +20,17 @@ namespace BreakFastShop.Controllers
         }
 
         //訂單
-        public async Task<ActionResult> Order(Guid? id)
+        public async Task<ActionResult> Order(Guid? id, Guid? shopId)
         {
-            if (!id.HasValue || id.Value == Guid.Empty)
+            var model = new OrderPageViewModel();
+            var hasTableId = id.HasValue && id.Value != Guid.Empty;
+            var hasShopId = shopId.HasValue && shopId.Value != Guid.Empty;
+
+            if (!hasTableId && !hasShopId)
             {
-                return View(new OrderPageViewModel());
+                return View(model);
             }
 
-            var model = new OrderPageViewModel();
             var connStr = ConnStr;
 
             if (string.IsNullOrWhiteSpace(connStr))
@@ -52,85 +55,125 @@ namespace BreakFastShop.Controllers
                                 WHERE m.ShopId=@ShopId AND m.IsActive=1
                                 ORDER BY c.SortOrder,c.Name,m.Name";
 
+            const string shopSql = @"SELECT TOP 1 Id,Name
+                                 FROM Shop
+                                 WHERE Id=@Id AND IsActive=1";
+
             try
             {
                 using (var connection = new SqlConnection(connStr))
                 {
                     await connection.OpenAsync();
 
-                    using (var tableCommand = new SqlCommand(tableSql, connection))
+                    if (hasTableId)
                     {
-                        tableCommand.Parameters.AddWithValue("@Id", id.Value);
-
-                        using (var reader = await tableCommand.ExecuteReaderAsync())
+                        using (var tableCommand = new SqlCommand(tableSql, connection))
                         {
-                            if (await reader.ReadAsync())
-                            {
-                                model.Table = new OrderTableInfo
-                                {
-                                    Id = reader.GetGuid(0),
-                                    Number = reader.GetInt32(1),
-                                    ShopId = reader.GetGuid(2),
-                                    ShopName = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                    Zone = reader.IsDBNull(4) ? null : reader.GetString(4)
-                                };
-                            }
-                        }
-                    }
+                            tableCommand.Parameters.AddWithValue("@Id", id.Value);
 
-                    if (model.Table != null)
-                    {
-                        using (var categoriesCommand = new SqlCommand(categoriesSql, connection))
-                        {
-                            categoriesCommand.Parameters.AddWithValue("@ShopId", model.Table.ShopId);
-
-                            using (var reader = await categoriesCommand.ExecuteReaderAsync())
+                            using (var reader = await tableCommand.ExecuteReaderAsync())
                             {
-                                while (await reader.ReadAsync())
+                                if (await reader.ReadAsync())
                                 {
-                                    model.Categories.Add(new OrderMealCategoryInfo
+                                    model.Table = new OrderTableInfo
                                     {
                                         Id = reader.GetGuid(0),
-                                        Name = reader.GetString(1)
-                                    });
+                                        Number = reader.GetInt32(1),
+                                        ShopId = reader.GetGuid(2),
+                                        ShopName = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                        Zone = reader.IsDBNull(4) ? null : reader.GetString(4)
+                                    };
                                 }
                             }
                         }
 
-                        using (var mealsCommand = new SqlCommand(mealsSql, connection))
+                        if (model.Table != null)
                         {
-                            mealsCommand.Parameters.AddWithValue("@ShopId", model.Table.ShopId);
+                            await LoadShopMealsAsync(connection, categoriesSql, mealsSql, model.Table.ShopId, model);
+                        }
+                        else
+                        {
+                            model.Error = "查無對應桌號。";
+                        }
+                    }
+                    else if (hasShopId)
+                    {
+                        using (var shopCommand = new SqlCommand(shopSql, connection))
+                        {
+                            shopCommand.Parameters.AddWithValue("@Id", shopId.Value);
 
-                            using (var reader = await mealsCommand.ExecuteReaderAsync())
+                            using (var reader = await shopCommand.ExecuteReaderAsync())
                             {
-                                while (await reader.ReadAsync())
+                                if (await reader.ReadAsync())
                                 {
-                                    model.Meals.Add(new OrderMealInfo
+                                    model.Shop = new OrderShopInfo
                                     {
                                         Id = reader.GetGuid(0),
-                                        Name = reader.GetString(1),
-                                        Money = reader.GetDecimal(2),
-                                        Element = reader.IsDBNull(3) ? null : reader.GetString(3),
-                                        CategoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
-                                        CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5),
-                                        OptionsJson = reader.IsDBNull(6) ? null : reader.GetString(6)
-                                    });
+                                        Name = reader.IsDBNull(1) ? null : reader.GetString(1)
+                                    };
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        model.Error = "查無對應桌號。";
+
+                        if (model.Shop != null)
+                        {
+                            await LoadShopMealsAsync(connection, categoriesSql, mealsSql, model.Shop.Id, model);
+                        }
+                        else
+                        {
+                            model.Error = "沒有此店家。";
+                        }
                     }
                 }
             }
             catch
             {
-                model.Error = "查詢桌號時發生錯誤。";
+                model.Error = hasTableId ? "查詢桌號時發生錯誤。" : "查詢店家時發生錯誤。";
             }
 
             return View(model);
+        }
+
+        private static async Task LoadShopMealsAsync(SqlConnection connection, string categoriesSql, string mealsSql, Guid shopId, OrderPageViewModel model)
+        {
+            using (var categoriesCommand = new SqlCommand(categoriesSql, connection))
+            {
+                categoriesCommand.Parameters.AddWithValue("@ShopId", shopId);
+
+                using (var reader = await categoriesCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        model.Categories.Add(new OrderMealCategoryInfo
+                        {
+                            Id = reader.GetGuid(0),
+                            Name = reader.GetString(1)
+                        });
+                    }
+                }
+            }
+
+            using (var mealsCommand = new SqlCommand(mealsSql, connection))
+            {
+                mealsCommand.Parameters.AddWithValue("@ShopId", shopId);
+
+                using (var reader = await mealsCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        model.Meals.Add(new OrderMealInfo
+                        {
+                            Id = reader.GetGuid(0),
+                            Name = reader.GetString(1),
+                            Money = reader.GetDecimal(2),
+                            Element = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            CategoryId = reader.IsDBNull(4) ? (Guid?)null : reader.GetGuid(4),
+                            CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            OptionsJson = reader.IsDBNull(6) ? null : reader.GetString(6)
+                        });
+                    }
+                }
+            }
         }
 
 

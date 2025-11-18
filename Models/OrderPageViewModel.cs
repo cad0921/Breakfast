@@ -7,11 +7,20 @@ namespace BreakFastShop.Models
     {
         public OrderTableInfo Table { get; set; }
 
+        public OrderShopInfo Shop { get; set; }
+
         public List<OrderMealInfo> Meals { get; set; } = new List<OrderMealInfo>();
 
         public List<OrderMealCategoryInfo> Categories { get; set; } = new List<OrderMealCategoryInfo>();
 
         public string Error { get; set; }
+    }
+
+    public class OrderShopInfo
+    {
+        public Guid Id { get; set; }
+
+        public string Name { get; set; }
     }
 
     public class OrderTableInfo

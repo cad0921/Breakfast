@@ -12,6 +12,12 @@
         shopName = Model.Table.ShopName,
         zone = Model.Table.Zone
     };
+    var takeoutShopPayload = Model?.Shop == null ? null : new
+    {
+        id = Model.Shop.Id,
+        rawId = Model.Shop.Id.ToString(),
+        name = Model.Shop.Name
+    };
     var mealsPayload = Model?.Meals?
         .Select(m => (object)new { id = m.Id, name = m.Name, money = m.Money, element = m.Element, categoryId = m.CategoryId, categoryName = m.CategoryName, optionsJson = m.OptionsJson })
         .ToList() ?? new List<object>();
@@ -1291,6 +1297,7 @@
     var currentMode = ORDER_MODE_DINE_IN;
     var currentTable = null;
     var initialTable = @Html.Raw(Json.Encode(tablePayload));
+    var initialTakeoutShop = @Html.Raw(Json.Encode(takeoutShopPayload));
     var initialMeals = @Html.Raw(Json.Encode(mealsPayload));
     var initialCategories = @Html.Raw(Json.Encode(categoriesPayload));
     var initialError = @Html.Raw(Json.Encode(errorMessage));
@@ -2518,7 +2525,7 @@
     }
 
     function tryFillFromQuery(){
-      if(initialTable){ return; }
+      if(initialTable || initialTakeoutShop){ return; }
       var params = new URLSearchParams(window.location.search);
       var tableVal = params.get('table') || params.get('tableNumber');
       var shopVal = params.get('shop') || params.get('shopId');
@@ -2622,7 +2629,7 @@
       pendingSubmitMode = null;
     };
 
-    function applyInitialTable(){
+    function applyInitialContext(){
       if(initialTable){
         currentTable = initialTable;
         var zoneText = initialTable.zone ? ('（' + initialTable.zone + '）') : '';
@@ -2634,6 +2641,16 @@
         updatePageTitle(initialTable);
         setTakeoutStatus(defaultTakeoutStatus, '');
         setTakeoutDetail('');
+      } else if(initialTakeoutShop){
+        currentTakeoutShop = {
+          id: initialTakeoutShop.id || null,
+          rawId: initialTakeoutShop.rawId || initialTakeoutShop.id || null,
+          name: initialTakeoutShop.name || ''
+        };
+        currentMealsShopId = String(currentTakeoutShop.id || '');
+        setOrderMode(ORDER_MODE_TAKEOUT);
+        setTableStatus(defaultTableStatus, '');
+        setTableDetail('');
       } else if(initialError){
         setOrderMode(ORDER_MODE_DINE_IN);
         setStatusForMode(ORDER_MODE_DINE_IN, initialError, 'error');
@@ -2651,7 +2668,7 @@
       }
     }
 
-    applyInitialTable();
+    applyInitialContext();
     setCategories(initialCategories);
     setMeals(initialMeals);
     updateSendButtonState();
@@ -2767,6 +2784,8 @@
     $.connection.hub.start().done(function(){
       if(initialTable && initialTable.shopId){
         currentMealsShopId = String(initialTable.shopId || '');
+      } else if(initialTakeoutShop && initialTakeoutShop.id){
+        currentMealsShopId = String(initialTakeoutShop.id || '');
       } else {
         tryFillFromQuery();
       }
