@@ -41,6 +41,7 @@ namespace BreakFastShop.Controllers
             {
                 ViewBag.ShopName = CurrentShop.Name;
                 ViewBag.ShopAccount = CurrentShop.Account;
+                ViewBag.ShopId = CurrentShopId?.ToString();
             }
 
             base.OnActionExecuting(filterContext);
