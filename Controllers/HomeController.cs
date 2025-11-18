@@ -1,4 +1,5 @@
 ﻿using BreakFastShop.Models;
+using BreakFastShop.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -178,6 +179,7 @@ namespace BreakFastShop.Controllers
 
 
         //接收頁面
+        [ShopAuthorize]
         public ActionResult Receive(string id)
         {
             var model = new ReceivePageViewModel();

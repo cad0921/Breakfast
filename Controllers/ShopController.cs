@@ -1,3 +1,4 @@
+using BreakFastShop.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -10,11 +11,9 @@ namespace BreakFastShop.Controllers
 {
     public class ShopController : Controller
     {
-        private const string ShopSessionKey = "__SHOP_USER";
-
         private string ConnStr => ConfigurationManager.ConnectionStrings["BreakfastShop"].ConnectionString;
 
-        private ShopSessionInfo CurrentShop => Session[ShopSessionKey] as ShopSessionInfo;
+        private ShopSessionInfo CurrentShop => Session[ShopAuthentication.SessionKey] as ShopSessionInfo;
 
         private Guid? CurrentShopId => CurrentShop?.Id;
 
@@ -82,7 +81,7 @@ namespace BreakFastShop.Controllers
             var info = await AuthenticateShopAsync(account, password);
             if (info != null)
             {
-                Session[ShopSessionKey] = info;
+                Session[ShopAuthentication.SessionKey] = info;
                 TempData["Welcome"] = $"歡迎回來，{info.Name}!";
                 return RedirectToAction("Index");
             }
@@ -95,7 +94,7 @@ namespace BreakFastShop.Controllers
 
         public ActionResult Logout()
         {
-            Session.Remove(ShopSessionKey);
+            Session.Remove(ShopAuthentication.SessionKey);
             TempData["Alert"] = "您已成功登出。";
             return RedirectToAction("Login");
         }
