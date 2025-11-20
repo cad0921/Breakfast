@@ -368,6 +368,7 @@
                             <div class="text-end"><strong>總計：</strong><span id="orderModalTotal"></span></div>
                         </div>
                         <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="printOrder" disabled>列印訂單</button>
                             <button type="button" class="btn btn-default" data-bs-dismiss="modal">關閉</button>
                         </div>
                     </div>
@@ -399,6 +400,17 @@
     UpdateOrderStatus: '@Url.Action("UpdateOrderStatus","Shop")'
   };
 
+  var ShopInfo = {
+    name: '@System.Web.HttpUtility.JavaScriptStringEncode(shopName)',
+    phone: '@System.Web.HttpUtility.JavaScriptStringEncode(shopPhone)',
+    addr: '@System.Web.HttpUtility.JavaScriptStringEncode(shopAddr)'
+  };
+
+  var currentOrder = null;
+  var currentOrderItems = [];
+  var currentOrderTotal = 0;
+  var orderItemsLoaded = false;
+
   var mealOptionsEditor = MealOptionsEditor.create({
     hiddenInput: '#mMealOptions',
     container: '#mealOptionsEditor'
@@ -410,6 +422,9 @@
   function toast(msg,ms){ var el=$('#toast-lite'); el.text(msg).addClass('show'); setTimeout(function(){ el.removeClass('show'); }, ms||1500); }
   function badgeYN(v){ return v ? '<span class="badge-yn badge-success">啟用</span>' : '<span class="badge-yn badge-default">停用</span>'; }
   function fmtDate(s){ return s ? (''+s).replace('T',' ').replace('Z','') : ''; }
+  function escapeHtml(str){ var m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}; var s = (str===null||str===undefined) ? '' : String(str); return s.replace(/[&<>"']/g,function(c){ return m[c]||c; }); }
+
+  function setPrintButtonReady(ready){ var $btn=$('#printOrder'); if(ready){ $btn.prop('disabled',false).text('列印訂單'); } else { $btn.prop('disabled',true).text('準備中…'); } }
 
   var titles = { cats:'分類', meals:'餐點', combos:'套餐', tables:'桌位', orders:'訂單' };
   $('.nav-link').on('click', function(e){ e.preventDefault(); var tab=$(this).data('tab'); switchTo(tab); });
@@ -460,6 +475,10 @@
   $('#btnReloadOrders').on('click', loadOrders);
 
   function openOrderModal(o){
+    currentOrder = o;
+    currentOrderItems = [];
+    currentOrderTotal = 0;
+    orderItemsLoaded = false;
     $('#orderModalId').text(o.Id);
     $('#orderModalStatus').text(o.Status);
     $('#orderModalType').text(o.OrderType);
@@ -470,10 +489,12 @@
     $('#orderModalUpdated').text(fmtDate(o.UpdatedAt));
     var $tbody=$('#orderItemsT tbody').empty().append('<tr><td colspan="5" class="text-center text-muted">載入中…</td></tr>');
     $('#orderModalTotal').text('計算中…');
+    setPrintButtonReady(false);
     var modal = new bootstrap.Modal(document.getElementById('orderModal'));
     modal.show();
     getJSON(U.OrderItems+'?orderId='+o.Id).done(function(items){
       var total=0;
+      var processed=[];
       $tbody.empty();
       if(!items.length){
         $tbody.append('<tr><td colspan="5" class="text-center text-muted">沒有品項</td></tr>');
@@ -484,6 +505,7 @@
           if (isNaN(price)) { price = 0; }
           var sub = qty * price;
           total += sub;
+          processed.push({ name: it.MealName, qty: qty, price: price, subtotal: sub, notes: it.Notes||'' });
           var tr=$('<tr/>');
           tr.append($('<td/>').text(it.MealName));
           tr.append($('<td/>').text(qty));
@@ -493,12 +515,86 @@
           $tbody.append(tr);
         });
       }
+      currentOrderItems = processed;
+      currentOrderTotal = total;
+      orderItemsLoaded = true;
       $('#orderModalTotal').text(total.toFixed(2));
+      setPrintButtonReady(true);
     }).fail(function(){
       $tbody.empty().append('<tr><td colspan="5" class="text-center text-danger">載入明細失敗</td></tr>');
       $('#orderModalTotal').text('—');
+      currentOrderItems = [];
+      currentOrderTotal = 0;
+      orderItemsLoaded = false;
     });
   }
+
+  function buildPrintHtml(order, items, total){
+    var rows = items.map(function(it){
+      return '<tr>'+
+             '<td>'+escapeHtml(it.name)+'</td>'+
+             '<td>'+escapeHtml(it.qty)+'</td>'+
+             '<td>'+escapeHtml(it.price.toFixed(2))+'</td>'+
+             '<td>'+escapeHtml(it.subtotal.toFixed(2))+'</td>'+
+             '<td>'+escapeHtml(it.notes||'')+'</td>'+
+             '</tr>';
+    }).join('');
+    if(!rows){ rows = '<tr><td colspan="5" class="empty">無品項</td></tr>'; }
+
+    var now = new Date();
+    var printedAt = now.getFullYear()+'-'+(now.getMonth()+1).toString().padStart(2,'0')+'-'+now.getDate().toString().padStart(2,'0')+' '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+
+    var infoRows = '';
+    if(ShopInfo.name){ infoRows += '<div class="muted">店名：'+escapeHtml(ShopInfo.name)+'</div>'; }
+    if(ShopInfo.phone){ infoRows += '<div class="muted">電話：'+escapeHtml(ShopInfo.phone)+'</div>'; }
+    if(ShopInfo.addr){ infoRows += '<div class="muted">地址：'+escapeHtml(ShopInfo.addr)+'</div>'; }
+
+    return [
+      '<!doctype html><html><head><meta charset="utf-8">',
+      '<title>訂單列印</title>',
+      '<style>',
+      'body{font-family:"Noto Sans TC",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,"Microsoft JhengHei",sans-serif;margin:0;padding:16px;color:#0f172a;}',
+      'h1{font-size:18px;margin:0 0 6px 0;}',
+      '.muted{color:#475569;font-size:12px;}',
+      '.meta{margin-bottom:10px;display:flex;flex-direction:column;gap:2px;}',
+      '.box{border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin-bottom:10px;}',
+      'table{width:100%;border-collapse:collapse;font-size:13px;}',
+      'th,td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left;}',
+      'th{background:#f1f5f9;}',
+      '.tot{text-align:right;font-size:16px;margin-top:8px;}',
+      '.empty{text-align:center;color:#94a3b8;}',
+      '@media print{body{padding:0;}button{display:none;}}',
+      '</style></head><body>',
+      '<h1>訂單列印</h1>',
+      '<div class="meta">', infoRows, '<div class="muted">列印時間：', escapeHtml(printedAt), '</div></div>',
+      '<div class="box">',
+      '<div>訂單編號：', escapeHtml(order.Id||''), '</div>',
+      '<div>訂單狀態：', escapeHtml(order.Status||''), '</div>',
+      '<div>訂單型態：', escapeHtml(order.OrderType||''), '</div>',
+      '<div>外帶碼：', escapeHtml(order.TakeoutCode||''), '</div>',
+      '<div>桌位：', escapeHtml(order.TableId||''), '</div>',
+      '<div>備註：', escapeHtml(order.Notes||''), '</div>',
+      '<div>建立時間：', escapeHtml(fmtDate(order.CreatedAt)), '</div>',
+      '<div>更新時間：', escapeHtml(fmtDate(order.UpdatedAt)), '</div>',
+      '</div>',
+      '<table><thead><tr><th>品項</th><th>數量</th><th>單價</th><th>小計</th><th>備註</th></tr></thead><tbody>', rows, '</tbody></table>',
+      '<div class="tot">總計：', escapeHtml((total||0).toFixed(2)), '</div>',
+      '</body></html>'
+    ].join('');
+  }
+
+  $('#printOrder').on('click', function(){
+    if(!currentOrder){ toast('請先開啟訂單明細'); return; }
+    if(!orderItemsLoaded){ toast('訂單明細尚未載入完成'); return; }
+    var html = buildPrintHtml(currentOrder, currentOrderItems, currentOrderTotal);
+    var w = window.open('', '_blank', 'width=620,height=800');
+    if(!w){ toast('請允許瀏覽器的彈出視窗以列印'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(function(){ w.print(); w.close(); }, 250);
+  });
 
   var initialToast = '@System.Web.HttpUtility.JavaScriptStringEncode(initialToast)';
   if(initialToast){ toast(initialToast, 2000); }
